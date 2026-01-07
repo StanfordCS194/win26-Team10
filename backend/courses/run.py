@@ -4,7 +4,7 @@
 
 
 import sys
-sys.path.append('../')  # Adjust the relative path as neededfrom descriptions.processDescriptions import processDesc
+sys.path.append('../')
 
 from departments import all_departments
 
