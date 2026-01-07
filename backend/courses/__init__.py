@@ -1,0 +1,5 @@
+"""
+Courses package initializer.
+"""
+
+
