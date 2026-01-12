@@ -23,42 +23,25 @@ import argparse
 import collections
 import json
 from typing import Any
-from urllib.parse import quote, urlparse, parse_qsl, urlencode
+from urllib.parse import quote
 
 import pandas as pd
 import requests
 from save_js import save_departments_js
 from helpers.dates import default_term_offered  # type: ignore
+from helpers.headers import (  # type: ignore
+    ALGOLIA_AGENT_QS,
+    ALGOLIA_HOST,
+    ALGOLIA_INDEX,
+    ALGOLIA_QUERIES_URL_FALLBACK,
+    NAVIGATOR_COOKIE,
+    NAVIGATOR_ORIGIN,
+    NAVIGATOR_USER_AGENT,
+)
 from helpers.parallelize import parallel_map  # type: ignore
 
 
-# Algolia endpoint is public but the key is time-bound ("validUntil").
-# We keep a fallback URL but auto-refresh a new one from navigator.stanford.edu when it expires.
-NAVIGATOR_ORIGIN = "https://navigator.stanford.edu/"
-ALGOLIA_HOST = "rxghapckof-2.algolianet.com"
-ALGOLIA_AGENT_QS = (
-    "Algolia%20for%20JavaScript%20(5.37.0)%3B%20Lite%20(5.37.0)%3B%20Browser%3B%20instantsearch.js%20(4.81.0)%3B%20react%20(18.3.0-canary-178c267a4e-20241218)%3B%20react-instantsearch%20(7.17.0)%3B%20react-instantsearch-core%20(7.17.0)%3B%20next.js%20(14.2.35)%3B%20JS%20Helper%20(3.26.0)"
-)
-ALGOLIA_QUERIES_URL_FALLBACK = (
-    f"https://{ALGOLIA_HOST}/1/indexes/*/queries"
-    f"?x-algolia-agent={ALGOLIA_AGENT_QS}"
-    "&x-algolia-api-key=NDY2ZTg2NDZmMDRiNTJlZjQwODM3NGNjMDgwZjJlZDE5MmJkMzA4MDhkYjE4NDU5ZjZiNmUwYzdiNjEzMGZjZHJlc3RyaWN0SW5kaWNlcz1jbGFzc2VzJnZhbGlkVW50aWw9MTc2Nzc2Nzc3OQ%3D%3D"
-    "&x-algolia-application-id=RXGHAPCKOF"
-)
 _ALGOLIA_CACHE: dict[str, str | None] = {"queries_url": None}
-
-ALGOLIA_INDEX = "classes"
-
-# Optional: paste the Cookie header value used by your browser for navigator.stanford.edu
-# (the value passed to curl via `-b '...'`).
-# If blank, we call /api/generate-key without cookies.
-NAVIGATOR_COOKIE = ""
-
-# Used only to satisfy stricter CSRF / bot checks; doesn't need to match exactly.
-NAVIGATOR_USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-)
 
 
 def _school_label(*, acad_group_descr: str, dept_name: str) -> str:
@@ -149,77 +132,6 @@ def _get_algolia_queries_url(*, debug: bool = False) -> str:
     if debug:
         print("[algolia] using fallback Algolia queries URL (may be expired)")
     return ALGOLIA_QUERIES_URL_FALLBACK
-
-
-def _algolia_browse_url(*, debug: bool = False) -> str:
-    """
-    Build Algolia browse endpoint URL using the same x-algolia-* query params
-    as the current cached queries URL (app id + secured key + agent).
-    """
-    qurl = _get_algolia_queries_url(debug=debug)
-    parsed = urlparse(qurl)
-    qs_pairs = [(k, v) for (k, v) in parse_qsl(parsed.query, keep_blank_values=True) if k.startswith("x-algolia-")]
-    qs = urlencode(qs_pairs)
-    return f"https://{ALGOLIA_HOST}/1/indexes/{ALGOLIA_INDEX}/browse?{qs}"
-
-
-def algolia_browse_hits(
-    *,
-    term_offered: str,
-    attributes_to_retrieve: list[str],
-    hits_per_page: int = 1000,
-    debug: bool = False,
-) -> list[dict[str, Any]]:
-    """
-    Retrieve all records for a term using Algolia Browse API (cursor iteration),
-    bypassing paginationLimitedTo.
-    """
-    browse_url = _algolia_browse_url(debug=debug)
-    cursor: str | None = None
-    all_hits: list[dict[str, Any]] = []
-    reqs = 0
-
-    while True:
-        if cursor:
-            body: dict[str, Any] = {"cursor": cursor}
-        else:
-            body = {
-                "query": "",
-                "hitsPerPage": hits_per_page,
-                "attributesToRetrieve": attributes_to_retrieve,
-                "facetFilters": [[f"termOffered:{term_offered}"]],
-            }
-
-        resp = requests.post(browse_url, headers=_algolia_headers(), data=json.dumps(body), timeout=60)
-        reqs += 1
-
-        if resp.status_code == 400 and "validUntil" in (resp.text or ""):
-            if debug:
-                print("[algolia] browse saw expired validUntil; refreshing key and retrying...")
-            _ALGOLIA_CACHE["queries_url"] = _refresh_algolia_queries_url(debug=debug)
-            browse_url = _algolia_browse_url(debug=debug)
-            resp = requests.post(browse_url, headers=_algolia_headers(), data=json.dumps(body), timeout=60)
-
-        if not resp.ok:
-            if debug:
-                print(f"[algolia] browse error status={resp.status_code}")
-                print((resp.text or "")[:2000])
-            resp.raise_for_status()
-
-        payload = resp.json()
-        hits = payload.get("hits", []) or []
-        all_hits.extend(hits)
-        cursor = payload.get("cursor")
-
-        if debug and reqs % 5 == 0:
-            print(f"[algolia] browse requests={reqs} hits={len(all_hits)}")
-
-        if not cursor:
-            if debug:
-                print(f"[algolia] browse complete requests={reqs} hits={len(all_hits)}")
-            break
-
-    return all_hits
 
 
 def algolia_multi_query(requests_list: list[dict[str, Any]], *, debug: bool = False) -> dict[str, Any]:

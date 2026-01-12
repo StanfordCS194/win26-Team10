@@ -44,9 +44,7 @@ year, startIndex, includeSearch = check_year(args.year), args.startIndex, args.i
 YEAR = f"{year}{year+1}"
 print(f"Begining scraping for {year} ({YEAR})")
 
-ROOT_PATH = "Courses2"
 INSTRUCTOR_PATH = "Instructor_QTR_DATA/combined.json"
-SEARCH_PATH = "Search2"
 
 metrics = get_latest_metrics_file()
 hourMap, gradeMap = get_hour_and_grade_map(metrics)

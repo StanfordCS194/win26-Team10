@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pandas as pd
+
 def check_year(year):
     """
         Check if specific year specified, if not return current year
@@ -134,3 +136,35 @@ def cleanData(data):
         del data[i]
 
     return data
+
+
+# ---------------------------------------------------------------------------
+# Generic parsing helpers
+# ---------------------------------------------------------------------------
+
+def safe_float(x) -> float | None:
+    """
+    Best-effort float conversion that returns None on null/NaN/parse failure.
+    """
+    try:
+        if x is None or (isinstance(x, float) and pd.isna(x)):
+            return None
+        return float(x)
+    except Exception:
+        return None
+
+
+def parse_percent(value) -> float | None:
+    """
+    Convert "86.32%" -> 86.32 (float), pass through floats/ints, else None.
+    """
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    s = str(value).strip()
+    if not s:
+        return None
+    if s.endswith("%"):
+        s = s[:-1].strip()
+    return safe_float(s)

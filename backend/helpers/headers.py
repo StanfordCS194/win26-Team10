@@ -35,3 +35,48 @@ BULLETIN_HEADERS = {
     'sec-fetch-site': 'cross-site',
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 }
+
+# ---------------------------------------------------------------------------
+# Syllabus (syllabus.stanford.edu)
+# ---------------------------------------------------------------------------
+
+# Keep this minimal. Avoid hardcoding cookies.
+SYLLABUS_HEADERS = {
+    "accept": "application/json, text/plain, */*",
+    "referer": "https://syllabus.stanford.edu/syllabus/",
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+}
+
+# ---------------------------------------------------------------------------
+# Navigator / Algolia (Stanford Navigator)
+# ---------------------------------------------------------------------------
+#
+# Algolia endpoint is public but the key is time-bound ("validUntil").
+# `backend/departments/run.py` keeps a fallback URL but can auto-refresh a new one
+# from navigator.stanford.edu when it expires.
+
+NAVIGATOR_ORIGIN = "https://navigator.stanford.edu/"
+ALGOLIA_HOST = "rxghapckof-2.algolianet.com"
+ALGOLIA_AGENT_QS = (
+    "Algolia%20for%20JavaScript%20(5.37.0)%3B%20Lite%20(5.37.0)%3B%20Browser%3B%20instantsearch.js%20(4.81.0)%3B%20react%20(18.3.0-canary-178c267a4e-20241218)%3B%20react-instantsearch%20(7.17.0)%3B%20react-instantsearch-core%20(7.17.0)%3B%20next.js%20(14.2.35)%3B%20JS%20Helper%20(3.26.0)"
+)
+ALGOLIA_QUERIES_URL_FALLBACK = (
+    f"https://{ALGOLIA_HOST}/1/indexes/*/queries"
+    f"?x-algolia-agent={ALGOLIA_AGENT_QS}"
+    "&x-algolia-api-key=NDY2ZTg2NDZmMDRiNTJlZjQwODM3NGNjMDgwZjJlZDE5MmJkMzA4MDhkYjE4NDU5ZjZiNmUwYzdiNjEzMGZjZHJlc3RyaWN0SW5kaWNlcz1jbGFzc2VzJnZhbGlkVW50aWw9MTc2Nzc2Nzc3OQ%3D%3D"
+    "&x-algolia-application-id=RXGHAPCKOF"
+)
+
+ALGOLIA_INDEX = "classes"
+
+# Optional: paste the Cookie header value used by your browser for navigator.stanford.edu
+# (the value passed to curl via `-b '...'`).
+# If blank, departments/run.py calls /api/generate-key without cookies.
+NAVIGATOR_COOKIE = ""
+
+# Used only to satisfy stricter CSRF / bot checks; doesn't need to match exactly.
+NAVIGATOR_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+)
