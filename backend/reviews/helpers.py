@@ -50,7 +50,7 @@ def get_reviews(
                 SELECT text
                 FROM reviews
                 WHERE code = ? AND flow = ?
-                ORDER BY idx ASC
+                ORDER BY review_idx ASC
                 """,
                 (c, flow),
             ).fetchall()
@@ -60,7 +60,7 @@ def get_reviews(
                 SELECT text
                 FROM reviews
                 WHERE code = ?
-                ORDER BY flow DESC, idx ASC
+                ORDER BY flow DESC, review_idx ASC
                 """,
                 (c,),
             ).fetchall()
@@ -85,7 +85,7 @@ def iter_reviews(
                 SELECT text
                 FROM reviews
                 WHERE code = ? AND flow = ?
-                ORDER BY idx ASC
+                ORDER BY review_idx ASC
                 """,
                 (c, flow),
             )
@@ -95,7 +95,7 @@ def iter_reviews(
                 SELECT text
                 FROM reviews
                 WHERE code = ?
-                ORDER BY flow DESC, idx ASC
+                ORDER BY flow DESC, review_idx ASC
                 """,
                 (c,),
             )

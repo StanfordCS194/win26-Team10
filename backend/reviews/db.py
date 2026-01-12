@@ -25,9 +25,9 @@ REVIEWS_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS reviews (
   code TEXT NOT NULL,
   flow TEXT NOT NULL,
-  idx  INTEGER NOT NULL,
+  review_idx  INTEGER NOT NULL,
   text TEXT NOT NULL,
-  PRIMARY KEY (code, flow, idx)
+  PRIMARY KEY (code, flow, review_idx)
 );
 
 CREATE INDEX IF NOT EXISTS idx_reviews_code ON reviews(code);

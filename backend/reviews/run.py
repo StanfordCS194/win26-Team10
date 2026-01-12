@@ -6,7 +6,7 @@ The CSV contains columns:
   code, quarters, reviews
 
 Where `quarters` and `reviews` are stringified Python lists.
-Reviews are stored in SQLite as one row per (code, flow, idx).
+Reviews are stored in SQLite as one row per (code, flow, review_idx).
 """
 
 from __future__ import annotations
@@ -25,10 +25,12 @@ _PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 try:
     from backend.helpers.data import normalize_code
+    from backend.helpers.dates import scraped_qtr_to_course_flow
     from backend.reviews.db import connect, default_db_path, init_schema
 except ImportError:  # pragma: no cover
     sys.path.append(str(_PROJECT_DIR))
     from backend.helpers.data import normalize_code
+    from backend.helpers.dates import scraped_qtr_to_course_flow
     from backend.reviews.db import connect, default_db_path, init_schema
 
 
@@ -45,6 +47,26 @@ def _parse_list(value: Any) -> list[Any]:
     except (ValueError, SyntaxError):
         return []
     return parsed if isinstance(parsed, list) else []
+
+
+def _flatten_reviews(value: Any) -> list[str]:
+    """
+    Some exports encode reviews as a list-of-lists (e.g. [[...]]). Flatten so
+    we always return a simple list[str] where each item is one review string.
+    """
+    parsed = _parse_list(value)
+    out: list[str] = []
+    for item in parsed:
+        if isinstance(item, list):
+            for sub in item:
+                s = str(sub).strip()
+                if s:
+                    out.append(s)
+        else:
+            s = str(item).strip()
+            if s:
+                out.append(s)
+    return out
 
 
 def _iter_input_files(out_dir: Path) -> list[Path]:
@@ -94,8 +116,11 @@ def ingest(*, out_dir: Path, db_path: Path, overwrite: bool) -> None:
                 if not code:
                     continue
 
-                flows = [str(x) for x in _parse_list(row.get("quarters"))]
-                reviews = [str(x) for x in _parse_list(row.get("reviews"))]
+                flows = [
+                    scraped_qtr_to_course_flow(str(x))
+                    for x in _parse_list(row.get("quarters"))
+                ]
+                reviews = _flatten_reviews(row.get("reviews"))
                 if not flows or not reviews:
                     continue
 
@@ -110,7 +135,7 @@ def ingest(*, out_dir: Path, db_path: Path, overwrite: bool) -> None:
                         conn.execute(
                             """
                             INSERT OR REPLACE INTO reviews(
-                                code, flow, idx, text
+                                code, flow, review_idx, text
                             )
                             VALUES(?, ?, ?, ?)
                             """,
@@ -130,7 +155,7 @@ def ingest(*, out_dir: Path, db_path: Path, overwrite: bool) -> None:
                         conn.execute(
                             """
                             INSERT OR REPLACE INTO reviews(
-                                code, flow, idx, text
+                                code, flow, review_idx, text
                             )
                             VALUES(?, ?, ?, ?)
                             """,
