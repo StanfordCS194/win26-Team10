@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class CourseMetrics:
     """
     Normalized, per-course metrics aggregated from local data sources.

@@ -50,6 +50,20 @@ def default_term_offered(today: Optional[date] = None) -> str:
     return StanfordTerm("Autumn", year).term_offered()
 
 
+def term_offered_to_quarter_abbrev(term_offered: str) -> str:
+    """
+    Convert Navigator `termOffered` strings (e.g. "Autumn 2025") to our quarter
+    abbreviations ("Aut", "Win", "Spr", "Sum").
+    """
+    season = (term_offered or "").split(" ")[0].strip()
+    return {
+        "Autumn": "Aut",
+        "Winter": "Win",
+        "Spring": "Spr",
+        "Summer": "Sum",
+    }.get(season, season[:3] if season else "")
+
+
 def term_id_to_flow(term_id: int) -> str:
     """
     Convert legacy term IDs used in some review/eval exports to a course "flow".
