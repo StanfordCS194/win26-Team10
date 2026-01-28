@@ -1,0 +1,95 @@
+[
+  {
+    "id": "ECON1",
+    "meta": {
+      "id": "ECON1",
+      "courseCode": "ECON 1",
+      "subject": "ECON",
+      "code": "1",
+      "title": "Principles of Economics",
+      "description": "This is an introductory course in economics. We will cover both microeconomics (investigating decisions by individuals and firms) and macroeconomics (examining the economy as a whole). The primary goal is to develop and then build on your understanding of the analytical tools and approaches used by economists. This will help you to interpret economic news and economic data at a much deeper level while also forming your own opinions on economic issues. The course will also provide a strong foundation for those of you who want to continue on with intermediate microeconomics and/or intermediate macroeconomics and possibly beyond.",
+      "career": "Undergraduate",
+      "department": "Humanities & Sciences",
+      "termOffered": "Winter 2026",
+      "flow": "2025-1",
+      "deptName": "Economics",
+      "acadYearLabel": "2025-2026",
+      "strm": "1264",
+      "acadGroupDescr": "Humanities & Sciences",
+      "acadOrgDescr": "Economics",
+      "subjectDescr": "Economics",
+      "crseId": "214484",
+      "crseOfferNbr": 1,
+      "units": [
+        5.0
+      ],
+      "instructionModeDescr": "In Person",
+      "curatedClassList": [
+        "Frosh Friendly"
+      ],
+      "unitsMin": 5,
+      "unitsMax": 5,
+      "gers": [
+        "WAYS-SI"
+      ],
+      "meanHours": 11.98,
+      "medianHours": 12.5,
+      "medianGrade": "B+",
+      "percentAs": 32.13,
+      "syllabus": "W26-ECON-1-01/W26-ECON-1-01"
+    },
+    "sectionsByTerm": {
+      "Win": [
+        {
+          "term": "Win",
+          "termOffered": "Winter 2026",
+          "acadYearLabel": "2025-2026",
+          "strm": "1264",
+          "acadGroupDescr": "Humanities & Sciences",
+          "acadOrgDescr": "Economics",
+          "sessionCode": "1",
+          "sectionNumber": "01",
+          "component": "LEC",
+          "primaryComponentFlag": "Y",
+          "format": "Lecture (LEC)",
+          "gradingBasisDescr": "Letter or Credit/No Credit",
+          "instructionModeDescr": "In Person",
+          "units": [
+            5.0
+          ],
+          "startDt": "2026-01-05",
+          "endDt": "2026-03-13",
+          "enrlOpenDtTs": 1764835200000,
+          "enrlCloseDtTs": 1771401600000,
+          "classStatDescr": "Active",
+          "enrlStatDescr": "Open",
+          "enrlTimeCheckStatDescr": "Open",
+          "enrlCap": 587,
+          "enrlTot": 285,
+          "waitCap": 0,
+          "waitTot": 0,
+          "classEnrlOptionList": [
+            "Open"
+          ],
+          "classId": "7586",
+          "schedules": [
+            {
+              "days": "Tuesday Thursday",
+              "startTimestamp": 34200,
+              "endTimestamp": 40800,
+              "location": "Cemex Auditorium",
+              "instructors": [
+                {
+                  "name": "Mark Duggan",
+                  "sunet": "mgduggan"
+                }
+              ],
+              "startTimeInMinutes": 570,
+              "endTimeInMinutes": 680
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

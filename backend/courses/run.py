@@ -18,11 +18,12 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import date
 from typing import Any
 
 from backend.helpers.algolia import fetch_hits
 from backend.helpers.dates import (
-    default_term_offered,
+    StanfordTerm,
 )
 from backend.helpers.headers import ALGOLIA_INDEX
 from backend.metrics.helpers import build_course_metrics_lookup
@@ -38,19 +39,45 @@ from .data import CourseMeta, CoursePayload, Section, group_hits_by_course_code
 # Fetch helpers
 # --------------------------------------------------------------------------------------
 
+def _default_navigator_term_offered(today: date | None = None) -> str:
+    """
+    Unlike departments generation (which defaults to prior Autumn), for course
+    payloads we default to the *current* quarter shown in Navigator.
+    """
+    today = today or date.today()
+    m = today.month
+    if m in (9, 10, 11, 12):
+        season = "Autumn"
+        year = today.year
+    elif m in (1, 2, 3):
+        season = "Winter"
+        year = today.year
+    elif m in (4, 5, 6):
+        season = "Spring"
+        year = today.year
+    else:
+        season = "Summer"
+        year = today.year
+    return StanfordTerm(season, year).term_offered()
+
+
 def _fetch_hits_for_subject(
     *,
     term_offered: str,
     subject: str,
+    dept_name: str | None = None,
     debug: bool = False,
 ) -> list[dict[str, Any]]:
     # Navigator Algolia index does **not** support subject facet filtering for
     # (it works for attributesToRetrieve but not for facetFilters). We instead
     # filter by `deptName` which is facetable and maps to the department UI.
-    #ain
     # For CS, deptName appears as "Computer Science".
     dept_name = (
-        "Computer Science" if subject.upper() == "CS" else subject.upper()
+        str(dept_name).strip()
+        if dept_name is not None and str(dept_name).strip()
+        else (
+            "Computer Science" if subject.upper() == "CS" else subject.upper()
+        )
     )
     base_filters = [
         [f"termOffered:{term_offered}"],
@@ -131,6 +158,15 @@ def main() -> None:
     )
     parser.add_argument("--subject", type=str, default="CS")
     parser.add_argument(
+        "--dept-name",
+        type=str,
+        default=None,
+        help=(
+            'Navigator deptName facet value, e.g. "Computer Science" '
+            "(optional)"
+        ),
+    )
+    parser.add_argument(
         "--term-offered",
         action="append",
         default=None,
@@ -149,10 +185,15 @@ def main() -> None:
     args = parser.parse_args()
 
     subject = str(args.subject).strip().upper()
-    term_offered_list = args.term_offered or [default_term_offered()]
+    term_offered_list = args.term_offered or [
+        _default_navigator_term_offered()
+    ]
 
     if args.debug:
-        print(f"[run] subject={subject} termOffered={term_offered_list}")
+        print(
+            f"[run] subject={subject} deptName={args.dept_name!r} "
+            f"termOffered={term_offered_list}"
+        )
 
     # Load enrichments up front (fast, local).
     syllabi_map = load_syllabi_map()
@@ -172,6 +213,7 @@ def main() -> None:
         hits = _fetch_hits_for_subject(
             term_offered=term,
             subject=subject,
+            dept_name=args.dept_name,
             debug=args.debug,
         )
         print(f"[fetch] got hits={len(hits)} for term={term!r}")

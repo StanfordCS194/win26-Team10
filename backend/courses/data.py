@@ -304,15 +304,36 @@ def group_hits_by_course_code(
     *,
     subject: str,
 ) -> dict[str, list[Mapping[str, Any]]]:
-    out: dict[str, list[Mapping[str, Any]]] = {}
-    for h in hits:
-        subj = str(h.get("subject") or "").strip()
-        cat = str(
+    def _extract_subject(h: Mapping[str, Any]) -> str:
+        s = h.get("subject") or h.get("subjectCode") or h.get("subjectStr") or ""
+        if isinstance(s, str) and s.strip():
+            return s.strip()
+        # Sometimes subject appears as a list (e.g. cross-lists).
+        for key in ("subjects", "subjectList", "subjectsList"):
+            v = h.get(key)
+            if isinstance(v, list) and v:
+                first = v[0]
+                if isinstance(first, str) and first.strip():
+                    return first.strip()
+        return ""
+
+    def _extract_catalog_nbr(h: Mapping[str, Any]) -> str:
+        cat = (
             h.get("catalogNbr")
             or h.get("catalogNbrStr")
             or h.get("catalogNbrLong")
+            or h.get("catalogNumber")
+            or h.get("catalogNbrDisplay")
             or ""
-        ).strip()
+        )
+        if isinstance(cat, (int, float)) and cat:
+            return str(int(cat))
+        return str(cat).strip()
+
+    out: dict[str, list[Mapping[str, Any]]] = {}
+    for h in hits:
+        subj = _extract_subject(h)
+        cat = _extract_catalog_nbr(h)
         if not subj or not cat or subj != subject:
             continue
         course_code = f"{subj} {cat}"

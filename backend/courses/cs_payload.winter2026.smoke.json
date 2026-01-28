@@ -1,0 +1,92 @@
+[
+  {
+    "id": "CS100ACE",
+    "meta": {
+      "id": "CS100ACE",
+      "courseCode": "CS 100ACE",
+      "subject": "CS",
+      "code": "100ACE",
+      "title": "Problem-solving Lab for CS106A",
+      "description": "Additional problem solving practice for the introductory CS course [[CS 106A]]. Sections are designed to allow students to acquire a deeper understanding of CS and its applications, work collaboratively, and develop a mastery of the material. Limited enrollment, permission of instructor required. Concurrent enrollment in [[CS 106A]] required.",
+      "career": "Undergraduate",
+      "department": "School of Engineering",
+      "termOffered": "Winter 2026",
+      "flow": "2025-1",
+      "deptName": "Computer Science",
+      "acadYearLabel": "2025-2026",
+      "strm": "1264",
+      "acadGroupDescr": "School of Engineering",
+      "acadOrgDescr": "Computer Science",
+      "subjectDescr": "Computer Science",
+      "crseId": "221165",
+      "crseOfferNbr": 1,
+      "gradingBasisDescr": "Satisfactory/No Credit",
+      "units": [
+        1.0
+      ],
+      "instructionModeDescr": "In Person",
+      "curatedClassList": [],
+      "unitsMin": 1,
+      "unitsMax": 1,
+      "gers": [],
+      "meanHours": 8.82,
+      "medianHours": 2.5,
+      "syllabus": "Sp25-CS-100ACE-01/Sp25-CS-100ACE-01"
+    },
+    "terms": {
+      "Win": [
+        {
+          "sessionCode": "1",
+          "sectionNumber": "01",
+          "component": "LAB",
+          "primaryComponentFlag": "Y",
+          "format": "Laboratory (LAB)",
+          "startDt": "2026-01-05",
+          "endDt": "2026-03-13",
+          "enrlOpenDtTs": 1764835200000,
+          "enrlCloseDtTs": 1771401600000,
+          "classStatDescr": "Active",
+          "enrlStatDescr": "Closed",
+          "enrlTimeCheckStatDescr": "Full",
+          "enrlCap": 0,
+          "enrlTot": 6,
+          "waitCap": 0,
+          "waitTot": 0,
+          "classEnrlOptionList": [],
+          "classId": "2163",
+          "schedules": [
+            {
+              "classMtgNbr": 1,
+              "facilityDescr": "160-332",
+              "room": "332",
+              "startTime": "3:00 PM",
+              "startTimeInMinutes": 900,
+              "endTime": "4:50 PM",
+              "endTimeInMinutes": 1010,
+              "mon": "N",
+              "tues": "Y",
+              "wed": "N",
+              "thurs": "N",
+              "fri": "N",
+              "sat": "N",
+              "sun": "N",
+              "daysOfWeek": "Tues",
+              "daysOfWeekList": [
+                "Tuesday"
+              ],
+              "instructors": [
+                {
+                  "sunetId": "eebssa",
+                  "displayName": "Eban Ebssa",
+                  "instrRole": "PI",
+                  "firstName": "Eban",
+                  "lastName": "Ebssa"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
