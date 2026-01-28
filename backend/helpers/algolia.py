@@ -181,13 +181,17 @@ def fetch_hits(
     """
     attrs = attributes_to_retrieve or ["*"]
 
-    def run(filters: list[list[str]]) -> tuple[list[dict[str, Any]], int, int]:
+    def run_page(
+        filters: list[list[str]],
+        *,
+        page: int,
+    ) -> tuple[list[dict[str, Any]], int, int]:
         req = {
             "indexName": index_name,
             "facetFilters": filters,
             "attributesToRetrieve": attrs,
             "hitsPerPage": hits_per_page,
-            "page": 0,
+            "page": int(page),
             "query": query,
         }
         res = algolia_multi_query([req], debug=debug)["results"][0]
@@ -196,8 +200,26 @@ def fetch_hits(
         nb_pages = int(res.get("nbPages") or 0)
         return hits, nb_hits, nb_pages
 
-    hits, nb_hits, nb_pages = run(facet_filters)
-    capped = nb_hits > hits_per_page and nb_pages <= 1
+    def run_all_pages(filters: list[list[str]]) -> tuple[list[dict[str, Any]], int, int]:
+        hits0, nb_hits, nb_pages = run_page(filters, page=0)
+        all_hits: list[dict[str, Any]] = list(hits0)
+        if nb_pages > 1:
+            # Fetch remaining pages. Note: Algolia indices often enforce a
+            # pagination limit (e.g. ~1000 results). We still page until nbPages.
+            for p in range(1, nb_pages):
+                hp, _, _ = run_page(filters, page=p)
+                all_hits.extend(hp)
+                if debug and (p == 1 or p % 5 == 0 or p == nb_pages - 1):
+                    print(
+                        f"[fetch] page {p+1}/{nb_pages} hits={len(hp)} total={len(all_hits)}"
+                    )
+        return all_hits, nb_hits, nb_pages
+
+    hits, nb_hits, nb_pages = run_all_pages(facet_filters)
+
+    # Heuristic for the common Algolia pagination cap: nbHits > hitsPerPage but
+    # nbPages is 1, OR we got a "full" first page and nbPages is 1.
+    capped = (nb_pages <= 1) and (nb_hits > hits_per_page or len(hits) >= hits_per_page)
     if debug:
         print(
             f"[fetch] hitsReturned={len(hits)} nbHits={nb_hits} nbPages={nb_pages}"
@@ -211,10 +233,13 @@ def fetch_hits(
         "indexName": index_name,
         "facetFilters": facet_filters,
         "facets": [split_by_facet],
+        # Mirror the browser request shape a bit; some Algolia setups are picky.
+        "highlightPostTag": "__/ais-highlight__",
+        "highlightPreTag": "__ais-highlight__",
         "hitsPerPage": 0,
         "page": 0,
         "query": query,
-        "maxValuesPerFacet": 100,
+        "maxValuesPerFacet": 500,
     }
     payload = algolia_multi_query([facet_req], debug=debug)
     facets = payload["results"][0].get("facets", {}) or {}
@@ -224,7 +249,7 @@ def fetch_hits(
 
     all_hits: list[dict[str, Any]] = []
     for v in facet_values:
-        h2, _, _ = run([*facet_filters, [f"{split_by_facet}:{v}"]])
+        h2, _, _ = run_all_pages([*facet_filters, [f"{split_by_facet}:{v}"]])
         all_hits.extend(h2)
         if debug:
             print(f"[fetch] {split_by_facet}={v!r} hits={len(h2)} total={len(all_hits)}")
