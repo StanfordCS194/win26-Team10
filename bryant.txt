@@ -1,0 +1,19 @@
+Source Control with git
+
+We’ve primarily used our Github project for knowledge sharing and project management.  However, the primary use of git is for software revision control.  As your project work transitions into the build phase you should be putting git and Github increasingly to use in this way.
+
+git and Github are industry standards; people tend to have strong opinions positively or negatively on git, but the advice here is to accept that revision control - and specifically git - is an important part of the software development community and it behooves you to develop agency with this core tool.  If you are new to it, it might take some time to get comfortable, but that investment in time and energy will pay you back for as long as you are in the software world.
+
+With that backdrop, this assignment is designed to be a lightweight way to help you get over the git learning curve, so that you can confidently contribute to a software project of any size with many contributors.
+
+Deliverables:
+
+Read and following along with this Github basics document
+Follow the steps to setup git on your computer and to download your project repository
+Create a branch with the naming convention <your name>-test
+Add a file with any arbitrary text in the root of your project directly (alongside the readme.md file)
+Edit the readme.md file by adding your name on a newline
+Follow the steps for “Submitting Code”
+Collaboratively with your teammates, have your pull request reviewed, approved and ultimately merged.
+
+
