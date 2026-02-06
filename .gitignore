@@ -2,6 +2,10 @@ __pycache__
 .DS_Store
 .venv/
 .env
+
+# Node / frontend
+node_modules/
+frontend/node_modules/
 *.env
 
 debug/
