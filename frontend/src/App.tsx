@@ -6,9 +6,9 @@ import Navigation from './layouts/Navigation'
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
+      <div className="app-container">
         <Navigation />
-        <div className="flex-1">
+        <div className="main-content">
           <Routes>
             <Route path="/" element={<RecruiterDashboard />} />
             <Route path="/student" element={<StudentPage />} />

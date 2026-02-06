@@ -9,16 +9,16 @@ interface StudentListProps {
 export default function StudentList({ students }: StudentListProps) {
   if (students.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-        <Users size={48} className="mb-4 opacity-50" />
-        <p className="text-lg">No students match your filters</p>
-        <p className="text-sm">Try adjusting your search criteria</p>
+      <div className="empty-state">
+        <Users size={48} />
+        <p>No students match your filters</p>
+        <span>Try adjusting your search criteria</span>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div className="student-grid">
       {students.map((student) => (
         <StudentCard key={student.id} student={student} />
       ))}

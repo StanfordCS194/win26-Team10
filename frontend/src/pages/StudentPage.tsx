@@ -69,7 +69,6 @@ export default function StudentPage() {
   }
 
   const handleSave = () => {
-    // In a real app, this would send to the backend
     console.log('Saving profile:', profile)
     console.log('Uploaded file:', uploadedFile)
     setSaved(true)
@@ -83,66 +82,58 @@ export default function StudentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Student Profile</h1>
-        <p className="text-gray-600 mb-8">
+    <div className="student-page">
+      <div className="student-page-container">
+        <h1 className="page-title">Student Profile</h1>
+        <p className="page-description">
           Fill in your information and upload your transcript to be visible to recruiters.
         </p>
 
         {/* Personal Information */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
+        <section className="form-section">
+          <h2 className="section-title">Personal Information</h2>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
+          <div className="form-row">
+            <div className="form-group">
+              <label>First Name</label>
               <input
                 type="text"
                 value={profile.firstName}
                 onChange={(e) => updateProfile('firstName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="input"
                 placeholder="John"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
+            <div className="form-group">
+              <label>Last Name</label>
               <input
                 type="text"
                 value={profile.lastName}
                 onChange={(e) => updateProfile('lastName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="input"
                 placeholder="Doe"
               />
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+          <div className="form-group">
+            <label>Email</label>
             <input
               type="email"
               value={profile.email}
               onChange={(e) => updateProfile('email', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="input"
               placeholder="john.doe@stanford.edu"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Major
-              </label>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Major</label>
               <select
                 value={profile.major}
                 onChange={(e) => updateProfile('major', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="select"
               >
                 <option value="">Select major</option>
                 {MAJORS.map((major) => (
@@ -152,14 +143,12 @@ export default function StudentPage() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Graduation Year
-              </label>
+            <div className="form-group">
+              <label>Graduation Year</label>
               <select
                 value={profile.graduationYear}
                 onChange={(e) => updateProfile('graduationYear', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="select"
               >
                 <option value="">Select year</option>
                 {GRADUATION_YEARS.map((year) => (
@@ -171,10 +160,8 @@ export default function StudentPage() {
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              GPA
-            </label>
+          <div className="form-group">
+            <label>GPA</label>
             <input
               type="number"
               min="0"
@@ -182,30 +169,26 @@ export default function StudentPage() {
               step="0.01"
               value={profile.gpa}
               onChange={(e) => updateProfile('gpa', e.target.value)}
-              className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="input input-small"
               placeholder="3.50"
             />
           </div>
         </section>
 
         {/* Skills */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Skills</h2>
-          <p className="text-sm text-gray-600 mb-4">
+        <section className="form-section">
+          <h2 className="section-title">Skills</h2>
+          <p className="section-description">
             Select the skills that best describe your expertise.
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="skills-selection">
             {ALL_SKILLS.map((skill) => {
               const isSelected = profile.skills.includes(skill)
               return (
                 <button
                   key={skill}
                   onClick={() => toggleSkill(skill)}
-                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors flex items-center gap-1 ${
-                    isSelected
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
-                  }`}
+                  className={`skill-btn ${isSelected ? 'selected' : ''}`}
                 >
                   {isSelected ? <Check size={14} /> : <Plus size={14} />}
                   {skill}
@@ -216,34 +199,30 @@ export default function StudentPage() {
         </section>
 
         {/* Transcript Upload */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Transcript</h2>
+        <section className="form-section">
+          <h2 className="section-title">Transcript</h2>
 
           {!uploadedFile ? (
-            <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
-              <Upload className="text-gray-400 mb-2" size={32} />
-              <span className="text-gray-600">Click to upload transcript</span>
-              <span className="text-sm text-gray-400 mt-1">PDF, PNG, or JPG (max 10MB)</span>
+            <label className="upload-area">
+              <Upload size={32} />
+              <span>Click to upload transcript</span>
+              <small>PDF, PNG, or JPG (max 10MB)</small>
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
                 onChange={handleFileUpload}
-                className="hidden"
               />
             </label>
           ) : (
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <FileText className="text-blue-600" size={24} />
+            <div className="uploaded-file">
+              <div className="file-info">
+                <FileText size={24} />
                 <div>
-                  <p className="font-medium text-gray-900">{uploadedFile.name}</p>
-                  <p className="text-sm text-gray-500">{formatFileSize(uploadedFile.size)}</p>
+                  <p className="file-name">{uploadedFile.name}</p>
+                  <p className="file-size">{formatFileSize(uploadedFile.size)}</p>
                 </div>
               </div>
-              <button
-                onClick={removeFile}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-              >
+              <button onClick={removeFile} className="remove-file-btn">
                 <X size={20} />
               </button>
             </div>
@@ -253,17 +232,13 @@ export default function StudentPage() {
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className={`w-full py-3 rounded-lg font-medium transition-colors ${
-            saved
-              ? 'bg-green-600 text-white'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
+          className={`save-btn ${saved ? 'success' : 'primary'}`}
         >
           {saved ? (
-            <span className="flex items-center justify-center gap-2">
+            <>
               <Check size={20} />
               Saved!
-            </span>
+            </>
           ) : (
             'Save Profile'
           )}

@@ -16,7 +16,6 @@ const initialFilters: Filters = {
 
 function filterStudents(students: Student[], filters: Filters): Student[] {
   return students.filter((student) => {
-    // Search filter (name)
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       const fullName = `${student.firstName} ${student.lastName}`.toLowerCase()
@@ -25,22 +24,18 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
       }
     }
 
-    // GPA range filter
     if (student.gpa < filters.minGpa || student.gpa > filters.maxGpa) {
       return false
     }
 
-    // Major filter
     if (filters.major && student.major !== filters.major) {
       return false
     }
 
-    // Graduation year filter
     if (filters.graduationYear && student.graduationYear !== parseInt(filters.graduationYear)) {
       return false
     }
 
-    // Skills filter (student must have ALL selected skills)
     if (filters.skills.length > 0) {
       const hasAllSkills = filters.skills.every((skill) => student.skills.includes(skill))
       if (!hasAllSkills) {
@@ -61,24 +56,20 @@ export default function RecruiterDashboard() {
   )
 
   return (
-    <div className="h-full flex">
-      {/* Sidebar */}
+    <div className="dashboard">
       <FilterSidebar filters={filters} onFiltersChange={setFilters} />
 
-      {/* Main Content */}
-      <main className="flex-1 p-6 overflow-y-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <Users className="text-blue-600" />
+      <main className="dashboard-main">
+        <div className="dashboard-header">
+          <h1 className="dashboard-title">
+            <Users />
             Student Directory
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="dashboard-subtitle">
             Showing {filteredStudents.length} of {mockStudents.length} students
           </p>
         </div>
 
-        {/* Student Grid */}
         <StudentList students={filteredStudents} />
       </main>
     </div>
