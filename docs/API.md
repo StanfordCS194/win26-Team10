@@ -167,7 +167,7 @@ async function getJobStatus(jobId: string, token: string) {
 ### Get Latest Transcript
 
 ```
-GET /latest
+GET /get_latest_transcript
 ```
 
 Get the current user's most recently parsed transcript. Only available for users with type `student`.
@@ -250,7 +250,7 @@ function TranscriptUploader() {
     if (job.status === 'succeeded') {
       setStatus('Complete!')
       // Fetch the transcript
-      const transcript = await fetch(`${API_URL}/latest`, {
+      const transcript = await fetch(`${API_URL}/get_latest_transcript`, {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json())
       console.log('Transcript:', transcript)

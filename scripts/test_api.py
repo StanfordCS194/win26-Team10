@@ -124,10 +124,10 @@ def test_job_status(client: httpx.Client, api_url: str, job_id: str, token: str)
 
 def test_latest(client: httpx.Client, api_url: str, token: str) -> bool:
     """Test the latest transcript endpoint."""
-    print("\n[4/4] Testing /latest endpoint...")
+    print("\n[4/4] Testing /get_latest_transcript endpoint...")
     
     response = client.get(
-        f"{api_url}/latest",
+        f"{api_url}/get_latest_transcript",
         headers={"Authorization": f"Bearer {token}"},
     )
     

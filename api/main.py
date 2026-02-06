@@ -152,7 +152,7 @@ async def get_parse_job_status(
     )
 
 
-@app.get("/latest")
+@app.get("/get_latest_transcript")
 async def get_latest_transcript(user: dict = Depends(get_current_user)):
     """
     Get the current user's latest parsed transcript.
