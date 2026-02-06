@@ -203,8 +203,10 @@ async def fail_job(job_id: str, error: str) -> dict:
 
 
 # Storage helpers
-
-DEFAULT_BUCKET = "parse-files"
+#
+# NOTE: the Supabase Storage bucket must exist in your Supabase project.
+# Configure via env var to avoid hard-coding bucket names across environments.
+DEFAULT_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "parse-files")
 
 
 def download_file(file_id: str, dest_path: Path, bucket: str = DEFAULT_BUCKET) -> Path:

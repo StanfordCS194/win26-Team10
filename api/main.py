@@ -6,6 +6,7 @@ import uuid
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
@@ -23,6 +24,19 @@ app = FastAPI(
     title="Parse API",
     description="API for submitting and tracking parse jobs",
     version="1.0.0",
+)
+
+# CORS: allow local frontend dev server(s) to call the API
+# Without this, browsers will block requests due to failed preflight (OPTIONS).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
