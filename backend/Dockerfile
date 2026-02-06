@@ -8,16 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # CRITICAL: Copy requirements FIRST for layer caching
-COPY requirements-prod.txt .
+COPY backend/requirements-prod.txt .
 
 # Install Python deps (this layer is cached if requirements unchanged)
 RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy application code LAST (changes most frequently)
-COPY . .
-
-# Entrypoint setup
-COPY entrypoint.sh /entrypoint.sh
+COPY backend/api ./api
+COPY backend/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENV PORT=8080
