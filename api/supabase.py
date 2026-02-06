@@ -1,5 +1,5 @@
 """
-Supabase database helpers for job queue operations.
+Supabase database helpers for job queue and user operations.
 """
 
 import os
@@ -19,6 +19,69 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
 
+# =============================================================================
+# User helpers
+# =============================================================================
+
+
+async def get_user(user_id: str) -> Optional[dict]:
+    """
+    Get a user by ID.
+
+    Args:
+        user_id: The user UUID
+
+    Returns:
+        The user record or None if not found
+    """
+    client = get_client()
+    result = client.table("users").select("*").eq("id", user_id).execute()
+
+    if result.data:
+        return result.data[0]
+    return None
+
+
+async def update_user_latest_repr(user_id: str, storage_path: str) -> dict:
+    """
+    Update a user's latest_repr_path.
+
+    Args:
+        user_id: The user UUID
+        storage_path: Path to the transcript.json in storage
+
+    Returns:
+        The updated user record
+    """
+    client = get_client()
+    result = (
+        client.table("users")
+        .update({"latest_repr_path": storage_path})
+        .eq("id", user_id)
+        .execute()
+    )
+    return result.data[0] if result.data else {}
+
+
+async def get_user_type(user_id: str) -> Optional[str]:
+    """
+    Get a user's type (student or recruiter).
+
+    Args:
+        user_id: The user UUID
+
+    Returns:
+        The user type or None if not found
+    """
+    user = await get_user(user_id)
+    return user.get("type") if user else None
+
+
+# =============================================================================
+# Client
+# =============================================================================
+
+
 def get_client() -> Client:
     """Get Supabase client instance."""
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
@@ -26,26 +89,31 @@ def get_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 
-async def create_job(user_id: Optional[str] = None, parsed_file_id: Optional[str] = None) -> dict:
+async def create_job(
+    user_id: str,
+    storage_path: str,
+    parsed_file_id: Optional[str] = None,
+) -> dict:
     """
     Create a new parse job in the queue.
-    
+
     Args:
-        user_id: Optional user ID (defaults to a placeholder for now)
-        parsed_file_id: Optional parsed file ID (defaults to a placeholder for now)
-    
+        user_id: The user UUID
+        storage_path: Path in storage where files are stored (e.g., "{user_id}/{job_id}")
+        parsed_file_id: Optional parsed file ID
+
     Returns:
         The created job record
     """
     client = get_client()
-    
-    # For now, use placeholder UUIDs if not provided
+
     job_data = {
-        "user_id": user_id or str(uuid.uuid4()),
+        "user_id": user_id,
         "parsed_file_id": parsed_file_id or str(uuid.uuid4()),
+        "storage_path": storage_path,
         "status": "queued",
     }
-    
+
     result = client.table("parse_jobs").insert(job_data).execute()
     return result.data[0]
 
@@ -168,28 +236,72 @@ def download_file(file_id: str, dest_path: Path, bucket: str = DEFAULT_BUCKET) -
 def upload_file(local_path: Path, bucket: str = DEFAULT_BUCKET, dest_path: str | None = None) -> str:
     """
     Upload a file to Supabase Storage.
-    
+
     Args:
         local_path: Local file path to upload
         bucket: Storage bucket name
         dest_path: Destination path in bucket (defaults to filename)
-        
+
     Returns:
         The file path/ID in storage
     """
     client = get_client()
-    
+
     # Use filename if no dest_path provided
     file_path = dest_path or local_path.name
-    
+
     # Read file content
     content = local_path.read_bytes()
-    
+
     # Upload to storage
     client.storage.from_(bucket).upload(
         path=file_path,
         file=content,
         file_options={"content-type": "application/pdf"},
     )
-    
+
     return file_path
+
+
+def upload_bytes(
+    content: bytes,
+    dest_path: str,
+    bucket: str = DEFAULT_BUCKET,
+    content_type: str = "application/pdf",
+) -> str:
+    """
+    Upload bytes directly to Supabase Storage.
+
+    Args:
+        content: File content as bytes
+        dest_path: Destination path in bucket
+        bucket: Storage bucket name
+        content_type: MIME type of the file
+
+    Returns:
+        The file path in storage
+    """
+    client = get_client()
+
+    client.storage.from_(bucket).upload(
+        path=dest_path,
+        file=content,
+        file_options={"content-type": content_type},
+    )
+
+    return dest_path
+
+
+def get_file_bytes(file_path: str, bucket: str = DEFAULT_BUCKET) -> bytes:
+    """
+    Get file content as bytes from Supabase Storage.
+
+    Args:
+        file_path: Path to file in storage
+        bucket: Storage bucket name
+
+    Returns:
+        File content as bytes
+    """
+    client = get_client()
+    return client.storage.from_(bucket).download(file_path)
