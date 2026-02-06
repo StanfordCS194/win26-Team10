@@ -4,16 +4,14 @@ REST API for parsing with async job processing.
 
 ## Quick Launch (Local Development)
 
-Local env installation
+Run all commands from the repository root.
 
 ```bash
 # Terminal 1: API server
-cd /Users/niall/Dev/win26-Team10
 source .venv/bin/activate
 uvicorn api.main:app --reload --port 8000
 
 # Terminal 2: Parse worker (processes /parse jobs)
-cd /Users/niall/Dev/win26-Team10
 source .venv/bin/activate
 python -m api.parse
 ```
