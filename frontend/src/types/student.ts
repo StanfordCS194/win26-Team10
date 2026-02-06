@@ -8,6 +8,18 @@ export interface Student {
   graduationYear: number
   skills: string[]
   transcriptUploaded: boolean
+  transcript: SmallTranscript | null
+}
+
+export interface SmallTranscript {
+  id: string
+  fullName: string
+  institution: string
+  programs: string[]
+  gpa: string
+  units_attempted: number
+  units_earned: number
+  units_toward_degree: number
 }
 
 export interface Filters {

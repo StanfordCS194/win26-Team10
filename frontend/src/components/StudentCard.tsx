@@ -1,5 +1,7 @@
 import { Mail, GraduationCap, FileCheck, FileX } from 'lucide-react'
 import { Student } from '../types/student'
+import StudentTranscriptCard from './StudentTranscriptCard'
+import { createRoot } from 'react-dom/client';
 
 interface StudentCardProps {
   student: Student
@@ -52,10 +54,28 @@ export default function StudentCard({ student }: StudentCardProps) {
       {/* Transcript Status */}
       <div className="card-footer">
         {student.transcriptUploaded ? (
-          <span className="transcript-status uploaded">
+          <div className="transcript-status uploaded" onClick={() => {
+            const popup = document.createElement('div')
+            popup.className = 'popup'
+            const popupBackground = document.createElement('div')
+            popupBackground.className = 'popup-background'
+            popupBackground.onclick = function() {
+              popup.remove()
+            }
+            popup.appendChild(popupBackground)
+            const popupContainer = document.createElement('div')
+            popupContainer.className = 'popup-container'
+            popup.appendChild(popupContainer)
+            if (student.transcript) {
+              const root = createRoot(popupContainer);
+              root.render(<StudentTranscriptCard transcript={student.transcript}/>);
+            }
+            popup.style.display = 'flex'
+            document.body.appendChild(popup)
+          }}>
             <FileCheck size={16} />
             Transcript uploaded
-          </span>
+          </div>
         ) : (
           <span className="transcript-status missing">
             <FileX size={16} />

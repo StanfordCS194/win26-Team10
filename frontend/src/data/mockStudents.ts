@@ -11,17 +11,37 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06123456',
+      fullName: 'Chen, Alice',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Computer Science'],
+      gpa: '3.916',
+      units_attempted: 188,
+      units_earned: 173,
+      units_toward_degree: 178
+    },
   },
   {
     id: '2',
     firstName: 'Bob',
     lastName: 'Williams',
     email: 'bob.williams@stanford.edu',
-    gpa: 3.45,
+    gpa: 3.50,
     major: 'Electrical Engineering',
-    graduationYear: 2025,
+    graduationYear: 2026,
     skills: ['C++', 'Python', 'Docker', 'AWS'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06234567',
+      fullName: 'Williams, Robert',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Electrical Engineering'],
+      gpa: '3.462',
+      units_attempted: 155,
+      units_earned: 138,
+      units_toward_degree: 138
+    },
   },
   {
     id: '3',
@@ -33,6 +53,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'SQL', 'Machine Learning', 'Data Analysis'],
     transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '4',
@@ -41,9 +62,19 @@ export const mockStudents: Student[] = [
     email: 'david.kim@stanford.edu',
     gpa: 3.21,
     major: 'Computer Science',
-    graduationYear: 2027,
+    graduationYear: 2028,
     skills: ['JavaScript', 'TypeScript', 'React', 'Node.js'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06345678',
+      fullName: 'Kim, David',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['Undeclared Undergraduate'],
+      gpa: '3.211',
+      units_attempted: 83,
+      units_earned: 66,
+      units_toward_degree: 66
+    },
   },
   {
     id: '5',
@@ -52,9 +83,19 @@ export const mockStudents: Student[] = [
     email: 'emma.johnson@stanford.edu',
     gpa: 3.88,
     major: 'Mathematics',
-    graduationYear: 2025,
+    graduationYear: 2029,
     skills: ['Python', 'Data Analysis', 'SQL', 'Machine Learning'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06456789',
+      fullName: 'Johnson, Rachel Emma',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['Undeclared Undergraduate'],
+      gpa: '3.875',
+      units_attempted: 32,
+      units_earned: 14,
+      units_toward_degree: 14
+    },
   },
   {
     id: '6',
@@ -66,6 +107,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['C++', 'Python', 'Docker'],
     transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '7',
@@ -74,9 +116,19 @@ export const mockStudents: Student[] = [
     email: 'grace.lee@stanford.edu',
     gpa: 3.99,
     major: 'Computer Science',
-    graduationYear: 2025,
+    graduationYear: 2026,
     skills: ['Python', 'Java', 'AWS', 'Kubernetes', 'Docker'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06567890',
+      fullName: 'Lee, Grace',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Computer Science', 'MS Computer Science'],
+      gpa: '3.993',
+      units_attempted: 201,
+      units_earned: 185,
+      units_toward_degree: 195
+    },
   },
   {
     id: '8',
@@ -88,6 +140,16 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++', 'Data Analysis'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06678901',
+      fullName: 'Brown, Henry Jonathan',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Physics', 'BS Mathematics'],
+      gpa: '3.519',
+      units_attempted: 124,
+      units_earned: 109,
+      units_toward_degree: 123
+    },
   },
   {
     id: '9',
@@ -99,6 +161,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['SQL', 'Data Analysis', 'Python'],
     transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '10',
@@ -110,6 +173,16 @@ export const mockStudents: Student[] = [
     graduationYear: 2028,
     skills: ['Python', 'SQL', 'Data Analysis'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06789012',
+      fullName: 'Anderson, James',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Economics'],
+      gpa: '2.782',
+      units_attempted: 75,
+      units_earned: 59,
+      units_toward_degree: 64
+    },
   },
   {
     id: '11',
@@ -121,6 +194,16 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['TypeScript', 'React', 'Node.js', 'AWS'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06890123',
+      fullName: 'Thomas, Katherine',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Computer Science'],
+      gpa: '3.849',
+      units_attempted: 130,
+      units_earned: 116,
+      units_toward_degree: 126
+    },
   },
   {
     id: '12',
@@ -132,6 +215,16 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++', 'Machine Learning', 'PyTorch'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06901234',
+      fullName: 'Jackson, Liam',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Electrical Engineering'],
+      gpa: '3.333',
+      units_attempted: 83,
+      units_earned: 65,
+      units_toward_degree: 65
+    },
   },
   {
     id: '13',
@@ -140,9 +233,10 @@ export const mockStudents: Student[] = [
     email: 'mia.white@stanford.edu',
     gpa: 3.71,
     major: 'Data Science',
-    graduationYear: 2025,
+    graduationYear: 2029,
     skills: ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning', 'SQL'],
-    transcriptUploaded: true,
+    transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '14',
@@ -154,6 +248,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2028,
     skills: ['JavaScript', 'React', 'Node.js'],
     transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '15',
@@ -165,6 +260,16 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'Data Analysis', 'Machine Learning'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06012345',
+      fullName: 'Martin, Olivia',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Mathematics', 'MS Mathematics'],
+      gpa: '3.935',
+      units_attempted: 185,
+      units_earned: 169,
+      units_toward_degree: 179
+    },
   },
   {
     id: '16',
@@ -176,6 +281,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++'],
     transcriptUploaded: false,
+    transcript: null,
   },
   {
     id: '17',
@@ -184,9 +290,19 @@ export const mockStudents: Student[] = [
     email: 'quinn.clark@stanford.edu',
     gpa: 3.58,
     major: 'Computer Science',
-    graduationYear: 2025,
+    graduationYear: 2029,
     skills: ['Java', 'Python', 'AWS', 'Docker', 'Kubernetes'],
     transcriptUploaded: true,
+    transcript: {
+      id: '06000000',
+      fullName: 'Clark, Quinn',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['Undeclared Undergraduate'],
+      gpa: '3.579',
+      units_attempted: 31,
+      units_earned: 14,
+      units_toward_degree: 14
+    },
   },
   {
     id: '18',
@@ -198,5 +314,15 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'SQL', 'TensorFlow', 'Data Analysis'],
     transcriptUploaded: true,
-  },
+    transcript: {
+      id: '06111111',
+      fullName: 'Lewis, Rachel',
+      institution: 'Leland Stanford Jr. University',
+      programs: ['BS Data Science'],
+      gpa: '3.764',
+      units_attempted: 184,
+      units_earned: 167,
+      units_toward_degree: 182
+    },
+  }
 ]
