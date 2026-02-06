@@ -4,9 +4,15 @@ Supabase database helpers for job queue operations.
 
 import os
 import uuid
+from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
 from supabase import create_client, Client
+
+# Load environment variables from api/.env or api/prod.env
+env_file = Path(__file__).parent / ("prod.env" if os.getenv("PROD") else ".env")
+load_dotenv(env_file)
 
 # Initialize Supabase client
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -126,3 +132,64 @@ async def fail_job(job_id: str, error: str) -> dict:
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
     return result.data[0]
+
+
+# Storage helpers
+
+DEFAULT_BUCKET = "parse-files"
+
+
+def download_file(file_id: str, dest_path: Path, bucket: str = DEFAULT_BUCKET) -> Path:
+    """
+    Download a file from Supabase Storage.
+    
+    Args:
+        file_id: The file path/ID in storage
+        dest_path: Local path to save the file
+        bucket: Storage bucket name
+        
+    Returns:
+        Path to the downloaded file
+    """
+    client = get_client()
+    
+    # Download file content
+    response = client.storage.from_(bucket).download(file_id)
+    
+    # Ensure parent directory exists
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Write to file
+    dest_path.write_bytes(response)
+    
+    return dest_path
+
+
+def upload_file(local_path: Path, bucket: str = DEFAULT_BUCKET, dest_path: str | None = None) -> str:
+    """
+    Upload a file to Supabase Storage.
+    
+    Args:
+        local_path: Local file path to upload
+        bucket: Storage bucket name
+        dest_path: Destination path in bucket (defaults to filename)
+        
+    Returns:
+        The file path/ID in storage
+    """
+    client = get_client()
+    
+    # Use filename if no dest_path provided
+    file_path = dest_path or local_path.name
+    
+    # Read file content
+    content = local_path.read_bytes()
+    
+    # Upload to storage
+    client.storage.from_(bucket).upload(
+        path=file_path,
+        file=content,
+        file_options={"content-type": "application/pdf"},
+    )
+    
+    return file_path
