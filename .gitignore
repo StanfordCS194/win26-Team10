@@ -1,4 +1,23 @@
-__pycache__
+# OS
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
 .venv/
+backend/.venv/
+
+# Environment
 .env
+.env.local
+.env*.local
+
+# Frontend (for when you add it)
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# IDE
+.idea/
+*.swp
