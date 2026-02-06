@@ -29,6 +29,7 @@ body {
   font-size: 1.25rem;
   font-weight: 700;
   color: #111827;
+  text-decoration: none;
 }
 
 .nav-links {
@@ -55,6 +56,13 @@ body {
 .nav-link.active {
   background-color: #2563eb;
   color: white;
+}
+
+.nav-logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
 }
 
 /* Layout */
@@ -396,6 +404,87 @@ body {
 .page-description {
   color: #4b5563;
   margin-bottom: 2rem;
+}
+
+/* Landing page login button */
+.landing-login-row {
+  margin-bottom: 1.5rem;
+}
+
+.landing-login-btn {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2563eb;
+  background-color: white;
+  border: 1px solid #2563eb;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.landing-login-btn:hover {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* Landing page choice cards */
+.landing-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 640px) {
+  .landing-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background-color: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.landing-choice-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.landing-choice-icon {
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.landing-choice-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.landing-choice-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.landing-choice-cta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2563eb;
 }
 
 .form-section {
