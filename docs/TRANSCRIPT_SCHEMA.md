@@ -253,40 +253,6 @@ Each level contains:
 
 ---
 
-## Grade Reference
-
-### Standard 4.0 Scale
-
-| Grade | Points | Description |
-|-------|--------|-------------|
-| A+ | 4.0 | Exceptional |
-| A | 4.0 | Excellent |
-| A- | 3.7 | Very Good |
-| B+ | 3.3 | Good |
-| B | 3.0 | Above Average |
-| B- | 2.7 | Satisfactory |
-| C+ | 2.3 | Average |
-| C | 2.0 | Below Average |
-| C- | 1.7 | Passing |
-| D+ | 1.3 | Poor |
-| D | 1.0 | Very Poor |
-| D- | 0.7 | Minimal Passing |
-| F | 0.0 | Failing |
-
-### Pass/Fail Grades (no GPA impact)
-
-| Grade | Description |
-|-------|-------------|
-| S | Satisfactory |
-| CR | Credit |
-| P | Pass |
-| NC | No Credit |
-| NP | No Pass |
-| W | Withdrawn |
-| I | Incomplete |
-
----
-
 ## Complete Example
 
 ```json
