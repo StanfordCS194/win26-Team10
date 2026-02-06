@@ -2,15 +2,17 @@
 Parse worker process.
 
 Polls the database for queued jobs and processes them.
-Currently a stub implementation that immediately marks jobs as succeeded.
+Runs the parse pipeline for each job.
 """
 
 import asyncio
 import os
 import uuid
 import logging
+from pathlib import Path
 
-from api.supabase import claim_parse_job, complete_job, fail_job
+from api.supabase import claim_parse_job, complete_job, fail_job, download_file
+from api.pipeline import run_pipeline
 
 # Configure logging
 logging.basicConfig(
@@ -27,20 +29,39 @@ WORKER_ID = f"worker-parse-{uuid.uuid4().hex[:8]}"
 
 async def process_job(job: dict) -> None:
     """
-    Process a single job.
-    
-    Currently a stub that immediately marks the job as succeeded.
-    TODO: Implement actual parsing logic.
+    Process a single job by running the parse pipeline.
     
     Args:
         job: The job record from the database
     """
     job_id = job["id"]
+    file_id = job.get("parsed_file_id", "")
+    
     logger.info(f"Processing job {job_id}")
     
     try:
-        # TODO: Implement actual processing logic here
-        # For now, just mark as succeeded immediately
+        # Set up output directory
+        repo_root = Path(__file__).resolve().parents[1]
+        output_dir = repo_root / "debug" / job_id
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Download PDF from storage
+        pdf_path = output_dir / "input.pdf"
+        if file_id:
+            logger.info(f"Downloading file {file_id} to {pdf_path}")
+            download_file(file_id, pdf_path)
+        
+        # Run pipeline
+        artifacts = run_pipeline(
+            job_id=job_id,
+            file_id=file_id,
+            local_pdf_path=pdf_path if pdf_path.exists() else None,
+            output_dir=output_dir,
+        )
+        
+        if artifacts.errors:
+            raise Exception("; ".join(artifacts.errors))
+        
         await complete_job(job_id)
         logger.info(f"Job {job_id} completed successfully")
         

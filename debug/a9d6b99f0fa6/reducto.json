@@ -1,0 +1,1105 @@
+{
+  "duration": 9.184674739837646,
+  "job_id": "cbbb248e-8c6f-4300-aa3b-0896eec700cc",
+  "result": {
+    "chunks": [
+      {
+        "blocks": [
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4198232323232323,
+              "page": 1,
+              "top": 0.08415032679738563,
+              "width": 0.2481060606060606,
+              "original_page": 1
+            },
+            "content": "Undergraduate Unofficial Transcript - Detailed",
+            "type": "Title",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.838268592953682
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 1,
+              "top": 0.09313725490196079,
+              "width": 0.13194444444444445,
+              "original_page": 1
+            },
+            "content": "Leland Stanford Jr. University",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8818204253911972
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 1,
+              "top": 0.10866013071895425,
+              "width": 0.08838383838383838,
+              "original_page": 1
+            },
+            "content": "Stanford, CA 94305",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8677758872509003
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.008169934640522876,
+              "left": 0.034722222222222224,
+              "page": 1,
+              "top": 0.12581699346405228,
+              "width": 0.019570707070707072,
+              "original_page": 1
+            },
+            "content": "USA",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8117448151111603
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 1,
+              "top": 0.11601307189542484,
+              "width": 0.1590909090909091,
+              "original_page": 1
+            },
+            "content": "Name : John Doe",
+            "type": "Text",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6637749075889587
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 1,
+              "top": 0.1315359477124183,
+              "width": 0.10795454545454546,
+              "original_page": 1
+            },
+            "content": "Student ID : 01234567",
+            "type": "Text",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6749156564474106
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.6633986928104575,
+              "left": 0.019570707070707072,
+              "page": 1,
+              "top": 0.1830065359477124,
+              "width": 0.92739898989899,
+              "original_page": 1
+            },
+            "content": "<table><tr><th>*</th><th>Print Date: 01/14/2026\n\nWorksheet - For office use by authorized Stanford personnel</th><th></th><th>Course</th><th></th><th>Cmpt</th><th>2022-2023 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade</th></tr><tr><td></td><td>Academic Advisor: Haber, Nick Joseph</td><td></td><td>COLLEGE</td><td>101</td><td>SEM</td><td>WHY COLLEGE? YOUR\nEDUCATION AND THE GOOD LIFE\nAlice Staveley</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td></td><td>--------- Academic Program ---------</td><td></td><td>33</td><td>106B</td><td>LEC</td><td>PROGRAMMING ABSTRACTIONS\nCynthia Bailey; Julie Zelenski</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Program Computer Science\n09/26/2023 Computer Science (MS)</td><td></td><td></td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone; Mark Cutkosky</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Active in Program\n\nProgram Undergraduate Matriculated\n03/01/2023 Computer Science (BS)</td><td></td><td>MATH</td><td>51</td><td>LEC</td><td>LINEAR ALGEBRA,\nMULTIVARIABLE CALCULUS, AND\nMODERN APPLICATIONS\nAndrew Hardt</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td></td><td>Artificial Intelligence (Subplan)\nActive in Program</td><td></td><td>STS</td><td>10SI</td><td>ACT</td><td>INTRODUCTION TO AI ALIGNMENT\nPaul Edwards</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>First Graduate Quarter: 2025-2026 Autumn\nCoterminal Undergraduate, 09/25/2023 -</td><td></td><td>UG Term GPA\nUG Cum GPA</td><td>3.884\n3.884</td><td></td><td>Term Totals 15.00 15.00\nCum Totals 15.00 15.00</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>Course</td><td></td><td>Cmpt</td><td>2022-2023 Winter\nTitle</td><td>Attempted</td><td>Earned</td><td>Grade</td></tr><tr><td></td><td>--------- Transfer Credits\nApplied Toward Undergraduate Matriculated</td><td></td><td>CEE</td><td>272T</td><td>SEM</td><td>SMARTGRIDS AND ADVANCED\nPOWER SYSTEMS SEMINAR\nRam Rajagopal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate CS106A\nQuarter Units Posted:</td><td>5.00</td><td>CME</td><td>510</td><td>SEM</td><td>LINEAR ALGEBRA AND\nOPTIMIZATION SEMINAR\nSanjay Saigal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate CHEM31A</td><td></td><td>CS</td><td>103</td><td>LEC</td><td>MATHEMATICAL FOUNDATIONS\nOF COMPUTING\nCynthia Bailey</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>5.00</td><td>$</td><td>106L</td><td>LAB</td><td>STANDARD C++ PROGRAMMING\nLABORATORY</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate PHYSICS 21/23</td><td></td><td>3</td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>8.00</td><td>DATASCI</td><td>112</td><td>LEC</td><td>PRINCIPLES OF DATA SCIENCE\nDennis Sun</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated</td><td></td><td>PHYSICS</td><td>41</td><td>LEC</td><td>MECHANICS\nAdham Naji; Lauren Tompkins</td><td>4.00</td><td>4.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate MATH 19\nQuarter Units Posted:\n\nTotal Quarter Units Posted:</td><td>3.00\n\n21.00</td><td>PWR</td><td>10S</td><td>SEM</td><td>WRITING &amp; RHETORIC 1: THE\nRHETORIC OF FREEDOM AND\nUNFREEDOM\nOlesya Shayduk-Immerman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td>Allowable Transfer Credit subject to restrictions.</td><td></td><td>UG Term GPA</td><td>4.000</td><td></td><td>Term Totals 22.00 22.00</td><td></td><td></td><td></td></tr><tr><td></td><td>---------- Beginning of Academic Record ---------</td><td></td><td>UG Cum GPA</td><td>3.944</td><td></td><td>Cum Totals 37.00 37.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "low",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6320774427718587
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.027146464646464648,
+              "page": 1,
+              "top": 0.9387254901960784,
+              "width": 0.47664141414141414,
+              "original_page": 1
+            },
+            "content": "Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9035177946090698
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.027146464646464648,
+              "page": 1,
+              "top": 0.9714052287581699,
+              "width": 0.05176767676767677,
+              "original_page": 1
+            },
+            "content": "Page 1 of 4",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.920424047112465
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 2,
+              "top": 0.09313725490196079,
+              "width": 0.13194444444444445,
+              "original_page": 2
+            },
+            "content": "Leland Stanford Jr. University",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9274364173412323
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 2,
+              "top": 0.10866013071895425,
+              "width": 0.08838383838383838,
+              "original_page": 2
+            },
+            "content": "Stanford, CA 94305",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9238125890493393
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.008169934640522876,
+              "left": 0.03409090909090909,
+              "page": 2,
+              "top": 0.12581699346405228,
+              "width": 0.020833333333333332,
+              "original_page": 2
+            },
+            "content": "USA",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8951135605573655
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4198232323232323,
+              "page": 2,
+              "top": 0.08415032679738563,
+              "width": 0.2481060606060606,
+              "original_page": 2
+            },
+            "content": "Undergraduate Unofficial Transcript - Detailed",
+            "type": "Title",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9036233007907868
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 2,
+              "top": 0.11601307189542484,
+              "width": 0.1590909090909091,
+              "original_page": 2
+            },
+            "content": "Name : John Doe",
+            "type": "Text",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7317810714244842
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 2,
+              "top": 0.1315359477124183,
+              "width": 0.10795454545454546,
+              "original_page": 2
+            },
+            "content": "Student ID : 01234567",
+            "type": "Text",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7352447748184203
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.2875816993464052,
+              "left": 0.025252525252525252,
+              "page": 2,
+              "top": 0.190359477124183,
+              "width": 0.9204545454545454,
+              "original_page": 2
+            },
+            "content": "<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2022-2023 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th><th>Course</th><th></th><th>Cmpt</th><th>2023-2024 Winter\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>COLLEGE</td><td>112</td><td></td><td>DIS</td><td>LIVING WITH VIRUSES\nDavid Armenta</td><td>4.00</td><td>4.00</td><td>A</td><td>CS</td><td>129</td><td>LEC</td><td>APPLIED MACHINE LEARNING\nAndrew Ng; Younes Bensouda Mourri</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>109</td><td></td><td>LEC</td><td>INTRODUCTION TO PROBABILITY\nFOR COMPUTER SCIENTISTS\nDavid Kewei Lin; Jacob Mejia</td><td>5.00</td><td>5.00</td><td>A</td><td>CS</td><td>195</td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td></td><td></td><td></td><td>Jerry Cain; Joel Ramirez\nKathleen Cheng; Matthew Harvill\nNaomi Eigbe; Selwin George</td><td></td><td></td><td></td><td>CS</td><td>224N</td><td>LEC</td><td>NATURAL LANGUAGE\nPROCESSING WITH DEEP\nLEARNING</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>161</td><td></td><td>LEC</td><td>Varun Tandon; Will Song; Yonatan Oren\nDESIGN AND ANALYSIS OF\nALGORITHMS\nMary Wootters</td><td>5.00</td><td>5.00</td><td>A</td><td>PWR</td><td>2STA</td><td>SEM</td><td>Diyi Yang; Tatsunori Hashimoto\nWRITING &amp; RHETORIC 2: ETHICS\nAND AI\nRuth Starkman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>198</td><td></td><td>LEC</td><td>TEACHING COMPUTER SCIENCE\nMehran Sahami</td><td>3.00</td><td>3.00</td><td>S</td><td>STATS</td><td>200</td><td>LEC</td><td>INTRODUCTION TO STATISTICAL\nINFERENCE</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>STATS</td><td>100</td><td></td><td>LEC</td><td>MATHEMATICS OF SPORTS\nWill Hartog</td><td>3.00</td><td>3.00</td><td>A</td><td></td><td></td><td></td><td>Iain Johnstone</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>UG Term GPA</td><td>3.940</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Term GPA\nUG Cum GPA</td><td></td><td>4.000\n3.965</td><td></td><td>Term Totals 20.00 20.00\nCum Totals 57.00 57.00</td><td></td><td></td><td></td><td>UG Cum GPA</td><td>3.965</td><td></td><td>Cum Totals 93.00 93.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "low",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6925302485624949
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.22411616161616163,
+              "page": 2,
+              "top": 0.4934640522875817,
+              "width": 0.07828282828282829,
+              "original_page": 2
+            },
+            "content": "2023-2024 Autumn",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7785989105701446
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.26552287581699346,
+              "left": 0.02462121212121212,
+              "page": 2,
+              "top": 0.5008169934640523,
+              "width": 0.4172979797979798,
+              "original_page": 2
+            },
+            "content": "<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CEE</td><td>252</td><td></td><td>SEM</td><td>SILICON VALLEY AND THE U.S.\nGOVERNMENT\nErnestine Mak; Joe Felter; Paul Kwan\nSteve Blank</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CS</td><td>107</td><td></td><td>LEC</td><td>COMPUTER ORGANIZATION AND\nSYSTEMS\nJerry Cain</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>221</td><td></td><td>LEC</td><td>ARTIFICIAL INTELLIGENCE:\nPRINCIPLES AND TECHNIQUES\nDorsa Sadigh; Percy Liang; Uma Phatak</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>FRENLANG</td><td>1</td><td></td><td>LNG</td><td>FIRST-YEAR FRENCH, FIRST\nQUARTER\nHannah Hudson</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td></td><td>ACT</td><td>GOLF: ADVANCED\nErick Schlimmer</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 16.00 16.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.974</td><td></td><td>Cum Totals 73.00 73.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8150817260146141
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.24183006535947713,
+              "left": 0.5296717171717171,
+              "page": 2,
+              "top": 0.4803921568627451,
+              "width": 0.41603535353535354,
+              "original_page": 2
+            },
+            "content": "<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2023-2024 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>195</td><td></td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>ENGR</td><td>76</td><td></td><td>LEC</td><td>INFORMATION SCIENCE AND\nENGINEERING\nAyfer Ozgur</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>MATH</td><td>21</td><td></td><td>LEC</td><td>CALCULUS\nWojciech Wieczorek</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>MS&amp;E</td><td>244</td><td></td><td>LEC</td><td>STATISTICAL ARBITRAGE\nDavid Demers</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>PATH</td><td>51</td><td></td><td>LEC</td><td>HUMAN ANATOMY (ONLINE)\nDarren Salmi</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.972</td><td></td><td>Cum Totals 113.00 113.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8114768370985985
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.7279040404040404,
+              "page": 2,
+              "top": 0.7344771241830066,
+              "width": 0.08017676767676768,
+              "original_page": 2
+            },
+            "content": "2023-2024 Summer",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7812300652265549
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.10212418300653595,
+              "left": 0.5290404040404041,
+              "page": 2,
+              "top": 0.7434640522875817,
+              "width": 0.41603535353535354,
+              "original_page": 2
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390A</td><td>INS</td><td colspan=\"2\">CURRICULAR PRACTICAL\nTRAINING</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td></td><td></td><td>Nick Haber</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.972</td><td></td><td>Cum Totals</td><td>114.00</td><td>114.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "low",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7500343978405
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.027146464646464648,
+              "page": 2,
+              "top": 0.9387254901960784,
+              "width": 0.47664141414141414,
+              "original_page": 2
+            },
+            "content": "Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9220307976007461
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.027146464646464648,
+              "page": 2,
+              "top": 0.9714052287581699,
+              "width": 0.05176767676767677,
+              "original_page": 2
+            },
+            "content": "Page 2 of 4",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9273679196834564
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4198232323232323,
+              "page": 3,
+              "top": 0.08415032679738563,
+              "width": 0.2481060606060606,
+              "original_page": 3
+            },
+            "content": "Undergraduate Unofficial Transcript - Detailed",
+            "type": "Title",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9058396726846696
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 3,
+              "top": 0.09313725490196079,
+              "width": 0.13194444444444445,
+              "original_page": 3
+            },
+            "content": "Leland Stanford Jr. University",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9355412632226944
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 3,
+              "top": 0.10866013071895425,
+              "width": 0.08838383838383838,
+              "original_page": 3
+            },
+            "content": "Stanford, CA 94305",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9298644423484802
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.008169934640522876,
+              "left": 0.03409090909090909,
+              "page": 3,
+              "top": 0.12581699346405228,
+              "width": 0.020833333333333332,
+              "original_page": 3
+            },
+            "content": "USA",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9015960276126862
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 3,
+              "top": 0.11601307189542484,
+              "width": 0.1590909090909091,
+              "original_page": 3
+            },
+            "content": "Name : John Doe",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6995364189147949
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4431818181818182,
+              "page": 3,
+              "top": 0.1315359477124183,
+              "width": 0.10795454545454546,
+              "original_page": 3
+            },
+            "content": "Student ID : 01234567",
+            "type": "Title",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7430131375789641
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.23202614379084968,
+              "left": 0.025883838383838384,
+              "page": 3,
+              "top": 0.19526143790849673,
+              "width": 0.413510101010101,
+              "original_page": 3
+            },
+            "content": "<table><tr><th></th><th></th><th></th><th></th><th></th><th>2024-2025</th><th></th><th>Autumn</th><th></th><th></th><th></th></tr><tr><td>Course</td><td></td><td></td><td>Cmpt</td><td>Title</td><td></td><td></td><td></td><td>Attempted</td><td>Earned</td><td>Grade </td></tr><tr><td>CS</td><td>111</td><td></td><td>LEC</td><td>OPERATING\nPRINCIPLES\nPrevious Grade(s):\nNick Troccoli</td><td>SYSTEMS</td><td>A,GNR</td><td></td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>148</td><td></td><td>LEC</td><td colspan=\"4\">INTRODUCTION TO COMPUTER\nGRAPHICS AND IMAGING\nRon Fedkiw</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>160</td><td></td><td>LEC</td><td>GAME THEORY\nAPPLICATIONS\nDaniel Fragiadakis</td><td>AND</td><td>ECONOMIC</td><td></td><td>5.00</td><td>5.00</td><td>B-</td></tr><tr><td>MATH</td><td>104</td><td></td><td>LEC</td><td>APPLIED MATRIX\nEmmanuel</td><td>Candes</td><td>THEORY</td><td></td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>UG Term GPA</td><td></td><td>3.505</td><td></td><td>Term Totals</td><td></td><td>18.00</td><td>18.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.900</td><td></td><td>Cum Totals</td><td></td><td>132.00</td><td>132.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7915468499064445
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.008169934640522876,
+              "left": 0.22727272727272727,
+              "page": 3,
+              "top": 0.44281045751633985,
+              "width": 0.0726010101010101,
+              "original_page": 3
+            },
+            "content": "2024-2025 Winter",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8178319960832596
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.27369281045751637,
+              "left": 0.02462121212121212,
+              "page": 3,
+              "top": 0.4542483660130719,
+              "width": 0.41603535353535354,
+              "original_page": 3
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Oxford Overseas Campus\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>246</td><td>LEC</td><td>MINING MASSIVE DATA SETS\nPrevious Grade(s): A-,GNR\nJure Leskovec</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ENGLISH</td><td>66</td><td>SEM</td><td>'A MODEL ISLAND': BRITAIN IN\nHISTORICAL AND CULTURAL\nPERSPECTIVE\nIlya Afanasyev</td><td>2.00</td><td>2.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>66</td><td>INS</td><td>A MODEL ISLAND IN PRACTICE\nIlya Afanasyev</td><td>1.00</td><td>1.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>84</td><td>SEM</td><td>THE PROMISES AND PERILS OF\nSOCIAL AND BEHAVIORAL\nGENOMICS\nDaphne Martschenko</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td>OSPOXFRD</td><td>195A</td><td>INS</td><td>OXFORD TUTORIAL\nDaniel Gerrard</td><td>7.00</td><td>7.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>3.968</td><td></td><td>Term Totals 19.00 19.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.909</td><td></td><td>Cum Totals 151.00 151.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8538818050175905
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.22727272727272727,
+              "page": 3,
+              "top": 0.7410130718954249,
+              "width": 0.0726010101010101,
+              "original_page": 3
+            },
+            "content": "2024-2025 Spring",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8510857820510864
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.17647058823529413,
+              "left": 0.025252525252525252,
+              "page": 3,
+              "top": 0.7491830065359477,
+              "width": 0.41603535353535354,
+              "original_page": 3
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>155</td><td>LEC</td><td>COMPUTER AND NETWORK\nSECURITY\nDan Boneh; Zakir Durumeric</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>CS</td><td>166</td><td>LEC</td><td>ADVANCED DATA STRUCTURES\nKeith Schwarz</td><td>4.00</td><td>4.00</td><td>B</td></tr><tr><td>CS</td><td>231N</td><td>LEC</td><td>DEEP LEARNING FOR COMPUTER\nVISION\nEhsan Adeli; Fei-Fei Li</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>1</td><td>LEC</td><td>PRINCIPLES OF ECONOMICS\nIsaac Sorkin</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td>ACT</td><td>GOLF: ADVANCED</td><td>1.00</td><td>1.00</td><td>S</td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9005795776844024
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.027146464646464648,
+              "page": 3,
+              "top": 0.9387254901960784,
+              "width": 0.47664141414141414,
+              "original_page": 3
+            },
+            "content": "Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.",
+            "type": "Text",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.82096928358078
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.032679738562091505,
+              "left": 0.5284090909090909,
+              "page": 3,
+              "top": 0.19117647058823528,
+              "width": 0.29924242424242425,
+              "original_page": 3
+            },
+            "content": "| UG Term GPA   | 3.675   | Term Totals   | 17.00   | 17.00   |\n|-|-|-|-|-|\n| UG Cum GPA    | 3.884   | Cum Totals    | 168.00  | 168.00  |",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7196309000253678
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.7279040404040404,
+              "page": 3,
+              "top": 0.23774509803921567,
+              "width": 0.08017676767676768,
+              "original_page": 3
+            },
+            "content": "2024-2025 Summer",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8049078613519669
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.10457516339869281,
+              "left": 0.5290404040404041,
+              "page": 3,
+              "top": 0.24428104575163398,
+              "width": 0.4166666666666667,
+              "original_page": 3
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390B</td><td>INS</td><td>CURRICULAR\nTRAINING\nNick Haber</td><td>PRACTICAL</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.884</td><td></td><td>Cum Totals</td><td>169.00</td><td>169.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "low",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7370848640799522
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.7291666666666666,
+              "page": 3,
+              "top": 0.3619281045751634,
+              "width": 0.07765151515151515,
+              "original_page": 3
+            },
+            "content": "2025-2026 Autumn",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7829547107219696
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.24918300653594772,
+              "left": 0.5290404040404041,
+              "page": 3,
+              "top": 0.36764705882352944,
+              "width": 0.4166666666666667,
+              "original_page": 3
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>2025-2026 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>AMSTUD</td><td>149</td><td>SEM</td><td>SCAMS, HOAXES, AND CONS\nRachel Bolten</td><td>3.00</td><td>3.00</td><td>A-</td></tr><tr><td>CS</td><td>238</td><td>LEC</td><td>DECISION MAKING UNDER\nUNCERTAINTY\nMykel Kochenderfer</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>390C</td><td>INS</td><td>CURRICULAR PRACTICAL\nTRAINING\nNick Haber</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CSRE</td><td>141R</td><td>LEC</td><td>BETWEEN MALCOLM X AND\nMARTIN LUTHER KING, JR.: RACE,\nRELIGION, AND THE POLITICS OF\nFREEDOM\nPrevious Grade(s): A+,GNR\nLerone Martin</td><td>5.00</td><td>5.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>4.050</td><td></td><td>Term Totals 13.00 13.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 182.00 182.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.85115008524486
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.7316919191919192,
+              "page": 3,
+              "top": 0.630718954248366,
+              "width": 0.0726010101010101,
+              "original_page": 3
+            },
+            "content": "2025-2026 Winter",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8640338540077209
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.13562091503267973,
+              "left": 0.5290404040404041,
+              "page": 3,
+              "top": 0.6405228758169934,
+              "width": 0.4166666666666667,
+              "original_page": 3
+            },
+            "content": "<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>194W</td><td>LEC</td><td>SOFTWARE PROJECT (WIM)\nJay Borenstein</td><td>3.00</td><td>0.00</td><td></td></tr><tr><td>ECON</td><td>141</td><td>LEC</td><td>FINANCIAL MARKETS\nMartin Schneider; Monika Piazzesi</td><td>5.00</td><td>0.00</td><td></td></tr><tr><td>EMED</td><td>127</td><td>LEC</td><td>HEALTH CARE LEADERSHIP\nMilana Trounce</td><td>4.00</td><td>0.00</td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals 12.00 0.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 194.00 182.00</td><td></td><td></td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8421102652947109
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.5315656565656566,
+              "page": 3,
+              "top": 0.8031045751633987,
+              "width": 0.12058080808080808,
+              "original_page": 3
+            },
+            "content": "Undergraduate Career Totals",
+            "type": "Section Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8484953701496124
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.12009803921568628,
+              "left": 0.5290404040404041,
+              "page": 3,
+              "top": 0.8071895424836601,
+              "width": 0.38573232323232326,
+              "original_page": 3
+            },
+            "content": "<table><tr><th colspan=\"6\">Undergraduate Career Totals</th></tr><tr><td>Cum GPA</td><td>3.896</td><td>Cum Totals</td><td>194.00</td><td>182.00</td><td></td></tr><tr><td rowspan=\"2\" colspan=\"4\">UNITS COMPLETED TOWARDS UNDERGRADUATE DEGREE:\nSTANFORD TOTAL UNDERGRADUATE UNITS:</td><td></td><td>203.00</td></tr><tr><td></td><td>182.00</td></tr><tr><td></td><td></td><td>Max Allowed</td><td>Attempted</td><td>Earned</td><td></td></tr><tr><td>UG Activity Units</td><td></td><td>8</td><td>3.00</td><td>3.00</td><td></td></tr></table>",
+            "type": "Table",
+            "chart_data": null,
+            "confidence": "low",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.6280679325262706
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.027146464646464648,
+              "page": 3,
+              "top": 0.9714052287581699,
+              "width": 0.05176767676767677,
+              "original_page": 3
+            },
+            "content": "Page 3 of 4",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.930104649066925
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.4198232323232323,
+              "page": 4,
+              "top": 0.08415032679738563,
+              "width": 0.2481060606060606,
+              "original_page": 4
+            },
+            "content": "Undergraduate Unofficial Transcript - Detailed",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7597303330898285
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 4,
+              "top": 0.09313725490196079,
+              "width": 0.13194444444444445,
+              "original_page": 4
+            },
+            "content": "Leland Stanford Jr. University",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.8589015662670135
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.03409090909090909,
+              "page": 4,
+              "top": 0.10866013071895425,
+              "width": 0.08838383838383838,
+              "original_page": 4
+            },
+            "content": "Stanford, CA 94305",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7954649865627288
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.008169934640522876,
+              "left": 0.03409090909090909,
+              "page": 4,
+              "top": 0.12581699346405228,
+              "width": 0.020833333333333332,
+              "original_page": 4
+            },
+            "content": "USA",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.7438456505537033
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.028594771241830064,
+              "left": 0.4431818181818182,
+              "page": 4,
+              "top": 0.11601307189542484,
+              "width": 0.1590909090909091,
+              "original_page": 4
+            },
+            "content": "Name : John Doe\nStudent ID : 01234567",
+            "type": "Header",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.716766408085823
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.01660998973971099,
+              "left": 0.026031166616112295,
+              "page": 4,
+              "top": 0.17861937229929406,
+              "width": 0.3187669503568399,
+              "original_page": 4
+            },
+            "content": "UG Pass/Fail Units (Satisfactory & Credit) 36* 19.00 19.00",
+            "type": "Key Value",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 1.0
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.20283054526335273,
+              "left": 0.025402962559401387,
+              "page": 4,
+              "top": 0.20861679276609732,
+              "width": 0.32226646548569804,
+              "original_page": 4
+            },
+            "content": "* Transfer Students are allowed a Maximum of 27 Pass/Fail Units\n\nPass/Fail units do not include terms that are offered Satisfactory/No Credit\n\n******** Non-Course Milestones *********\n\nMasters Program Proposal -\nPlan: CS-MS\n\n**********************************************\n\n* Worksheet - For office use by authorized Stanford personnel *\n**********************************************\n\nEND OF TRANSCRIPT",
+            "type": "Key Value",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 1.0
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.011437908496732025,
+              "left": 0.027146464646464648,
+              "page": 4,
+              "top": 0.9387254901960784,
+              "width": 0.47664141414141414,
+              "original_page": 4
+            },
+            "content": "Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9166843384504318
+            },
+            "image_url": null
+          },
+          {
+            "bbox": {
+              "height": 0.013071895424836602,
+              "left": 0.027146464646464648,
+              "page": 4,
+              "top": 0.9714052287581699,
+              "width": 0.05176767676767677,
+              "original_page": 4
+            },
+            "content": "Page 4 of 4",
+            "type": "Footer",
+            "chart_data": null,
+            "confidence": "high",
+            "extra": null,
+            "granular_confidence": {
+              "extract_confidence": null,
+              "parse_confidence": 0.9160299301147461
+            },
+            "image_url": null
+          }
+        ],
+        "content": "# Undergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\n\nStudent ID : 01234567\n\n<table><tr><th>*</th><th>Print Date: 01/14/2026\n\nWorksheet - For office use by authorized Stanford personnel</th><th></th><th>Course</th><th></th><th>Cmpt</th><th>2022-2023 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade</th></tr><tr><td></td><td>Academic Advisor: Haber, Nick Joseph</td><td></td><td>COLLEGE</td><td>101</td><td>SEM</td><td>WHY COLLEGE? YOUR\nEDUCATION AND THE GOOD LIFE\nAlice Staveley</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td></td><td>--------- Academic Program ---------</td><td></td><td>33</td><td>106B</td><td>LEC</td><td>PROGRAMMING ABSTRACTIONS\nCynthia Bailey; Julie Zelenski</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Program Computer Science\n09/26/2023 Computer Science (MS)</td><td></td><td></td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone; Mark Cutkosky</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Active in Program\n\nProgram Undergraduate Matriculated\n03/01/2023 Computer Science (BS)</td><td></td><td>MATH</td><td>51</td><td>LEC</td><td>LINEAR ALGEBRA,\nMULTIVARIABLE CALCULUS, AND\nMODERN APPLICATIONS\nAndrew Hardt</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td></td><td>Artificial Intelligence (Subplan)\nActive in Program</td><td></td><td>STS</td><td>10SI</td><td>ACT</td><td>INTRODUCTION TO AI ALIGNMENT\nPaul Edwards</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>First Graduate Quarter: 2025-2026 Autumn\nCoterminal Undergraduate, 09/25/2023 -</td><td></td><td>UG Term GPA\nUG Cum GPA</td><td>3.884\n3.884</td><td></td><td>Term Totals 15.00 15.00\nCum Totals 15.00 15.00</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>Course</td><td></td><td>Cmpt</td><td>2022-2023 Winter\nTitle</td><td>Attempted</td><td>Earned</td><td>Grade</td></tr><tr><td></td><td>--------- Transfer Credits\nApplied Toward Undergraduate Matriculated</td><td></td><td>CEE</td><td>272T</td><td>SEM</td><td>SMARTGRIDS AND ADVANCED\nPOWER SYSTEMS SEMINAR\nRam Rajagopal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate CS106A\nQuarter Units Posted:</td><td>5.00</td><td>CME</td><td>510</td><td>SEM</td><td>LINEAR ALGEBRA AND\nOPTIMIZATION SEMINAR\nSanjay Saigal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate CHEM31A</td><td></td><td>CS</td><td>103</td><td>LEC</td><td>MATHEMATICAL FOUNDATIONS\nOF COMPUTING\nCynthia Bailey</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>5.00</td><td>$</td><td>106L</td><td>LAB</td><td>STANDARD C++ PROGRAMMING\nLABORATORY</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate PHYSICS 21/23</td><td></td><td>3</td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>8.00</td><td>DATASCI</td><td>112</td><td>LEC</td><td>PRINCIPLES OF DATA SCIENCE\nDennis Sun</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated</td><td></td><td>PHYSICS</td><td>41</td><td>LEC</td><td>MECHANICS\nAdham Naji; Lauren Tompkins</td><td>4.00</td><td>4.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate MATH 19\nQuarter Units Posted:\n\nTotal Quarter Units Posted:</td><td>3.00\n\n21.00</td><td>PWR</td><td>10S</td><td>SEM</td><td>WRITING &amp; RHETORIC 1: THE\nRHETORIC OF FREEDOM AND\nUNFREEDOM\nOlesya Shayduk-Immerman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td>Allowable Transfer Credit subject to restrictions.</td><td></td><td>UG Term GPA</td><td>4.000</td><td></td><td>Term Totals 22.00 22.00</td><td></td><td></td><td></td></tr><tr><td></td><td>---------- Beginning of Academic Record ---------</td><td></td><td>UG Cum GPA</td><td>3.944</td><td></td><td>Cum Totals 37.00 37.00</td><td></td><td></td><td></td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 1 of 4\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\n# Undergraduate Unofficial Transcript - Detailed\n\nName : John Doe\n\nStudent ID : 01234567\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2022-2023 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th><th>Course</th><th></th><th>Cmpt</th><th>2023-2024 Winter\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>COLLEGE</td><td>112</td><td></td><td>DIS</td><td>LIVING WITH VIRUSES\nDavid Armenta</td><td>4.00</td><td>4.00</td><td>A</td><td>CS</td><td>129</td><td>LEC</td><td>APPLIED MACHINE LEARNING\nAndrew Ng; Younes Bensouda Mourri</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>109</td><td></td><td>LEC</td><td>INTRODUCTION TO PROBABILITY\nFOR COMPUTER SCIENTISTS\nDavid Kewei Lin; Jacob Mejia</td><td>5.00</td><td>5.00</td><td>A</td><td>CS</td><td>195</td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td></td><td></td><td></td><td>Jerry Cain; Joel Ramirez\nKathleen Cheng; Matthew Harvill\nNaomi Eigbe; Selwin George</td><td></td><td></td><td></td><td>CS</td><td>224N</td><td>LEC</td><td>NATURAL LANGUAGE\nPROCESSING WITH DEEP\nLEARNING</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>161</td><td></td><td>LEC</td><td>Varun Tandon; Will Song; Yonatan Oren\nDESIGN AND ANALYSIS OF\nALGORITHMS\nMary Wootters</td><td>5.00</td><td>5.00</td><td>A</td><td>PWR</td><td>2STA</td><td>SEM</td><td>Diyi Yang; Tatsunori Hashimoto\nWRITING &amp; RHETORIC 2: ETHICS\nAND AI\nRuth Starkman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>198</td><td></td><td>LEC</td><td>TEACHING COMPUTER SCIENCE\nMehran Sahami</td><td>3.00</td><td>3.00</td><td>S</td><td>STATS</td><td>200</td><td>LEC</td><td>INTRODUCTION TO STATISTICAL\nINFERENCE</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>STATS</td><td>100</td><td></td><td>LEC</td><td>MATHEMATICS OF SPORTS\nWill Hartog</td><td>3.00</td><td>3.00</td><td>A</td><td></td><td></td><td></td><td>Iain Johnstone</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>UG Term GPA</td><td>3.940</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Term GPA\nUG Cum GPA</td><td></td><td>4.000\n3.965</td><td></td><td>Term Totals 20.00 20.00\nCum Totals 57.00 57.00</td><td></td><td></td><td></td><td>UG Cum GPA</td><td>3.965</td><td></td><td>Cum Totals 93.00 93.00</td><td></td><td></td><td></td></tr></table>\n\n## 2023-2024 Autumn\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CEE</td><td>252</td><td></td><td>SEM</td><td>SILICON VALLEY AND THE U.S.\nGOVERNMENT\nErnestine Mak; Joe Felter; Paul Kwan\nSteve Blank</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CS</td><td>107</td><td></td><td>LEC</td><td>COMPUTER ORGANIZATION AND\nSYSTEMS\nJerry Cain</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>221</td><td></td><td>LEC</td><td>ARTIFICIAL INTELLIGENCE:\nPRINCIPLES AND TECHNIQUES\nDorsa Sadigh; Percy Liang; Uma Phatak</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>FRENLANG</td><td>1</td><td></td><td>LNG</td><td>FIRST-YEAR FRENCH, FIRST\nQUARTER\nHannah Hudson</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td></td><td>ACT</td><td>GOLF: ADVANCED\nErick Schlimmer</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 16.00 16.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.974</td><td></td><td>Cum Totals 73.00 73.00</td><td></td><td></td><td></td></tr></table>\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2023-2024 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>195</td><td></td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>ENGR</td><td>76</td><td></td><td>LEC</td><td>INFORMATION SCIENCE AND\nENGINEERING\nAyfer Ozgur</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>MATH</td><td>21</td><td></td><td>LEC</td><td>CALCULUS\nWojciech Wieczorek</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>MS&amp;E</td><td>244</td><td></td><td>LEC</td><td>STATISTICAL ARBITRAGE\nDavid Demers</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>PATH</td><td>51</td><td></td><td>LEC</td><td>HUMAN ANATOMY (ONLINE)\nDarren Salmi</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.972</td><td></td><td>Cum Totals 113.00 113.00</td><td></td><td></td><td></td></tr></table>\n\n## 2023-2024 Summer\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390A</td><td>INS</td><td colspan=\"2\">CURRICULAR PRACTICAL\nTRAINING</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td></td><td></td><td>Nick Haber</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.972</td><td></td><td>Cum Totals</td><td>114.00</td><td>114.00</td><td></td><td></td><td></td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 2 of 4\n\n# Undergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\n\n# Student ID : 01234567\n\n<table><tr><th></th><th></th><th></th><th></th><th></th><th>2024-2025</th><th></th><th>Autumn</th><th></th><th></th><th></th></tr><tr><td>Course</td><td></td><td></td><td>Cmpt</td><td>Title</td><td></td><td></td><td></td><td>Attempted</td><td>Earned</td><td>Grade </td></tr><tr><td>CS</td><td>111</td><td></td><td>LEC</td><td>OPERATING\nPRINCIPLES\nPrevious Grade(s):\nNick Troccoli</td><td>SYSTEMS</td><td>A,GNR</td><td></td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>148</td><td></td><td>LEC</td><td colspan=\"4\">INTRODUCTION TO COMPUTER\nGRAPHICS AND IMAGING\nRon Fedkiw</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>160</td><td></td><td>LEC</td><td>GAME THEORY\nAPPLICATIONS\nDaniel Fragiadakis</td><td>AND</td><td>ECONOMIC</td><td></td><td>5.00</td><td>5.00</td><td>B-</td></tr><tr><td>MATH</td><td>104</td><td></td><td>LEC</td><td>APPLIED MATRIX\nEmmanuel</td><td>Candes</td><td>THEORY</td><td></td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>UG Term GPA</td><td></td><td>3.505</td><td></td><td>Term Totals</td><td></td><td>18.00</td><td>18.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.900</td><td></td><td>Cum Totals</td><td></td><td>132.00</td><td>132.00</td><td></td><td></td><td></td></tr></table>\n\n## 2024-2025 Winter\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Oxford Overseas Campus\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>246</td><td>LEC</td><td>MINING MASSIVE DATA SETS\nPrevious Grade(s): A-,GNR\nJure Leskovec</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ENGLISH</td><td>66</td><td>SEM</td><td>'A MODEL ISLAND': BRITAIN IN\nHISTORICAL AND CULTURAL\nPERSPECTIVE\nIlya Afanasyev</td><td>2.00</td><td>2.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>66</td><td>INS</td><td>A MODEL ISLAND IN PRACTICE\nIlya Afanasyev</td><td>1.00</td><td>1.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>84</td><td>SEM</td><td>THE PROMISES AND PERILS OF\nSOCIAL AND BEHAVIORAL\nGENOMICS\nDaphne Martschenko</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td>OSPOXFRD</td><td>195A</td><td>INS</td><td>OXFORD TUTORIAL\nDaniel Gerrard</td><td>7.00</td><td>7.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>3.968</td><td></td><td>Term Totals 19.00 19.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.909</td><td></td><td>Cum Totals 151.00 151.00</td><td></td><td></td><td></td></tr></table>\n\n## 2024-2025 Spring\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>155</td><td>LEC</td><td>COMPUTER AND NETWORK\nSECURITY\nDan Boneh; Zakir Durumeric</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>CS</td><td>166</td><td>LEC</td><td>ADVANCED DATA STRUCTURES\nKeith Schwarz</td><td>4.00</td><td>4.00</td><td>B</td></tr><tr><td>CS</td><td>231N</td><td>LEC</td><td>DEEP LEARNING FOR COMPUTER\nVISION\nEhsan Adeli; Fei-Fei Li</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>1</td><td>LEC</td><td>PRINCIPLES OF ECONOMICS\nIsaac Sorkin</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td>ACT</td><td>GOLF: ADVANCED</td><td>1.00</td><td>1.00</td><td>S</td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\n| UG Term GPA   | 3.675   | Term Totals   | 17.00   | 17.00   |\n|-|-|-|-|-|\n| UG Cum GPA    | 3.884   | Cum Totals    | 168.00  | 168.00  |\n\n## 2024-2025 Summer\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390B</td><td>INS</td><td>CURRICULAR\nTRAINING\nNick Haber</td><td>PRACTICAL</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.884</td><td></td><td>Cum Totals</td><td>169.00</td><td>169.00</td><td></td><td></td><td></td></tr></table>\n\n## 2025-2026 Autumn\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>2025-2026 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>AMSTUD</td><td>149</td><td>SEM</td><td>SCAMS, HOAXES, AND CONS\nRachel Bolten</td><td>3.00</td><td>3.00</td><td>A-</td></tr><tr><td>CS</td><td>238</td><td>LEC</td><td>DECISION MAKING UNDER\nUNCERTAINTY\nMykel Kochenderfer</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>390C</td><td>INS</td><td>CURRICULAR PRACTICAL\nTRAINING\nNick Haber</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CSRE</td><td>141R</td><td>LEC</td><td>BETWEEN MALCOLM X AND\nMARTIN LUTHER KING, JR.: RACE,\nRELIGION, AND THE POLITICS OF\nFREEDOM\nPrevious Grade(s): A+,GNR\nLerone Martin</td><td>5.00</td><td>5.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>4.050</td><td></td><td>Term Totals 13.00 13.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 182.00 182.00</td><td></td><td></td><td></td></tr></table>\n\n## 2025-2026 Winter\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>194W</td><td>LEC</td><td>SOFTWARE PROJECT (WIM)\nJay Borenstein</td><td>3.00</td><td>0.00</td><td></td></tr><tr><td>ECON</td><td>141</td><td>LEC</td><td>FINANCIAL MARKETS\nMartin Schneider; Monika Piazzesi</td><td>5.00</td><td>0.00</td><td></td></tr><tr><td>EMED</td><td>127</td><td>LEC</td><td>HEALTH CARE LEADERSHIP\nMilana Trounce</td><td>4.00</td><td>0.00</td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals 12.00 0.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 194.00 182.00</td><td></td><td></td><td></td></tr></table>\n\n## Undergraduate Career Totals\n\n<table><tr><th colspan=\"6\">Undergraduate Career Totals</th></tr><tr><td>Cum GPA</td><td>3.896</td><td>Cum Totals</td><td>194.00</td><td>182.00</td><td></td></tr><tr><td rowspan=\"2\" colspan=\"4\">UNITS COMPLETED TOWARDS UNDERGRADUATE DEGREE:\nSTANFORD TOTAL UNDERGRADUATE UNITS:</td><td></td><td>203.00</td></tr><tr><td></td><td>182.00</td></tr><tr><td></td><td></td><td>Max Allowed</td><td>Attempted</td><td>Earned</td><td></td></tr><tr><td>UG Activity Units</td><td></td><td>8</td><td>3.00</td><td>3.00</td><td></td></tr></table>\n\nPage 3 of 4\n\nUndergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\nStudent ID : 01234567\n\nUG Pass/Fail Units (Satisfactory & Credit) 36* 19.00 19.00\n\n* Transfer Students are allowed a Maximum of 27 Pass/Fail Units\n\nPass/Fail units do not include terms that are offered Satisfactory/No Credit\n\n******** Non-Course Milestones *********\n\nMasters Program Proposal -\nPlan: CS-MS\n\n**********************************************\n\n* Worksheet - For office use by authorized Stanford personnel *\n**********************************************\n\nEND OF TRANSCRIPT\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 4 of 4",
+        "embed": "# Undergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\n\nStudent ID : 01234567\n\n<table><tr><th>*</th><th>Print Date: 01/14/2026\n\nWorksheet - For office use by authorized Stanford personnel</th><th></th><th>Course</th><th></th><th>Cmpt</th><th>2022-2023 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade</th></tr><tr><td></td><td>Academic Advisor: Haber, Nick Joseph</td><td></td><td>COLLEGE</td><td>101</td><td>SEM</td><td>WHY COLLEGE? YOUR\nEDUCATION AND THE GOOD LIFE\nAlice Staveley</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td></td><td>--------- Academic Program ---------</td><td></td><td>33</td><td>106B</td><td>LEC</td><td>PROGRAMMING ABSTRACTIONS\nCynthia Bailey; Julie Zelenski</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Program Computer Science\n09/26/2023 Computer Science (MS)</td><td></td><td></td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone; Mark Cutkosky</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Active in Program\n\nProgram Undergraduate Matriculated\n03/01/2023 Computer Science (BS)</td><td></td><td>MATH</td><td>51</td><td>LEC</td><td>LINEAR ALGEBRA,\nMULTIVARIABLE CALCULUS, AND\nMODERN APPLICATIONS\nAndrew Hardt</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td></td><td>Artificial Intelligence (Subplan)\nActive in Program</td><td></td><td>STS</td><td>10SI</td><td>ACT</td><td>INTRODUCTION TO AI ALIGNMENT\nPaul Edwards</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>First Graduate Quarter: 2025-2026 Autumn\nCoterminal Undergraduate, 09/25/2023 -</td><td></td><td>UG Term GPA\nUG Cum GPA</td><td>3.884\n3.884</td><td></td><td>Term Totals 15.00 15.00\nCum Totals 15.00 15.00</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>Course</td><td></td><td>Cmpt</td><td>2022-2023 Winter\nTitle</td><td>Attempted</td><td>Earned</td><td>Grade</td></tr><tr><td></td><td>--------- Transfer Credits\nApplied Toward Undergraduate Matriculated</td><td></td><td>CEE</td><td>272T</td><td>SEM</td><td>SMARTGRIDS AND ADVANCED\nPOWER SYSTEMS SEMINAR\nRam Rajagopal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate CS106A\nQuarter Units Posted:</td><td>5.00</td><td>CME</td><td>510</td><td>SEM</td><td>LINEAR ALGEBRA AND\nOPTIMIZATION SEMINAR\nSanjay Saigal</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate CHEM31A</td><td></td><td>CS</td><td>103</td><td>LEC</td><td>MATHEMATICAL FOUNDATIONS\nOF COMPUTING\nCynthia Bailey</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>5.00</td><td>$</td><td>106L</td><td>LAB</td><td>STANDARD C++ PROGRAMMING\nLABORATORY</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated\nTransfer Credit from Irish Leaving Certificate PHYSICS 21/23</td><td></td><td>3</td><td>529</td><td>COL</td><td>ROBOTICS AND AUTONOMOUS\nSYSTEMS SEMINAR\nMarco Pavone</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td>Quarter Units Posted:</td><td>8.00</td><td>DATASCI</td><td>112</td><td>LEC</td><td>PRINCIPLES OF DATA SCIENCE\nDennis Sun</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td></td><td>Applied Toward Undergraduate Matriculated</td><td></td><td>PHYSICS</td><td>41</td><td>LEC</td><td>MECHANICS\nAdham Naji; Lauren Tompkins</td><td>4.00</td><td>4.00</td><td>S</td></tr><tr><td></td><td>Transfer Credit from Irish Leaving Certificate MATH 19\nQuarter Units Posted:\n\nTotal Quarter Units Posted:</td><td>3.00\n\n21.00</td><td>PWR</td><td>10S</td><td>SEM</td><td>WRITING &amp; RHETORIC 1: THE\nRHETORIC OF FREEDOM AND\nUNFREEDOM\nOlesya Shayduk-Immerman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td>Allowable Transfer Credit subject to restrictions.</td><td></td><td>UG Term GPA</td><td>4.000</td><td></td><td>Term Totals 22.00 22.00</td><td></td><td></td><td></td></tr><tr><td></td><td>---------- Beginning of Academic Record ---------</td><td></td><td>UG Cum GPA</td><td>3.944</td><td></td><td>Cum Totals 37.00 37.00</td><td></td><td></td><td></td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 1 of 4\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\n# Undergraduate Unofficial Transcript - Detailed\n\nName : John Doe\n\nStudent ID : 01234567\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2022-2023 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th><th>Course</th><th></th><th>Cmpt</th><th>2023-2024 Winter\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>COLLEGE</td><td>112</td><td></td><td>DIS</td><td>LIVING WITH VIRUSES\nDavid Armenta</td><td>4.00</td><td>4.00</td><td>A</td><td>CS</td><td>129</td><td>LEC</td><td>APPLIED MACHINE LEARNING\nAndrew Ng; Younes Bensouda Mourri</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>109</td><td></td><td>LEC</td><td>INTRODUCTION TO PROBABILITY\nFOR COMPUTER SCIENTISTS\nDavid Kewei Lin; Jacob Mejia</td><td>5.00</td><td>5.00</td><td>A</td><td>CS</td><td>195</td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td></td><td></td><td></td><td></td><td>Jerry Cain; Joel Ramirez\nKathleen Cheng; Matthew Harvill\nNaomi Eigbe; Selwin George</td><td></td><td></td><td></td><td>CS</td><td>224N</td><td>LEC</td><td>NATURAL LANGUAGE\nPROCESSING WITH DEEP\nLEARNING</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>161</td><td></td><td>LEC</td><td>Varun Tandon; Will Song; Yonatan Oren\nDESIGN AND ANALYSIS OF\nALGORITHMS\nMary Wootters</td><td>5.00</td><td>5.00</td><td>A</td><td>PWR</td><td>2STA</td><td>SEM</td><td>Diyi Yang; Tatsunori Hashimoto\nWRITING &amp; RHETORIC 2: ETHICS\nAND AI\nRuth Starkman</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>198</td><td></td><td>LEC</td><td>TEACHING COMPUTER SCIENCE\nMehran Sahami</td><td>3.00</td><td>3.00</td><td>S</td><td>STATS</td><td>200</td><td>LEC</td><td>INTRODUCTION TO STATISTICAL\nINFERENCE</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>STATS</td><td>100</td><td></td><td>LEC</td><td>MATHEMATICS OF SPORTS\nWill Hartog</td><td>3.00</td><td>3.00</td><td>A</td><td></td><td></td><td></td><td>Iain Johnstone</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>UG Term GPA</td><td>3.940</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Term GPA\nUG Cum GPA</td><td></td><td>4.000\n3.965</td><td></td><td>Term Totals 20.00 20.00\nCum Totals 57.00 57.00</td><td></td><td></td><td></td><td>UG Cum GPA</td><td>3.965</td><td></td><td>Cum Totals 93.00 93.00</td><td></td><td></td><td></td></tr></table>\n\n## 2023-2024 Autumn\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CEE</td><td>252</td><td></td><td>SEM</td><td>SILICON VALLEY AND THE U.S.\nGOVERNMENT\nErnestine Mak; Joe Felter; Paul Kwan\nSteve Blank</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CS</td><td>107</td><td></td><td>LEC</td><td>COMPUTER ORGANIZATION AND\nSYSTEMS\nJerry Cain</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>221</td><td></td><td>LEC</td><td>ARTIFICIAL INTELLIGENCE:\nPRINCIPLES AND TECHNIQUES\nDorsa Sadigh; Percy Liang; Uma Phatak</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>FRENLANG</td><td>1</td><td></td><td>LNG</td><td>FIRST-YEAR FRENCH, FIRST\nQUARTER\nHannah Hudson</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td></td><td>ACT</td><td>GOLF: ADVANCED\nErick Schlimmer</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 16.00 16.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.974</td><td></td><td>Cum Totals 73.00 73.00</td><td></td><td></td><td></td></tr></table>\n\n<table><tr><th>Course</th><th></th><th></th><th>Cmpt</th><th>2023-2024 Spring\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>195</td><td></td><td>INS</td><td>SUPERVISED UNDERGRADUATE\nRESEARCH\nAndrew Ng</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>ENGR</td><td>76</td><td></td><td>LEC</td><td>INFORMATION SCIENCE AND\nENGINEERING\nAyfer Ozgur</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>MATH</td><td>21</td><td></td><td>LEC</td><td>CALCULUS\nWojciech Wieczorek</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>MS&amp;E</td><td>244</td><td></td><td>LEC</td><td>STATISTICAL ARBITRAGE\nDavid Demers</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>PATH</td><td>51</td><td></td><td>LEC</td><td>HUMAN ANATOMY (ONLINE)\nDarren Salmi</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>UG Term GPA</td><td></td><td>4.000</td><td></td><td>Term Totals 20.00 20.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.972</td><td></td><td>Cum Totals 113.00 113.00</td><td></td><td></td><td></td></tr></table>\n\n## 2023-2024 Summer\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390A</td><td>INS</td><td colspan=\"2\">CURRICULAR PRACTICAL\nTRAINING</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td></td><td></td><td></td><td>Nick Haber</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.972</td><td></td><td>Cum Totals</td><td>114.00</td><td>114.00</td><td></td><td></td><td></td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 2 of 4\n\n# Undergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\n\n# Student ID : 01234567\n\n<table><tr><th></th><th></th><th></th><th></th><th></th><th>2024-2025</th><th></th><th>Autumn</th><th></th><th></th><th></th></tr><tr><td>Course</td><td></td><td></td><td>Cmpt</td><td>Title</td><td></td><td></td><td></td><td>Attempted</td><td>Earned</td><td>Grade </td></tr><tr><td>CS</td><td>111</td><td></td><td>LEC</td><td>OPERATING\nPRINCIPLES\nPrevious Grade(s):\nNick Troccoli</td><td>SYSTEMS</td><td>A,GNR</td><td></td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>CS</td><td>148</td><td></td><td>LEC</td><td colspan=\"4\">INTRODUCTION TO COMPUTER\nGRAPHICS AND IMAGING\nRon Fedkiw</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>160</td><td></td><td>LEC</td><td>GAME THEORY\nAPPLICATIONS\nDaniel Fragiadakis</td><td>AND</td><td>ECONOMIC</td><td></td><td>5.00</td><td>5.00</td><td>B-</td></tr><tr><td>MATH</td><td>104</td><td></td><td>LEC</td><td>APPLIED MATRIX\nEmmanuel</td><td>Candes</td><td>THEORY</td><td></td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>UG Term GPA</td><td></td><td>3.505</td><td></td><td>Term Totals</td><td></td><td>18.00</td><td>18.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td></td><td>3.900</td><td></td><td>Cum Totals</td><td></td><td>132.00</td><td>132.00</td><td></td><td></td><td></td></tr></table>\n\n## 2024-2025 Winter\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Oxford Overseas Campus\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>246</td><td>LEC</td><td>MINING MASSIVE DATA SETS\nPrevious Grade(s): A-,GNR\nJure Leskovec</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ENGLISH</td><td>66</td><td>SEM</td><td>'A MODEL ISLAND': BRITAIN IN\nHISTORICAL AND CULTURAL\nPERSPECTIVE\nIlya Afanasyev</td><td>2.00</td><td>2.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>66</td><td>INS</td><td>A MODEL ISLAND IN PRACTICE\nIlya Afanasyev</td><td>1.00</td><td>1.00</td><td>A</td></tr><tr><td>OSPOXFRD</td><td>84</td><td>SEM</td><td>THE PROMISES AND PERILS OF\nSOCIAL AND BEHAVIORAL\nGENOMICS\nDaphne Martschenko</td><td>5.00</td><td>5.00</td><td>A-</td></tr><tr><td>OSPOXFRD</td><td>195A</td><td>INS</td><td>OXFORD TUTORIAL\nDaniel Gerrard</td><td>7.00</td><td>7.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>3.968</td><td></td><td>Term Totals 19.00 19.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.909</td><td></td><td>Cum Totals 151.00 151.00</td><td></td><td></td><td></td></tr></table>\n\n## 2024-2025 Spring\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>155</td><td>LEC</td><td>COMPUTER AND NETWORK\nSECURITY\nDan Boneh; Zakir Durumeric</td><td>3.00</td><td>3.00</td><td>A</td></tr><tr><td>CS</td><td>166</td><td>LEC</td><td>ADVANCED DATA STRUCTURES\nKeith Schwarz</td><td>4.00</td><td>4.00</td><td>B</td></tr><tr><td>CS</td><td>231N</td><td>LEC</td><td>DEEP LEARNING FOR COMPUTER\nVISION\nEhsan Adeli; Fei-Fei Li</td><td>4.00</td><td>4.00</td><td>A-</td></tr><tr><td>ECON</td><td>1</td><td>LEC</td><td>PRINCIPLES OF ECONOMICS\nIsaac Sorkin</td><td>5.00</td><td>5.00</td><td>A</td></tr><tr><td>PHYSWELL</td><td>36</td><td>ACT</td><td>GOLF: ADVANCED</td><td>1.00</td><td>1.00</td><td>S</td></tr></table>\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\n| UG Term GPA   | 3.675   | Term Totals   | 17.00   | 17.00   |\n|-|-|-|-|-|\n| UG Cum GPA    | 3.884   | Cum Totals    | 168.00  | 168.00  |\n\n## 2024-2025 Summer\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th></th><th></th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>390B</td><td>INS</td><td>CURRICULAR\nTRAINING\nNick Haber</td><td>PRACTICAL</td><td></td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals</td><td>1.00</td><td>1.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.884</td><td></td><td>Cum Totals</td><td>169.00</td><td>169.00</td><td></td><td></td><td></td></tr></table>\n\n## 2025-2026 Autumn\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>2025-2026 Autumn\nTitle</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>AMSTUD</td><td>149</td><td>SEM</td><td>SCAMS, HOAXES, AND CONS\nRachel Bolten</td><td>3.00</td><td>3.00</td><td>A-</td></tr><tr><td>CS</td><td>238</td><td>LEC</td><td>DECISION MAKING UNDER\nUNCERTAINTY\nMykel Kochenderfer</td><td>4.00</td><td>4.00</td><td>A</td></tr><tr><td>CS</td><td>390C</td><td>INS</td><td>CURRICULAR PRACTICAL\nTRAINING\nNick Haber</td><td>1.00</td><td>1.00</td><td>S</td></tr><tr><td>CSRE</td><td>141R</td><td>LEC</td><td>BETWEEN MALCOLM X AND\nMARTIN LUTHER KING, JR.: RACE,\nRELIGION, AND THE POLITICS OF\nFREEDOM\nPrevious Grade(s): A+,GNR\nLerone Martin</td><td>5.00</td><td>5.00</td><td>A+</td></tr><tr><td>UG Term GPA</td><td>4.050</td><td></td><td>Term Totals 13.00 13.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 182.00 182.00</td><td></td><td></td><td></td></tr></table>\n\n## 2025-2026 Winter\n\n<table><tr><th>Course</th><th></th><th>Cmpt</th><th>Title</th><th>Attempted</th><th>Earned</th><th>Grade </th></tr><tr><td>CS</td><td>194W</td><td>LEC</td><td>SOFTWARE PROJECT (WIM)\nJay Borenstein</td><td>3.00</td><td>0.00</td><td></td></tr><tr><td>ECON</td><td>141</td><td>LEC</td><td>FINANCIAL MARKETS\nMartin Schneider; Monika Piazzesi</td><td>5.00</td><td>0.00</td><td></td></tr><tr><td>EMED</td><td>127</td><td>LEC</td><td>HEALTH CARE LEADERSHIP\nMilana Trounce</td><td>4.00</td><td>0.00</td><td></td></tr><tr><td>UG Term GPA</td><td>0.000</td><td></td><td>Term Totals 12.00 0.00</td><td></td><td></td><td></td></tr><tr><td>UG Cum GPA</td><td>3.896</td><td></td><td>Cum Totals 194.00 182.00</td><td></td><td></td><td></td></tr></table>\n\n## Undergraduate Career Totals\n\n<table><tr><th colspan=\"6\">Undergraduate Career Totals</th></tr><tr><td>Cum GPA</td><td>3.896</td><td>Cum Totals</td><td>194.00</td><td>182.00</td><td></td></tr><tr><td rowspan=\"2\" colspan=\"4\">UNITS COMPLETED TOWARDS UNDERGRADUATE DEGREE:\nSTANFORD TOTAL UNDERGRADUATE UNITS:</td><td></td><td>203.00</td></tr><tr><td></td><td>182.00</td></tr><tr><td></td><td></td><td>Max Allowed</td><td>Attempted</td><td>Earned</td><td></td></tr><tr><td>UG Activity Units</td><td></td><td>8</td><td>3.00</td><td>3.00</td><td></td></tr></table>\n\nPage 3 of 4\n\nUndergraduate Unofficial Transcript - Detailed\n\nLeland Stanford Jr. University\n\nStanford, CA 94305\n\nUSA\n\nName : John Doe\nStudent ID : 01234567\n\nUG Pass/Fail Units (Satisfactory & Credit) 36* 19.00 19.00\n\n* Transfer Students are allowed a Maximum of 27 Pass/Fail Units\n\nPass/Fail units do not include terms that are offered Satisfactory/No Credit\n\n******** Non-Course Milestones *********\n\nMasters Program Proposal -\nPlan: CS-MS\n\n**********************************************\n\n* Worksheet - For office use by authorized Stanford personnel *\n**********************************************\n\nEND OF TRANSCRIPT\n\nInformation must be kept confidential and must not be disclosed to other parties without the written consent of the student.\n\nPage 4 of 4",
+        "enriched": null,
+        "enrichment_success": false
+      }
+    ],
+    "type": "full",
+    "custom": null,
+    "ocr": null
+  },
+  "usage": {
+    "num_pages": 4,
+    "credits": 5.0
+  },
+  "pdf_url": "https://prod-storage20241010144745140900000001.s3.amazonaws.com/785c8719-22f9-4d2f-b4c2-97d2100ede15.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA2UOK6OVBOUYL7WYA%2F20260206%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260206T041424Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=85ff832266f57390746a04ea117099124b1922f0527cbf8ebe38c90c537d3868",
+  "studio_link": "https://studio.reducto.ai/job/cbbb248e-8c6f-4300-aa3b-0896eec700cc"
+}

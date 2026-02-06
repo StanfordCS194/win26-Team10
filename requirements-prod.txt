@@ -6,3 +6,4 @@ python-multipart==0.0.20
 python-dotenv==1.0.1
 pydantic>=2.0.0
 supabase==2.10.0
+reductoai>=0.16.0
