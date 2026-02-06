@@ -6,7 +6,7 @@ import uuid
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
 from api.auth import get_current_user
@@ -152,7 +152,7 @@ async def get_parse_job_status(
     )
 
 
-@app.get("/get_latest_transcript")
+@app.get("/latest")
 async def get_latest_transcript(user: dict = Depends(get_current_user)):
     """
     Get the current user's latest parsed transcript.
@@ -175,8 +175,8 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
     try:
         # Download and return the transcript
         content = get_file_bytes(latest_path)
-        return JSONResponse(
-            content=content.decode("utf-8"),
+        return Response(
+            content=content,
             media_type="application/json",
         )
     except Exception as e:

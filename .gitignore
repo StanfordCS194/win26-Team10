@@ -6,3 +6,6 @@ __pycache__
 
 debug/
 transcripts/
+
+# Test artifacts
+scripts/test_token.txt
