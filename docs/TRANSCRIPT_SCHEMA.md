@@ -179,7 +179,7 @@ StandardizedTranscript
 |-------|------|----------|-------------|
 | `department` | string | Yes | Department code (e.g., "CS", "MATH") |
 | `number` | string | Yes | Course number (e.g., "106B", "51") |
-| `component` | string | No | Component type (LEC, SEM, LAB, DIS, etc.) |
+| `component` | string | No | Component type code as shown on transcript (e.g., LEC, SEM, LAB) |
 | `title` | string | No | Course title |
 | `instructors` | array | No | List of instructor names |
 | `units_attempted` | number | No | Units attempted |
@@ -203,7 +203,9 @@ StandardizedTranscript
 }
 ```
 
-#### Component Types (common)
+#### Component Types (examples)
+
+Preserve component codes exactly as they appear on the transcript. Common examples:
 
 | Code | Description |
 |------|-------------|
@@ -214,6 +216,8 @@ StandardizedTranscript
 | COL | Colloquium |
 | ACT | Activity |
 | INS | Instruction/Internship |
+
+Other institutions may use different codes.
 
 ---
 

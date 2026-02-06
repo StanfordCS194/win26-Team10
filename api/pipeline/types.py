@@ -30,10 +30,9 @@ class ParseArtifacts:
     
     # Step outputs
     pdf_path: Path | None = None  # Downloaded/local PDF
-    reducto_result: dict[str, Any] | None = None
-    
-    # Future step outputs can be added here
-    # e.g., extracted_fields: dict | None = None
+    text_content: str | None = None  # Raw text extracted from PDF
+    reducto_result: dict[str, Any] | None = None  # Reducto API result (optional)
+    transcript: dict[str, Any] | None = None  # Extracted transcript data
     
     # Map of output name -> file path
     outputs: dict[str, Path] = field(default_factory=dict)

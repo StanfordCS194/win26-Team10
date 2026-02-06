@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Iterable
 
 from api.pipeline.executor import ParseExecutor
-from api.pipeline.steps import ParseStep, ReductoStep
+from api.pipeline.steps import ParseStep, ReductoStep, TextExtractStep, StandardizeStep
 from api.pipeline.types import ParseArtifacts, ParseInput
 
 
@@ -31,11 +31,14 @@ def default_steps() -> list[ParseStep]:
     """
     Default pipeline steps.
     
-    Currently:
-    - ReductoStep: Parse PDF using Reducto API
+    1. TextExtractStep: Extract raw text from PDF using PyPDF2
+    2. StandardizeStep: Convert text to standardized transcript JSON using LLM
+    
+    To use Reducto instead: steps=[ReductoStep(), StandardizeStep()]
     """
     return [
-        ReductoStep(),
+        TextExtractStep(),
+        StandardizeStep(),
     ]
 
 
@@ -94,7 +97,10 @@ __all__ = [
     "ParseExecutor",
     "ParseStep",
     "ReductoStep",
+    "TextExtractStep",
+    "StandardizeStep",
     "ParseInput",
     "ParseArtifacts",
     "default_steps",
+    "default_output_dir",
 ]

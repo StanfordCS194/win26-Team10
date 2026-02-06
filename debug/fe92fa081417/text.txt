@@ -1,0 +1,307 @@
+  
+Leland Stanford Jr. University
+Stanford, CA 94305 
+USAUndergraduate Unofficial Transcript - Detailed
+Name : Kehoe,Niall Thomas
+Student ID : 06649685
+Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.
+Print Date: 01/14/2026
+*********************************************************************************************
+*  Worksheet - For office use by authorized Stanford personnel *
+*********************************************************************************************
+Academic Advisor: Haber,Nick Joseph
+--------- Academic Program ---------
+Program :   Computer Science
+09/26/2023 :Computer Science (MS)
+ Active in Program 
+Program :   Undergraduate Matriculated
+03/01/2023 :Computer Science (BS)
+Artificial Intelligence (Subplan)
+ Active in Program 
+First Graduate Quarter: 2025-2026 Autumn 
+Coterminal Undergraduate, 09/25/2023 - 
+ 
+  
+--------- Transfer Credits ---------
+Applied Toward  Undergraduate Matriculated   
+Transfer Credit from Irish Leaving Certificate CS106A
+Quarter Units Posted: 5.00
+ 
+  
+Applied Toward  Undergraduate Matriculated   
+Transfer Credit from Irish Leaving Certificate CHEM31A
+Quarter Units Posted: 5.00
+ 
+  
+Applied Toward  Undergraduate Matriculated   
+Transfer Credit from Irish Leaving Certificate PHYSICS 21/23
+Quarter Units Posted: 8.00
+ 
+  
+Applied Toward  Undergraduate Matriculated   
+Transfer Credit from Irish Leaving Certificate MATH 19
+Quarter Units Posted: 3.00
+Total Quarter Units Posted: 21.00
+Allowable Transfer Credit subject to restrictions. 
+--------- Beginning of Academic  Record --------- 2022-2023 Autumn   
+Course Cmpt Title Attempted Earned Grade 
+COLLEGE  101 SEM WHY COLLEGE? YOUR 
+EDUCATION AND THE GOOD LIFE3.00 3.00 A  
+   Alice Staveley
+CS  106B LEC PROGRAMMING ABSTRACTIONS 5.00 5.00 A  
+  Cynthia Bailey; Julie Zelenski
+CS  529 COL ROBOTICS AND AUTONOMOUS 
+SYSTEMS SEMINAR1.00 1.00 S  
+  Marco Pavone; Mark Cutkosky
+MATH   51 LEC LINEAR ALGEBRA, 
+MULTIVARIABLE CALCULUS, AND 
+MODERN APPLICATIONS5.00 5.00 A-  
+   Andrew Hardt
+STS   10SI ACT INTRODUCTION TO AI ALIGNMENT 1.00 1.00 S  
+   Paul Edwards
+ 
+UG Term GPA 3.884 Term Totals 15.00 15.00
+UG Cum GPA 3.884 Cum  Totals 15.00 15.00
+ 2022-2023 Winter   
+Course Cmpt Title Attempted Earned Grade 
+CEE  272T SEM SMARTGRIDS AND ADVANCED 
+POWER SYSTEMS SEMINAR1.00 1.00 S  
+   Ram Rajagopal
+CME  510 SEM LINEAR ALGEBRA AND 
+OPTIMIZATION SEMINAR1.00 1.00 S  
+   Sanjay Saigal
+CS  103 LEC MATHEMATICAL FOUNDATIONS 
+OF COMPUTING5.00 5.00 A  
+   Cynthia Bailey
+CS  106L LAB STANDARD C++ PROGRAMMING 
+LABORATORY1.00 1.00 S  
+CS  529 COL ROBOTICS AND AUTONOMOUS 
+SYSTEMS SEMINAR1.00 1.00 S  
+   Marco Pavone
+DATASCI  112 LEC PRINCIPLES OF DATA SCIENCE 5.00 5.00 A  
+   Dennis Sun
+PHYSICS   41 LEC MECHANICS 4.00 4.00 S  
+  Adham Naji; Lauren Tompkins
+PWR    1OS SEM WRITING & RHETORIC 1: THE 
+RHETORIC OF FREEDOM AND 
+UNFREEDOM4.00 4.00 A  
+   Olesya Shayduk-Immerman
+ 
+UG Term GPA 4.000 Term Totals 22.00 22.00
+UG Cum GPA 3.944 Cum  Totals 37.00 37.00
+
+  
+Leland Stanford Jr. University
+Stanford, CA 94305 
+USAUndergraduate Unofficial Transcript - Detailed
+Name : Kehoe,Niall Thomas
+Student ID : 06649685
+Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.
+ 2022-2023 Spring   
+Course Cmpt Title Attempted Earned Grade 
+COLLEGE  112 DIS LIVING WITH VIRUSES 4.00 4.00 A  
+   David Armenta
+CS  109 LEC INTRODUCTION TO PROBABILITY 
+FOR COMPUTER SCIENTISTS5.00 5.00 A  
+  David Kewei Lin; Jacob Mejia
+ Jerry Cain; Joel Ramirez
+ Kathleen Cheng; Matthew Harvill
+ Naomi Eigbe; Selwin George
+ Varun Tandon; Will Song; Yonatan Oren
+CS  161 LEC DESIGN AND ANALYSIS OF 
+ALGORITHMS5.00 5.00 A  
+   Mary Wootters
+CS  198 LEC TEACHING COMPUTER SCIENCE 3.00 3.00 S  
+   Mehran Sahami
+STATS  100 LEC MATHEMATICS OF SPORTS 3.00 3.00 A  
+   Will Hartog
+ 
+UG Term GPA 4.000 Term Totals 20.00 20.00
+UG Cum GPA 3.965 Cum  Totals 57.00 57.00
+ 2023-2024 Autumn   
+Course Cmpt Title Attempted Earned Grade 
+CEE  252 SEM SILICON VALLEY AND THE U.S. 
+GOVERNMENT1.00 1.00 S  
+  Ernestine Mak; Joe Felter; Paul Kwan
+ Steve Blank
+CS  107 LEC COMPUTER ORGANIZATION AND 
+SYSTEMS5.00 5.00 A  
+   Jerry Cain
+CS  221 LEC ARTIFICIAL INTELLIGENCE: 
+PRINCIPLES AND TECHNIQUES4.00 4.00 A  
+  Dorsa Sadigh; Percy Liang; Uma Phatak
+FRENLANG    1 LNG FIRST-YEAR FRENCH, FIRST 
+QUARTER5.00 5.00 A  
+   Hannah Hudson
+PHYSWELL   36 ACT GOLF: ADVANCED 1.00 1.00 S  
+   Erick Schlimmer
+ 
+UG Term GPA 4.000 Term Totals 16.00 16.00
+UG Cum GPA 3.974 Cum  Totals 73.00 73.00 2023-2024 Winter   
+Course Cmpt Title Attempted Earned Grade 
+CS  129 LEC APPLIED MACHINE LEARNING 4.00 4.00 A  
+  Andrew Ng; Younes Bensouda Mourri
+CS  195 INS SUPERVISED UNDERGRADUATE 
+RESEARCH4.00 4.00 A  
+   Andrew Ng
+CS  224N LEC NATURAL LANGUAGE 
+PROCESSING WITH DEEP 
+LEARNING4.00 4.00 A  
+  Diyi Yang; Tatsunori Hashimoto
+PWR    2STA SEM WRITING & RHETORIC 2: ETHICS 
+AND AI4.00 4.00 A  
+   Ruth Starkman
+STATS  200 LEC INTRODUCTION TO STATISTICAL 
+INFERENCE4.00 4.00 A-  
+   Iain Johnstone
+ 
+UG Term GPA 3.940 Term Totals 20.00 20.00
+UG Cum GPA 3.965 Cum  Totals 93.00 93.00
+ 2023-2024 Spring   
+Course Cmpt Title Attempted Earned Grade 
+CS  195 INS SUPERVISED UNDERGRADUATE 
+RESEARCH4.00 4.00 A  
+   Andrew Ng
+ENGR   76 LEC INFORMATION SCIENCE AND 
+ENGINEERING5.00 5.00 A  
+   Ayfer Ozgur
+MATH   21 LEC CALCULUS 4.00 4.00 A  
+   Wojciech Wieczorek
+MS&E  244 LEC STATISTICAL ARBITRAGE 3.00 3.00 A  
+   David Demers
+PATH   51 LEC HUMAN ANATOMY (ONLINE) 4.00 4.00 A  
+   Darren Salmi
+ 
+UG Term GPA 4.000 Term Totals 20.00 20.00
+UG Cum GPA 3.972 Cum  Totals 113.00 113.00
+ 2023-2024 Summer   
+Course Cmpt Title Attempted Earned Grade 
+CS  390A INS CURRICULAR PRACTICAL 
+TRAINING1.00 1.00 S  
+   Nick Haber
+ 
+UG Term GPA 0.000 Term Totals 1.00 1.00
+UG Cum GPA 3.972 Cum  Totals 114.00 114.00
+
+  
+Leland Stanford Jr. University
+Stanford, CA 94305 
+USAUndergraduate Unofficial Transcript - Detailed
+Name : Kehoe,Niall Thomas
+Student ID : 06649685
+Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.
+ 2024-2025 Autumn   
+Course Cmpt Title Attempted Earned Grade 
+CS  111 LEC OPERATING SYSTEMS 
+PRINCIPLES
+Previous Grade(s): A,GNR5.00 5.00 A  
+   Nick Troccoli
+CS  148 LEC INTRODUCTION TO COMPUTER 
+GRAPHICS AND IMAGING4.00 4.00 A-  
+   Ron Fedkiw
+ECON  160 LEC GAME THEORY AND ECONOMIC 
+APPLICATIONS5.00 5.00 B-  
+   Daniel Fragiadakis
+MATH  104 LEC APPLIED MATRIX THEORY 4.00 4.00 A-  
+   Emmanuel Candes
+ 
+UG Term GPA 3.505 Term Totals 18.00 18.00
+UG Cum GPA 3.900 Cum  Totals 132.00 132.00
+ 2024-2025 Winter   
+Oxford Overseas Campus
+Course Cmpt Title Attempted Earned Grade 
+CS  246 LEC MINING MASSIVE DATA SETS
+Previous Grade(s): A-,GNR4.00 4.00 A-  
+   Jure Leskovec
+ENGLISH   66 SEM 'A MODEL ISLAND': BRITAIN IN 
+HISTORICAL AND CULTURAL 
+PERSPECTIVE2.00 2.00 A  
+   Ilya Afanasyev
+OSPOXFRD   66 INS A MODEL ISLAND IN PRACTICE 1.00 1.00 A  
+   Ilya Afanasyev
+OSPOXFRD   84 SEM THE PROMISES AND PERILS OF 
+SOCIAL AND BEHAVIORAL 
+GENOMICS5.00 5.00 A-  
+   Daphne Martschenko
+OSPOXFRD  195A INS OXFORD TUTORIAL 7.00 7.00 A+  
+   Daniel Gerrard
+ 
+UG Term GPA 3.968 Term Totals 19.00 19.00
+UG Cum GPA 3.909 Cum  Totals 151.00 151.00
+ 2024-2025 Spring   
+Course Cmpt Title Attempted Earned Grade 
+CS  155 LEC COMPUTER AND NETWORK 
+SECURITY3.00 3.00 A  
+  Dan Boneh; Zakir Durumeric
+CS  166 LEC ADVANCED DATA STRUCTURES 4.00 4.00 B  
+   Keith Schwarz
+CS  231N LEC DEEP LEARNING FOR COMPUTER 
+VISION4.00 4.00 A-  
+  Ehsan Adeli; Fei-Fei Li
+ECON    1 LEC PRINCIPLES OF ECONOMICS 5.00 5.00 A  
+   Isaac Sorkin
+PHYSWELL   36 ACT GOLF: ADVANCED 1.00 1.00 S   
+UG Term GPA 3.675 Term Totals 17.00 17.00
+UG Cum GPA 3.884 Cum  Totals 168.00 168.00
+ 2024-2025 Summer   
+Course Cmpt Title Attempted Earned Grade 
+CS  390B INS CURRICULAR PRACTICAL 
+TRAINING1.00 1.00 S  
+   Nick Haber
+ 
+UG Term GPA 0.000 Term Totals 1.00 1.00
+UG Cum GPA 3.884 Cum  Totals 169.00 169.00
+ 2025-2026 Autumn   
+Course Cmpt Title Attempted Earned Grade 
+AMSTUD  149 SEM SCAMS, HOAXES, AND CONS 3.00 3.00 A-  
+   Rachel Bolten
+CS  238 LEC DECISION MAKING UNDER 
+UNCERTAINTY4.00 4.00 A  
+   Mykel Kochenderfer
+CS  390C INS CURRICULAR PRACTICAL 
+TRAINING1.00 1.00 S  
+   Nick Haber
+CSRE  141R LEC BETWEEN MALCOLM X AND 
+MARTIN LUTHER KING, JR.: RACE, 
+RELIGION, AND THE POLITICS OF 
+FREEDOM
+Previous Grade(s): A+,GNR5.00 5.00 A+  
+   Lerone Martin
+ 
+UG Term GPA 4.050 Term Totals 13.00 13.00
+UG Cum GPA 3.896 Cum  Totals 182.00 182.00
+ 2025-2026 Winter   
+Course Cmpt Title Attempted Earned Grade 
+CS  194W LEC SOFTWARE PROJECT (WIM) 3.00 0.00  
+   Jay Borenstein
+ECON  141 LEC FINANCIAL MARKETS 5.00 0.00  
+  Martin Schneider; Monika Piazzesi
+EMED  127 LEC HEALTH CARE LEADERSHIP 4.00 0.00  
+   Milana Trounce
+UG Term GPA 0.000 Term Totals 12.00 0.00
+UG Cum GPA 3.896 Cum Totals 194.00 182.00
+ 
+Undergraduate Career Totals
+Cum GPA 3.896 Cum Totals 194.00 182.00
+UNITS COMPLETED TOWARDS UNDERGRADUATE DEGREE: 203.00
+STANFORD TOTAL UNDERGRADUATE UNITS: 182.00
+Max Allowed Attempted Earned
+UG Activity Units 8 3.00 3.00
+
+  
+Leland Stanford Jr. University
+Stanford, CA 94305 
+USAUndergraduate Unofficial Transcript - Detailed
+Name : Kehoe,Niall Thomas
+Student ID : 06649685
+Information must be kept confidential and must not be disclosed to other parties without the written consent of the student.
+UG Pass/Fail Units (Satisfactory & Credit) 36* 19.00 19.00
+* Transfer Students are allowed a Maximum of 27 Pass/Fail Units
+Pass/Fail units do not include terms that are offered Satisfactory/No Credit
+--------- Non-Course Milestones ---------
+Masters Program Proposal -   
+Plan: CS-MS
+*********************************************************************************************
+*  Worksheet - For office use by authorized Stanford personnel *
+*********************************************************************************************
+END OF TRANSCRIPT

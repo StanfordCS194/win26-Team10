@@ -4,25 +4,28 @@ REST API for parsing with async job processing.
 
 ## Test Pipeline Locally (No Worker)
 
-Run the pipeline directly on a PDF file:
-
 ```bash
 cd /Users/niall/Dev/win26-Team10
 source .venv/bin/activate
 
-# Run pipeline on a PDF
-python -m api --pdf /path/to/your/file.pdf
+# Run full pipeline (text_extract + standardize)
+python -m api --pdf transcripts/niall.pdf
+
+# Run individual steps
+python -m api --step text_extract --pdf transcripts/niall.pdf
+python -m api --step standardize --job-id <job_id>
 
 # With custom job ID
-python -m api --pdf /path/to/your/file.pdf --job-id my-test-job
+python -m api --pdf transcripts/niall.pdf --job-id my-test-job
 
 # Dry run (skip API calls)
-python -m api --pdf /path/to/your/file.pdf --dry-run
+python -m api --pdf transcripts/niall.pdf --dry-run
 ```
 
 Output goes to `debug/<job_id>/`:
-- `input.pdf` - Copy of input file
-- `reducto.json` - Reducto API response
+- `source.pdf` - Copy of input file
+- `text.txt` - Extracted text (PyPDF2)
+- `transcript.json` - Standardized transcript data
 
 ## Quick Launch (Full Stack)
 
@@ -47,7 +50,8 @@ supabase start
 Add to `api/.env`:
 
 ```
-REDUCTO_API_KEY=your-reducto-api-key
+OPENROUTER_API_KEY=sk-or-...
+REDUCTO_API_KEY=...  # Optional: only if using --step reducto
 ```
 
 ## SSL Issue
