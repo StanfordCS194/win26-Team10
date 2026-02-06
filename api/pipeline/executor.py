@@ -44,12 +44,13 @@ class ParseExecutor:
         
         # Set up PDF path
         if parse_input.local_pdf_path:
-            # CLI mode: copy local file to output dir
             dest = parse_input.output_dir / "input.pdf"
-            shutil.copy(parse_input.local_pdf_path, dest)
+            # Only copy if source and dest are different
+            if parse_input.local_pdf_path.resolve() != dest.resolve():
+                shutil.copy(parse_input.local_pdf_path, dest)
+                logger.info(f"Copied local PDF to {dest}")
             artifacts.pdf_path = dest
             artifacts.outputs["input_pdf"] = dest
-            logger.info(f"Copied local PDF to {dest}")
         
         logger.info(f"Starting pipeline for job {parse_input.job_id}")
         logger.info(f"Output directory: {parse_input.output_dir}")

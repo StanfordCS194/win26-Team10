@@ -10,3 +10,6 @@ frontend/node_modules/
 
 debug/
 transcripts/
+
+# Test artifacts
+scripts/test_token.txt

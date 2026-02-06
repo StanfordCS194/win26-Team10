@@ -11,7 +11,7 @@ import uuid
 import logging
 from pathlib import Path
 
-from api.supabase import claim_parse_job, complete_job, fail_job, download_file
+from api.supabase import claim_parse_job, complete_job, fail_job, download_file, upload_bytes
 from api.pipeline import run_pipeline
 
 # Configure logging
@@ -35,7 +35,7 @@ async def process_job(job: dict) -> None:
         job: The job record from the database
     """
     job_id = job["id"]
-    file_id = job.get("parsed_file_id", "")
+    storage_path = job.get("storage_path", "")
     
     logger.info(f"Processing job {job_id}")
     
@@ -47,20 +47,33 @@ async def process_job(job: dict) -> None:
         
         # Download PDF from storage
         pdf_path = output_dir / "input.pdf"
-        if file_id:
-            logger.info(f"Downloading file {file_id} to {pdf_path}")
-            download_file(file_id, pdf_path)
+        if storage_path:
+            # storage_path is like "{user_id}/{job_id}/source.pdf"
+            source_file = f"{storage_path}/source.pdf"
+            logger.info(f"Downloading {source_file} to {pdf_path}")
+            download_file(source_file, pdf_path)
         
         # Run pipeline
         artifacts = run_pipeline(
             job_id=job_id,
-            file_id=file_id,
+            file_id=storage_path,  # Use storage_path as file_id for compatibility
             local_pdf_path=pdf_path if pdf_path.exists() else None,
             output_dir=output_dir,
         )
         
         if artifacts.errors:
             raise Exception("; ".join(artifacts.errors))
+        
+        # Upload transcript.json to storage if pipeline succeeded
+        transcript_path = output_dir / "transcript.json"
+        if storage_path and transcript_path.exists():
+            dest_path = f"{storage_path}/transcript.json"
+            logger.info(f"Uploading transcript to {dest_path}")
+            upload_bytes(
+                content=transcript_path.read_bytes(),
+                dest_path=dest_path,
+                content_type="application/json",
+            )
         
         await complete_job(job_id)
         logger.info(f"Job {job_id} completed successfully")
