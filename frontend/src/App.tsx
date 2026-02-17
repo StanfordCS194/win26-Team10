@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import SignupStudent from './pages/SignupStudent'
 import SignupRecruiter from './pages/SignupRecruiter'
+import ProtectedRoute from './components/ProtectedRoute'
 import Navigation from './layouts/Navigation'
 
 function App() {
@@ -18,8 +19,22 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup-student" element={<SignupStudent />} />
             <Route path="/signup-recruiter" element={<SignupRecruiter />} />
-            <Route path="/student" element={<StudentPage />} />
-            <Route path="/recruiter" element={<RecruiterDashboard />} />
+            <Route
+              path="/student"
+              element={
+                <ProtectedRoute allowType="student">
+                  <StudentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recruiter"
+              element={
+                <ProtectedRoute allowType="recruiter">
+                  <RecruiterDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </div>
