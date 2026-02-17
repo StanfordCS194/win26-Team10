@@ -57,6 +57,14 @@ body {
   color: white;
 }
 
+.nav-link-button {
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
 /* Layout */
 .app-container {
   min-height: 100vh;
