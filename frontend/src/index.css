@@ -448,6 +448,69 @@ body {
   margin-bottom: 2rem;
 }
 
+.landing-login-row {
+  margin-bottom: 2rem;
+}
+
+.landing-login-btn {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.landing-login-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.landing-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.landing-choice-card {
+  display: block;
+  padding: 1.5rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s;
+}
+
+.landing-choice-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.landing-choice-icon {
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.landing-choice-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.landing-choice-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+.landing-choice-cta {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2563eb;
+}
+
 .form-section {
   background-color: white;
   border-radius: 0.75rem;
