@@ -350,7 +350,16 @@ export default function StudentPage() {
         isComplete: updated.is_complete,
       })
       setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      localStorage.setItem('studentProfile', JSON.stringify({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        major: profile.major,
+        graduationYear: profile.graduationYear,
+        gpa: profile.gpa,
+      }))
+      setTimeout(() => {
+        navigate('/student/dashboard')
+      }, 500)
     } catch (err) {
       setParseError(err instanceof Error ? err.message : String(err))
     } finally {
