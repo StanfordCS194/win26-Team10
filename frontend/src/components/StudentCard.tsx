@@ -98,9 +98,9 @@ export default function StudentCard({ student }: StudentCardProps) {
                   units_earned: rawTranscript.career_totals.undergraduate.units_earned,
                   units_toward_degree: rawTranscript.career_totals.undergraduate.units_toward_degree
                 }
-                root.render(<StudentTranscriptCard transcript={transcript}/>);
+                root.render(<StudentTranscriptCard transcript={transcript} student={student}/>);
               } else {
-                root.render(<StudentTranscriptCard transcript={student.transcript}/>);
+                root.render(<StudentTranscriptCard transcript={student.transcript} student={student}/>);
               }
             }
             popup.style.display = 'flex'

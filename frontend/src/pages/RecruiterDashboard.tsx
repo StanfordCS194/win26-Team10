@@ -51,9 +51,9 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
 }
 
 export default function RecruiterDashboard() {
-  const [complete, setComplete] = useState<Array<any> | null>(null);
+  //const [complete, setComplete] = useState<Array<any> | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters)
-  useEffect(() => {
+  /*useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
@@ -87,8 +87,8 @@ export default function RecruiterDashboard() {
         major: 'MAJOR',
         graduationYear: 2026,
         skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
-        transcriptUploaded: true,
-        transcript: "supabase",
+        transcriptUploaded: false,
+        transcript: null, //"supabase",
       }
       loadedStudents.push(newStudent)
     }
@@ -101,12 +101,12 @@ export default function RecruiterDashboard() {
     if (!mockStudentsIDs.includes(student.id)) {
       mockStudents.push(student)
     }
-  }
+  }*/ // TODO: fix student duplication
   const filteredStudents = useMemo(
     () => filterStudents(mockStudents, filters),
     [filters]
   )
-  if (!complete) return <div>Loading...</div>;
+  //if (!complete) return <div>Loading...</div>;
   return (
     <div className="dashboard">
       <FilterSidebar filters={filters} onFiltersChange={setFilters} />

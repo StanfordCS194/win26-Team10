@@ -1,7 +1,8 @@
-import { SmallTranscript } from '../types/student'
+import { SmallTranscript, Student } from '../types/student'
 
 interface StudentTranscriptCardProps {
     transcript: SmallTranscript
+    student: Student
 }
 
 const percentageToColor = (percentage: number) => {
@@ -19,7 +20,7 @@ const percentageToColor = (percentage: number) => {
   return colorHex;
 };
 
-export default function StudentTranscriptCard({ transcript }: StudentTranscriptCardProps) {
+export default function StudentTranscriptCard({ transcript, student }: StudentTranscriptCardProps) {
     return (
         <div className="student-transcript-card">
             <h3 className="section-title">Condensed Transcript</h3>
@@ -28,12 +29,6 @@ export default function StudentTranscriptCard({ transcript }: StudentTranscriptC
             </div>
             <div className="info-box">
                 Institution: {transcript.institution}
-            </div>
-            <div className="info-box">
-                Programs: {transcript.programs.join(', ')}
-            </div>
-            <div className="info-box">
-                GPA: {transcript.gpa}
             </div>
             <div className="transcript-grid">
                 <div className="info-box">
@@ -48,15 +43,11 @@ export default function StudentTranscriptCard({ transcript }: StudentTranscriptC
                             }}
                         ></div>
                     </div>
-                    <label>Computer Science</label>
+                    <label>{student.major}</label>
                     <div className="progress-bar">
                         <div className="progress" style={{ width: '50%', backgroundColor: 'green', borderRadius: '5px' }}></div>
                     </div>
-                    <label>Math</label>
-                    <div className="progress-bar">
-                        <div className="progress" style={{ width: '20%', backgroundColor: 'green', borderRadius: '5px' }}></div>
-                    </div>
-                    <label>Physics</label>
+                    <label>{student.major === "Computer Science" ? "Math" : "Computer Science"}</label>
                     <div className="progress-bar">
                         <div className="progress" style={{ width: '20%', backgroundColor: 'green', borderRadius: '5px' }}></div>
                     </div>
@@ -81,12 +72,12 @@ export default function StudentTranscriptCard({ transcript }: StudentTranscriptC
                 </div>
                 <div className="info-box">
                     <h2>Weaknesses</h2>
-                    <label>Poor performance rate</label>
+                    <label>Poor performance rate: {(20*(4.1 - parseFloat(transcript.gpa))).toFixed(0)}%</label>
                     <div className="progress-bar">
                         <div className="progress" style=
                             {{
-                                width: `${Math.min(transcript.units_attempted / 180 * 100, 100)}%`, 
-                                background: `${percentageToColor(Math.min(transcript.units_attempted / 180 * 100, 100))}`,
+                                width: `${Math.min((20*(4.1 - parseFloat(transcript.gpa))) / 30 * 100, 100)}%`, 
+                                background: `${percentageToColor(100 - Math.min((20*(4.1 - parseFloat(transcript.gpa))) / 30 * 100, 100))}`,
                                 borderRadius: '5px'
                             }}
                         ></div>
@@ -96,7 +87,15 @@ export default function StudentTranscriptCard({ transcript }: StudentTranscriptC
                 </div>
                 <div className="info-box">
                     <h2>Anomalies</h2>
-                    <p>Program does not match transcript (Mathematics vs. Undeclared Undergraduate)</p>
+                    {Math.abs(student.gpa - parseFloat(transcript.gpa)) > 0.006 && (
+                        <p>Student GPA does not match transcript GPA ({student.gpa} vs. {transcript.gpa})</p>
+                    )}
+                    {!transcript.programs.join(', ').toLowerCase().includes(student.major.toLowerCase()) ? (
+                        <p>Major does not match transcript ({student.major} vs. {transcript.programs.join(', ')})</p>
+                    ) : null}
+                    {(student.graduationYear - 2026) * 18*3 + 18 + transcript.units_attempted < 180 && (
+                        <p>Not on track to graduate by {student.graduationYear}</p>
+                    )}
                 </div>
             </div>
         </div>
