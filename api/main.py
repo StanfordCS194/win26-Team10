@@ -7,15 +7,17 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from api.auth import get_current_user
 from api.supabase import (
     create_job,
+    get_applicant,
     get_file_bytes,
     get_job_status,
     get_user,
+    update_applicant,
     update_user_latest_repr,
     upload_bytes,
 )
@@ -64,6 +66,21 @@ class JobStatusResponse(BaseModel):
     created_at: Optional[str] = None
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
+
+
+class ApplicantProfile(BaseModel):
+    """Applicant profile data."""
+
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    major: Optional[str] = None
+    graduation_year: Optional[str] = None
+    gpa: Optional[float] = None
+    skills: Optional[list[str]] = None
+    updated_at: Optional[str] = None
+    latest_repr_path: Optional[str] = None
+    is_complete: Optional[bool] = None
 
 
 # =============================================================================
@@ -123,6 +140,11 @@ async def create_parse_job(
     db_user = await get_user(user_id)
     if db_user and db_user.get("type") == "student":
         await update_user_latest_repr(user_id, f"{storage_path}/transcript.json")
+    
+    # Also update applicant record if it exists
+    applicant = await get_applicant(user_id)
+    if applicant:
+        await update_applicant(user_id, {"latest_repr_path": f"{storage_path}/transcript.json"})
 
     return ParseJobResponse(
         job_id=str(job["id"]),
@@ -177,13 +199,13 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
     """
     user_id = user["id"]
 
-    # Get user record
-    db_user = await get_user(user_id)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    # Get applicant record
+    applicant = await get_applicant(user_id)
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant profile not found")
 
     # Check if user has a latest transcript
-    latest_path = db_user.get("latest_repr_path")
+    latest_path = applicant.get("latest_repr_path")
     if not latest_path:
         raise HTTPException(status_code=404, detail="No transcript found")
 
@@ -199,3 +221,54 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             status_code=404,
             detail=f"Transcript file not found: {e}",
         )
+
+
+@app.get("/profile", response_model=ApplicantProfile)
+async def get_profile(user: dict = Depends(get_current_user)):
+    """Get the current user's applicant profile."""
+    applicant = await get_applicant(user["id"])
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return applicant
+
+
+@app.post("/profile", response_model=ApplicantProfile)
+async def update_profile(
+    profile: ApplicantProfile,
+    user: dict = Depends(get_current_user),
+):
+    """Update the current user's applicant profile and calculate completion."""
+    user_id = user["id"]
+    
+    # Convert Pydantic model to dict, excluding None values
+    update_data = profile.model_dump(exclude_unset=True)
+    
+    # Calculate is_complete
+    # Required fields: first_name, last_name, email, major, graduation_year, gpa, skills
+    # We also need a transcript (latest_repr_path) to be truly complete
+    existing = await get_applicant(user_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Applicant profile not found")
+    
+    # Ensure email is preserved from existing record if not provided
+    if "email" not in update_data and existing.get("email"):
+        update_data["email"] = existing["email"]
+    elif "email" not in update_data and user.get("email"):
+        update_data["email"] = user["email"]
+
+    merged = {**existing, **update_data}
+    
+    required_fields = [
+        "first_name", "last_name", "email", "major", 
+        "graduation_year", "gpa", "skills", "latest_repr_path"
+    ]
+    
+    is_complete = all(merged.get(f) for f in required_fields)
+    # Special check for skills as it's a list
+    if is_complete and not merged.get("skills"):
+        is_complete = False
+        
+    update_data["is_complete"] = is_complete
+    
+    updated = await update_applicant(user_id, update_data)
+    return updated

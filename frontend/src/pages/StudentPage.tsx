@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { Upload, FileText, X, Check, Plus } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
 import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
 import { supabase } from '../lib/supabase'
 
 interface StudentProfile {
   firstName: string
   lastName: string
-  email: string
   major: string
   graduationYear: string
   gpa: string
   skills: string[]
+  isComplete?: boolean
+  updatedAt?: string
+  latestReprPath?: string
 }
 
 interface UploadedFile {
@@ -33,7 +35,7 @@ type JobStatusResponse = {
   error?: string
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 // Minimal typing for the standardized transcript (docs/TRANSCRIPT_SCHEMA.md)
 type TranscriptCourse = {
@@ -81,7 +83,6 @@ type StandardizedTranscript = {
 const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
-  email: '',
   major: '',
   graduationYear: '',
   gpa: '',
@@ -99,6 +100,59 @@ export default function StudentPage() {
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) return
+
+      const res = await fetch(`${API_BASE}/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setProfile({
+          firstName: data.first_name ?? '',
+          lastName: data.last_name ?? '',
+          major: data.major ?? '',
+          graduationYear: data.graduation_year ?? '',
+          gpa: data.gpa ? String(data.gpa) : '',
+          skills: data.skills ?? [],
+          isComplete: data.is_complete ?? false,
+          updatedAt: data.updated_at,
+          latestReprPath: data.latest_repr_path,
+        })
+        if (data.latest_repr_path) {
+          fetchTranscript(token)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile:', err)
+    }
+  }
+
+  const fetchTranscript = async (token: string) => {
+    try {
+      const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (transcriptRes.ok) {
+        const raw = await transcriptRes.json()
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+        setTranscriptJson(parsed)
+      }
+    } catch (err) {
+      console.error('Failed to fetch transcript:', err)
+    }
+  }
 
   const updateProfile = <K extends keyof StudentProfile>(key: K, value: StudentProfile[K]) => {
     setProfile({ ...profile, [key]: value })
@@ -183,8 +237,14 @@ export default function StudentPage() {
     setParseStatus('done')
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
+    let file: File | undefined
+    if ('files' in e.target && e.target.files) {
+      file = e.target.files[0]
+    } else if ('dataTransfer' in e && e.dataTransfer.files) {
+      file = e.dataTransfer.files[0]
+    }
+
     if (!file) return
 
     // Backend currently only accepts PDFs
@@ -199,14 +259,35 @@ export default function StudentPage() {
     const reader = new FileReader()
     reader.onload = () => {
       setUploadedFile({
-        name: file.name,
-        size: file.size,
-        type: file.type,
+        name: file!.name,
+        size: file!.size,
+        type: file!.type,
         preview: null,
       })
       setSaved(false)
+      // Automatically start parsing
+      runParseFlow(file!).catch((err) => {
+        setParseStatus(null)
+        setParseError(err?.message ? String(err.message) : String(err))
+      })
     }
     reader.readAsDataURL(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    handleFileUpload(e)
   }
 
   const removeFile = () => {
@@ -219,11 +300,60 @@ export default function StudentPage() {
     setParseError(null)
   }
 
-  const handleSave = () => {
-    console.log('Saving profile:', profile)
-    console.log('Uploaded file:', uploadedFile)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+  const handleSave = async () => {
+    setValidationErrors([])
+    const errors: string[] = []
+
+    if (!profile.firstName) errors.push('First name is required')
+    if (!profile.lastName) errors.push('Last name is required')
+    if (!profile.major) errors.push('Major is required')
+    if (!profile.graduationYear) errors.push('Graduation year is required')
+    if (!profile.gpa) errors.push('GPA is required')
+    if (profile.skills.length === 0) errors.push('At least one skill is required')
+
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('You must be logged in to save your profile.')
+
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          major: profile.major,
+          graduation_year: profile.graduationYear,
+          gpa: parseFloat(profile.gpa),
+          skills: profile.skills,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      const updated = await res.json()
+      setProfile({
+        ...profile,
+        isComplete: updated.is_complete,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const formatFileSize = (bytes: number) => {
@@ -237,10 +367,32 @@ export default function StudentPage() {
   return (
     <div className="student-page">
       <div className="student-page-container">
-        <h1 className="page-title">Student Profile</h1>
+        <h1 className="page-title">
+          Student Profile
+          {profile.isComplete && (
+            <span className="badge success" style={{ marginLeft: 12, fontSize: '0.5em', verticalAlign: 'middle' }}>
+              <Check size={14} style={{ marginRight: 4 }} />
+              Complete
+            </span>
+          )}
+        </h1>
         <p className="page-description">
           Fill in your information and upload your transcript to be visible to recruiters.
         </p>
+
+        {validationErrors.length > 0 && (
+          <div className="error-box" style={{ marginBottom: 24, padding: 16, backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', color: '#c53030', marginBottom: 8, fontWeight: 600 }}>
+              <AlertCircle size={20} style={{ marginRight: 8 }} />
+              Please fix the following errors:
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 24, color: '#c53030' }}>
+              {validationErrors.map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Personal Information */}
         <section className="form-section">
@@ -267,17 +419,6 @@ export default function StudentPage() {
                 placeholder="Doe"
               />
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={profile.email}
-              onChange={(e) => updateProfile('email', e.target.value)}
-              className="input"
-              placeholder="john.doe@stanford.edu"
-            />
           </div>
 
           <div className="form-row">
@@ -354,56 +495,120 @@ export default function StudentPage() {
         {/* Transcript Upload */}
         <section className="form-section">
           <h2 className="section-title">Transcript</h2>
+          
+          {profile.latestReprPath && !parseStatus && !uploadedFile && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              backgroundColor: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #bcf0da',
+              marginBottom: 12
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={18} color="#16a34a" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: '#16a34a' }}>
+                  Transcript on file (updated {new Date(profile.updatedAt!).toLocaleDateString()})
+                </span>
+              </div>
+              <Check size={18} color="#16a34a" />
+            </div>
+          )}
 
           {!uploadedFile ? (
-            <label className="upload-area">
-              <Upload size={32} />
-              <span>Click to upload transcript</span>
-              <small>PDF (max 10MB)</small>
+            <label 
+              className={`upload-area ${isDragging ? 'dragging' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              style={{
+                border: isDragging ? '2px dashed #4a90e2' : '2px dashed #ccc',
+                backgroundColor: isDragging ? '#f0f7ff' : 'transparent',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 20px',
+                borderRadius: '8px',
+                gap: '8px'
+              }}
+            >
+              <Upload size={32} color={isDragging ? '#4a90e2' : '#666'} />
+              <span style={{ color: isDragging ? '#4a90e2' : 'inherit', fontWeight: 500 }}>
+                {isDragging ? 'Drop transcript here' : 'Click or drag to upload transcript'}
+              </span>
+              <small style={{ color: '#666' }}>PDF (max 10MB)</small>
               <input
                 type="file"
                 accept=".pdf"
                 onChange={handleFileUpload}
+                style={{ display: 'none' }}
               />
             </label>
           ) : (
-            <div className="uploaded-file">
-              <div className="file-info">
-                <FileText size={24} />
+            <div className="uploaded-file" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '16px',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <div className="file-info" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: 8, 
+                  backgroundColor: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <FileText size={24} color="#4a90e2" />
+                </div>
                 <div>
-                  <p className="file-name">{uploadedFile.name}</p>
-                  <p className="file-size">{formatFileSize(uploadedFile.size)}</p>
+                  <p className="file-name" style={{ margin: 0, fontWeight: 500, color: '#1e293b' }}>{uploadedFile.name}</p>
+                  <p className="file-size" style={{ margin: 0, fontSize: '0.85em', color: '#64748b' }}>{formatFileSize(uploadedFile.size)}</p>
                 </div>
               </div>
-              <button onClick={removeFile} className="remove-file-btn">
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {parseStatus === 'done' && <Check size={20} color="#10b981" />}
+                <button 
+                  onClick={removeFile} 
+                  className="remove-file-btn"
+                  style={{
+                    padding: 8,
+                    borderRadius: '50%',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
           )}
 
           {/* Parse status + results */}
-          {parseError && <p className="section-description" style={{ color: 'crimson' }}>{parseError}</p>}
-          {parseStatus && (
-            <p className="section-description">
-              Parse status: <strong>{parseStatus}</strong>
-            </p>
-          )}
-
-          {/* Parse action (separate from file selection) */}
-          {uploadedPdfFile && (
-            <div style={{ marginTop: 12 }}>
-              <button
-                onClick={() => {
-                  runParseFlow(uploadedPdfFile).catch((err) => {
-                    setParseStatus(null)
-                    setParseError(err?.message ? String(err.message) : String(err))
-                  })
-                }}
-                className="save-btn primary"
-                disabled={parseStatus === 'uploading' || parseStatus === 'queued' || parseStatus === 'running'}
-              >
-                Parse transcript
-              </button>
+          {parseError && <p className="section-description" style={{ color: 'crimson', marginTop: 8 }}>{parseError}</p>}
+          {parseStatus && parseStatus !== 'done' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, color: '#4a90e2' }}>
+              <Loader2 className="animate-spin" size={20} />
+              <p className="section-description" style={{ margin: 0 }}>
+                {parseStatus === 'uploading' ? 'Uploading...' : 
+                 parseStatus === 'queued' ? 'Queued for processing...' : 
+                 parseStatus === 'running' ? 'Parsing transcript...' : 
+                 `Status: ${parseStatus}`}
+              </p>
             </div>
           )}
 
@@ -411,7 +616,7 @@ export default function StudentPage() {
           {transcript && (
             <div style={{ marginTop: 16 }}>
               <div className="form-section" style={{ padding: 0, border: 'none' }}>
-                <h3 className="section-title" style={{ marginBottom: 8 }}>Parsed Results</h3>
+                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Parse</h3>
                 <p className="section-description" style={{ marginTop: 0 }}>
                   Schema v{transcript.schema_version} • Extracted {new Date(transcript.extracted_at).toLocaleString()}
                 </p>
@@ -546,14 +751,6 @@ export default function StudentPage() {
                     )}
                   </div>
                 </div>
-
-                {/* Raw fallback */}
-                <details style={{ marginTop: 12 }}>
-                  <summary style={{ cursor: 'pointer' }}>View raw JSON</summary>
-                  <pre style={{ whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
-                    {JSON.stringify(transcriptJson, null, 2)}
-                  </pre>
-                </details>
               </div>
             </div>
           )}
@@ -562,9 +759,12 @@ export default function StudentPage() {
         {/* Save Button */}
         <button
           onClick={handleSave}
+          disabled={loading}
           className={`save-btn ${saved ? 'success' : 'primary'}`}
         >
-          {saved ? (
+          {loading ? (
+            'Saving...'
+          ) : saved ? (
             <>
               <Check size={20} />
               Saved!
