@@ -383,11 +383,6 @@ export default function StudentPage() {
 
           {/* Parse status + results */}
           {parseError && <p className="section-description" style={{ color: 'crimson' }}>{parseError}</p>}
-          {jobId && (
-            <p className="section-description">
-              Job: <code>{jobId}</code>
-            </p>
-          )}
           {parseStatus && (
             <p className="section-description">
               Parse status: <strong>{parseStatus}</strong>
