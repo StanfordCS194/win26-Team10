@@ -42,6 +42,21 @@ async def get_user(user_id: str) -> Optional[dict]:
     return None
 
 
+async def get_all_users() -> Optional[list[dict]]:
+    """
+    Get all users.
+
+    Returns:
+        List of user records or None if not found
+    """
+    client = get_client()
+    result = client.table("users").select("*").execute()
+
+    if result.data:
+        return result.data
+    return None
+
+
 async def update_user_latest_repr(user_id: str, storage_path: str) -> dict:
     """
     Update an applicant's latest_repr_path.

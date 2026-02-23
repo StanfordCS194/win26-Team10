@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Suspense } from 'react'
 import RecruiterDashboard from './pages/RecruiterDashboard'
 import StudentPage from './pages/StudentPage'
 import StudentDashboard from './pages/StudentDashboard'
@@ -51,7 +52,9 @@ function App() {
               path="/recruiter"
               element={
                 <ProtectedRoute allowType="recruiter">
-                  <RecruiterDashboard />
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <RecruiterDashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />

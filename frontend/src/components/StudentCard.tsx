@@ -2,6 +2,9 @@ import { Mail, GraduationCap, FileCheck, FileX } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
 import { createRoot } from 'react-dom/client';
+import { supabase } from '../lib/supabase'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 interface StudentCardProps {
   student: Student
@@ -54,7 +57,7 @@ export default function StudentCard({ student }: StudentCardProps) {
       {/* Transcript Status */}
       <div className="card-footer">
         {student.transcriptUploaded ? (
-          <div className="transcript-status uploaded" onClick={() => {
+          <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
             const popupBackground = document.createElement('div')
@@ -66,9 +69,39 @@ export default function StudentCard({ student }: StudentCardProps) {
             const popupContainer = document.createElement('div')
             popupContainer.className = 'popup-container'
             popup.appendChild(popupContainer)
-            if (student.transcript) {
+            if (student.transcript != null){
               const root = createRoot(popupContainer);
-              root.render(<StudentTranscriptCard transcript={student.transcript}/>);
+              if (typeof(student.transcript) === 'string') {
+                const { data: { session } } = await supabase.auth.getSession()
+                const token = session?.access_token
+                if (!token) {
+                  throw new Error('You must be logged in to access transcripts.')
+                }
+                const transcriptRes = await fetch(`${API_BASE}/get_specific_transcript/${student.id}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                if (!transcriptRes.ok) {
+                  throw new Error(await transcriptRes.text())
+                }
+                const rawTranscript = await transcriptRes.json()
+                const programs = []
+                for (const program of rawTranscript.programs) {
+                  programs.push(program.degree + ' ' + program.name)
+                }
+                const transcript = {
+                  id: rawTranscript.student.student_id,
+                  fullName: rawTranscript.student.name,
+                  institution: rawTranscript.institution.name,
+                  programs: programs,
+                  gpa: rawTranscript.career_totals.undergraduate.gpa,
+                  units_attempted: rawTranscript.career_totals.undergraduate.units_attempted,
+                  units_earned: rawTranscript.career_totals.undergraduate.units_earned,
+                  units_toward_degree: rawTranscript.career_totals.undergraduate.units_toward_degree
+                }
+                root.render(<StudentTranscriptCard transcript={transcript} student={student}/>);
+              } else {
+                root.render(<StudentTranscriptCard transcript={student.transcript} student={student}/>);
+              }
             }
             popup.style.display = 'flex'
             document.body.appendChild(popup)
