@@ -495,11 +495,26 @@ export default function StudentPage() {
         {/* Transcript Upload */}
         <section className="form-section">
           <h2 className="section-title">Transcript</h2>
-          {profile.latestReprPath && !parseStatus && (
-            <p className="section-description" style={{ color: '#16a34a', fontWeight: 500, marginBottom: 16 }}>
-              <Check size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-              Transcript last updated: {new Date(profile.updatedAt!).toLocaleDateString()} {new Date(profile.updatedAt!).toLocaleTimeString()}
-            </p>
+          
+          {profile.latestReprPath && !parseStatus && !uploadedFile && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              backgroundColor: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #bcf0da',
+              marginBottom: 12
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={18} color="#16a34a" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: '#16a34a' }}>
+                  Transcript on file (updated {new Date(profile.updatedAt!).toLocaleDateString()})
+                </span>
+              </div>
+              <Check size={18} color="#16a34a" />
+            </div>
           )}
 
           {!uploadedFile ? (
@@ -601,7 +616,7 @@ export default function StudentPage() {
           {transcript && (
             <div style={{ marginTop: 16 }}>
               <div className="form-section" style={{ padding: 0, border: 'none' }}>
-                <h3 className="section-title" style={{ marginBottom: 8 }}>Parsed Results</h3>
+                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Parse</h3>
                 <p className="section-description" style={{ marginTop: 0 }}>
                   Schema v{transcript.schema_version} • Extracted {new Date(transcript.extracted_at).toLocaleString()}
                 </p>
@@ -736,14 +751,6 @@ export default function StudentPage() {
                     )}
                   </div>
                 </div>
-
-                {/* Raw fallback */}
-                <details style={{ marginTop: 12 }}>
-                  <summary style={{ cursor: 'pointer' }}>View raw JSON</summary>
-                  <pre style={{ whiteSpace: 'pre-wrap', overflowX: 'auto' }}>
-                    {JSON.stringify(transcriptJson, null, 2)}
-                  </pre>
-                </details>
               </div>
             </div>
           )}
