@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import RecruiterDashboard from './pages/RecruiterDashboard'
+import React, { Suspense } from 'react'
 import StudentPage from './pages/StudentPage'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
@@ -7,6 +7,7 @@ import SignupStudent from './pages/SignupStudent'
 import SignupRecruiter from './pages/SignupRecruiter'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navigation from './layouts/Navigation'
+const RecruiterDashboard = React.lazy(() => import('./pages/RecruiterDashboard') as any);
 
 function App() {
   return (
@@ -31,7 +32,9 @@ function App() {
               path="/recruiter"
               element={
                 <ProtectedRoute allowType="recruiter">
-                  <RecruiterDashboard />
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <RecruiterDashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />

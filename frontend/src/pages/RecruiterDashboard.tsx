@@ -4,6 +4,7 @@ import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
 import StudentList from '../components/StudentList'
+import { supabase } from '../lib/supabase'
 
 const initialFilters: Filters = {
   search: '',
@@ -13,6 +14,8 @@ const initialFilters: Filters = {
   graduationYear: '',
   skills: [],
 }
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 function filterStudents(students: Student[], filters: Filters): Student[] {
   return students.filter((student) => {
@@ -47,8 +50,56 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
   })
 }
 
-export default function RecruiterDashboard() {
+export default async function RecruiterDashboard() {
   const [filters, setFilters] = useState<Filters>(initialFilters)
+
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) {
+    throw new Error('You must be logged in to access transcripts.')
+  }
+
+  const transcriptRes = await fetch(`${API_BASE}/get_all_latest_transcripts`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!transcriptRes.ok) {
+    throw new Error(await transcriptRes.text())
+  }
+  
+  const loadedStudents = []
+  const allTranscripts = await transcriptRes.json()
+  for (const student in allTranscripts) {
+    const transcript = allTranscripts[student]
+    const programs = []
+    for (const program of transcript.programs) {
+      programs.push(program.degree + ' ' + program.name)
+    }
+    const newStudent = {
+      id: student,
+      firstName: 'FIRST NAME',
+      lastName: 'LAST NAME',
+      email: 'EMAIL',
+      gpa: 3.92,
+      major: 'MAJOR',
+      graduationYear: 2026,
+      skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
+      transcriptUploaded: true,
+      transcript: {
+        id: transcript.student.student_id,
+        fullName: transcript.student.name,
+        institution: transcript.institution.name,
+        programs: programs,
+        gpa: transcript.career_totals.undergraduate.gpa,
+        units_attempted: transcript.career_totals.undergraduate.units_attempted,
+        units_earned: transcript.career_totals.undergraduate.units_earned,
+        units_toward_degree: transcript.career_totals.undergraduate.units_toward_degree
+      },
+    }
+    loadedStudents.push(newStudent)
+  }
+
+  mockStudents.push(...loadedStudents)
 
   const filteredStudents = useMemo(
     () => filterStudents(mockStudents, filters),

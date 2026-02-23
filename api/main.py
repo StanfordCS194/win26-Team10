@@ -3,6 +3,7 @@ FastAPI application for the parse job queue API.
 """
 
 import uuid
+import json
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -16,6 +17,7 @@ from api.supabase import (
     get_file_bytes,
     get_job_status,
     get_user,
+    get_all_users,
     update_user_latest_repr,
     upload_bytes,
 )
@@ -199,3 +201,38 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             status_code=404,
             detail=f"Transcript file not found: {e}",
         )
+
+
+@app.get("/get_all_latest_transcripts")
+async def get_all_latest_transcripts():
+    """
+    Get a list of all users' latest parsed transcripts.
+
+    Returns a json object with the contents of all users' latest transcript.json files, keyed by user_id.
+    Only available for users with type='recruiter'.
+    """
+    db_users = await get_all_users()
+    if not db_users:
+        raise HTTPException(status_code=404, detail="Users not found")
+
+    all_transcripts = {}
+    for user in db_users:
+        # Check if user has a latest transcript
+        latest_path = user.get("latest_repr_path")
+        if not latest_path:
+            raise HTTPException(status_code=404, detail="No transcript found for user"+user["id"])
+
+        try:
+            # Download and return the transcript
+            content = json.loads(get_file_bytes(latest_path))
+            all_transcripts[user["id"]] = content
+        except Exception as e:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Transcript file not found: {e}",
+            )
+        
+    return Response(
+        content=json.dumps(all_transcripts),
+        media_type="application/json",
+    )
