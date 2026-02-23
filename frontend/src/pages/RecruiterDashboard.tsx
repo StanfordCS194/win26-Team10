@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect} from 'react'
+import { useState, useMemo/*, useEffect*/} from 'react'
 import { Users } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
 import StudentList from '../components/StudentList'
-import { supabase } from '../lib/supabase'
+//import { supabase } from '../lib/supabase'
 
 const initialFilters: Filters = {
   search: '',
@@ -15,7 +15,7 @@ const initialFilters: Filters = {
   skills: [],
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
+//const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 function filterStudents(students: Student[], filters: Filters): Student[] {
   return students.filter((student) => {
