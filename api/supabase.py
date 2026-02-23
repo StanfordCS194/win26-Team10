@@ -44,19 +44,42 @@ async def get_user(user_id: str) -> Optional[dict]:
 
 async def update_user_latest_repr(user_id: str, storage_path: str) -> dict:
     """
-    Update a user's latest_repr_path.
+    Update an applicant's latest_repr_path.
 
     Args:
         user_id: The user UUID
         storage_path: Path to the transcript.json in storage
 
     Returns:
-        The updated user record
+        The updated applicant record
     """
     client = get_client()
     result = (
-        client.table("users")
+        client.table("applicants")
         .update({"latest_repr_path": storage_path})
+        .eq("id", user_id)
+        .execute()
+    )
+    return result.data[0] if result.data else {}
+
+
+async def get_applicant(user_id: str) -> Optional[dict]:
+    """
+    Get an applicant profile by user ID.
+    """
+    client = get_client()
+    result = client.table("applicants").select("*").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
+async def update_applicant(user_id: str, data: dict) -> dict:
+    """
+    Update an applicant profile.
+    """
+    client = get_client()
+    result = (
+        client.table("applicants")
+        .update(data)
         .eq("id", user_id)
         .execute()
     )
@@ -157,13 +180,13 @@ async def claim_parse_job(worker_id: str, lock_seconds: int = 900) -> Optional[d
     return result.data if result.data else None
 
 
-async def complete_job(job_id: str, result_data: Optional[dict] = None) -> dict:
+async def complete_job(job_id: str, _result_data: Optional[dict] = None) -> dict:
     """
     Mark a job as successfully completed.
     
     Args:
         job_id: The job UUID
-        result_data: Optional result data to store
+        _result_data: Optional result data to store (unused)
     
     Returns:
         The updated job record
@@ -235,7 +258,7 @@ def download_file(file_id: str, dest_path: Path, bucket: str = DEFAULT_BUCKET) -
     return dest_path
 
 
-def upload_file(local_path: Path, bucket: str = DEFAULT_BUCKET, dest_path: str | None = None) -> str:
+def upload_file(local_path: Path, bucket: str = DEFAULT_BUCKET, dest_path: Optional[str] = None) -> str:
     """
     Upload a file to Supabase Storage.
 
