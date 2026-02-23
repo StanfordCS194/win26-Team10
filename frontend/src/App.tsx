@@ -9,12 +9,14 @@ import SignupStudent from './pages/SignupStudent'
 import SignupRecruiter from './pages/SignupRecruiter'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navigation from './layouts/Navigation'
+import FeedbackSidebar from './components/FeedbackSidebar'
 
 function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
         <Navigation />
+        <FeedbackSidebar />
         <div className="main-content">
           <Routes>
             <Route path="/" element={<LandingPage />} />
