@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect} from 'react'
 import { Users } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
@@ -50,49 +50,63 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
   })
 }
 
-export default async function RecruiterDashboard() {
+export default function RecruiterDashboard() {
+  const [complete, setComplete] = useState<Array<any> | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters)
+  useEffect(() => {
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        throw new Error('You must be logged in to access transcripts.')
+      }
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
-  if (!token) {
-    throw new Error('You must be logged in to access transcripts.')
-  }
+      const users = await fetch(`${API_BASE}/get_users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-  const users = await fetch(`${API_BASE}/get_all_users`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
-  if (!users.ok) {
-    throw new Error(await users.text())
-  }
-  
-  const loadedStudents = []
-  const allStudents = await users.json()
-  for (const student of allStudents) {
-    
-    const newStudent = {
-      id: student,
-      firstName: 'FIRST NAME',
-      lastName: 'LAST NAME',
-      email: 'EMAIL',
-      gpa: 3.92,
-      major: 'MAJOR',
-      graduationYear: 2026,
-      skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
-      transcriptUploaded: true,
-      transcript: "supabase",
+      if (!users.ok) {
+        throw new Error(await users.text())
+      }
+      
+      const allStudents = await users.json()
+      setComplete(allStudents);
     }
-    loadedStudents.push(newStudent)
+    load();
+  }, []);
+  const loadedStudents = []
+  if (complete != null) {
+    const allStudents = complete
+    for (const student of allStudents) {
+      const newStudent = {
+        id: student.id,
+        firstName: 'FIRST NAME',
+        lastName: 'LAST NAME',
+        email: 'EMAIL',
+        gpa: 3.92,
+        major: 'MAJOR',
+        graduationYear: 2026,
+        skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
+        transcriptUploaded: true,
+        transcript: "supabase",
+      }
+      loadedStudents.push(newStudent)
+    }
   }
-
-  mockStudents.push(...loadedStudents)
-
+  const mockStudentsIDs = []
+  for (const student of mockStudents) {
+    mockStudentsIDs.push(student.id)
+  }
+  for (const student of loadedStudents) {
+    if (!mockStudentsIDs.includes(student.id)) {
+      mockStudents.push(student)
+    }
+  }
   const filteredStudents = useMemo(
     () => filterStudents(mockStudents, filters),
     [filters]
   )
-
+  if (!complete) return <div>Loading...</div>;
   return (
     <div className="dashboard">
       <FilterSidebar filters={filters} onFiltersChange={setFilters} />

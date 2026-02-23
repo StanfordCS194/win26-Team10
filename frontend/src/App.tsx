@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import StudentPage from './pages/StudentPage'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
@@ -7,7 +7,7 @@ import SignupStudent from './pages/SignupStudent'
 import SignupRecruiter from './pages/SignupRecruiter'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navigation from './layouts/Navigation'
-const RecruiterDashboard = React.lazy(() => import('./pages/RecruiterDashboard') as any);
+import RecruiterDashboard from './pages/RecruiterDashboard';
 
 function App() {
   return (
