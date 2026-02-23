@@ -93,12 +93,14 @@ const initialProfile: StudentProfile = {
 export default function StudentPage() {
   const [profile, setProfile] = useState<StudentProfile>(initialProfile)
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
-  const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null)
+  //const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null)
+  const setUploadedPdfFile = useState<File | null>(null)[1]
   const [saved, setSaved] = useState(false)
   const navigate = useNavigate()
 
   // Parse/job state
-  const [_, setJobId] = useState<string | null>(null)
+  //const [jobId, setJobId] = useState<string | null>(null)
+  const setJobId = useState<string | null>(null)[1]
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
