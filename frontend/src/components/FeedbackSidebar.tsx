@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, MessageSquare, CheckCircle2, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { useLocation } from 'react-router-dom'
+//import { useLocation } from 'react-router-dom'
 
 export default function FeedbackSidebar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -10,7 +10,7 @@ export default function FeedbackSidebar() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-  const location = useLocation()
+  //const location = useLocation()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
