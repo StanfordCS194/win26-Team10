@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { GraduationCap, ArrowRight, CheckCircle, Mail, Lock, Loader2 } from 'lucide-react'
 
 export default function SignupStudent() {
   const [email, setEmail] = useState('')
@@ -58,80 +59,116 @@ export default function SignupStudent() {
 
   if (checkingAuth) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '1.125rem',
-          color: '#6b7280',
-        }}
-      >
-        Loading...
+      <div className="loading-screen">
+        <Loader2 className="animate-spin" size={48} color="#2563eb" />
       </div>
     )
   }
 
   return (
-    <div className="student-page">
-      <div className="student-page-container">
-        <h1 className="page-title">Student Sign Up</h1>
-        <p className="page-description">
-          Create an account to build your profile and be visible to recruiters.
-        </p>
-
-        <form onSubmit={handleSubmit} className="form-section">
-          {error && (
-            <div
-              style={{
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fca5a5',
-                borderRadius: '0.5rem',
-                color: '#991b1b',
-                fontSize: '0.875rem',
-              }}
-            >
-              {error}
+    <div className="auth-page">
+      <div className="auth-split-container">
+        {/* Left Side: Visual/Info */}
+        <div className="auth-info-side student-theme">
+          <div className="auth-info-content">
+            <div className="auth-badge">
+              <GraduationCap size={20} />
+              <span>For Students</span>
             </div>
-          )}
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input"
-              placeholder="you@school.edu"
-              required
-            />
+            <h1 className="auth-info-title">Launch Your Career with TalentMatch</h1>
+            <p className="auth-info-text">
+              Join thousands of students who have found their dream roles through our platform.
+            </p>
+            
+            <div className="auth-feature-list">
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Get discovered by top-tier recruiters</span>
+              </div>
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Showcase your skills and projects</span>
+              </div>
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Access exclusive internship opportunities</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="Enter your password (min 6 characters)"
-              required
-              minLength={6}
-            />
+        {/* Right Side: Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-container">
+            <div className="auth-form-header">
+              <h2 className="auth-form-title">Create Student Account</h2>
+              <p className="auth-form-subtitle">Start your professional journey today.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && (
+                <div className="auth-error-message">
+                  {error}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Email Address</label>
+                <div className="input-with-icon">
+                  <Mail className="input-icon" size={18} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    placeholder="you@university.edu"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Password</label>
+                <div className="input-with-icon">
+                  <Lock className="input-icon" size={18} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    placeholder="Min. 6 characters"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-submit-btn student-btn"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign Up as Student</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="auth-form-footer">
+              <p>
+                Already have an account? <Link to="/login" className="auth-link">Log in</Link>
+              </p>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="save-btn primary"
-            style={{ marginTop: '1rem' }}
-          >
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   )

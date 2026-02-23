@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { Mail, Lock, Loader2, ArrowRight, LayoutDashboard } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -88,79 +89,105 @@ export default function Login() {
 
   if (checkingAuth) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '1.125rem',
-          color: '#6b7280',
-        }}
-      >
-        Loading...
+      <div className="loading-screen">
+        <Loader2 className="animate-spin" size={48} color="#2563eb" />
       </div>
     )
   }
 
   return (
-    <div className="student-page">
-      <div className="student-page-container">
-        <h1 className="page-title">Log In</h1>
-        <p className="page-description">
-          Sign in to your account to continue.
-        </p>
-
-        <form onSubmit={handleSubmit} className="form-section">
-          {error && (
-            <div
-              style={{
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fca5a5',
-                borderRadius: '0.5rem',
-                color: '#991b1b',
-                fontSize: '0.875rem',
-              }}
-            >
-              {error}
+    <div className="auth-page">
+      <div className="auth-split-container">
+        {/* Left Side: Visual/Info */}
+        <div className="auth-info-side student-theme">
+          <div className="auth-info-content">
+            <div className="auth-badge">
+              <LayoutDashboard size={20} />
+              <span>Welcome Back</span>
             </div>
-          )}
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input"
-              placeholder="you@example.com"
-              required
-            />
+            <h1 className="auth-info-title">Continue Your Journey</h1>
+            <p className="auth-info-text">
+              Log in to access your personalized dashboard and stay connected with the latest opportunities.
+            </p>
           </div>
+        </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="Enter your password"
-              required
-            />
+        {/* Right Side: Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-container">
+            <div className="auth-form-header">
+              <h2 className="auth-form-title">Welcome Back</h2>
+              <p className="auth-form-subtitle">Please enter your details to sign in.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && (
+                <div className="auth-error-message">
+                  {error}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Email Address</label>
+                <div className="input-with-icon">
+                  <Mail className="input-icon" size={18} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Password</label>
+                <div className="input-with-icon">
+                  <Lock className="input-icon" size={18} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-submit-btn student-btn"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="auth-form-footer">
+              <p>
+                Don&apos;t have an account? 
+                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <Link to="/signup-student" className="auth-link">As Student</Link>
+                  <span style={{ color: '#d1d5db' }}>|</span>
+                  <Link to="/signup-recruiter" className="auth-link">As Recruiter</Link>
+                </div>
+              </p>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="save-btn primary"
-            style={{ marginTop: '1rem' }}
-          >
-            {loading ? 'Signing in...' : 'Log In'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   )

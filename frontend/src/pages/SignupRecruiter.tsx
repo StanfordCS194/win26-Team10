@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { Briefcase, ArrowRight, CheckCircle, Mail, Lock, Loader2, Building2 } from 'lucide-react'
 
 export default function SignupRecruiter() {
   const [email, setEmail] = useState('')
@@ -65,80 +66,116 @@ export default function SignupRecruiter() {
 
   if (checkingAuth) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '1.125rem',
-          color: '#6b7280',
-        }}
-      >
-        Loading...
+      <div className="loading-screen">
+        <Loader2 className="animate-spin" size={48} color="#2563eb" />
       </div>
     )
   }
 
   return (
-    <div className="student-page">
-      <div className="student-page-container">
-        <h1 className="page-title">Recruiter Sign Up</h1>
-        <p className="page-description">
-          Create an account to post jobs and find candidates.
-        </p>
-
-        <form onSubmit={handleSubmit} className="form-section">
-          {error && (
-            <div
-              style={{
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fca5a5',
-                borderRadius: '0.5rem',
-                color: '#991b1b',
-                fontSize: '0.875rem',
-              }}
-            >
-              {error}
+    <div className="auth-page">
+      <div className="auth-split-container">
+        {/* Left Side: Visual/Info */}
+        <div className="auth-info-side recruiter-theme">
+          <div className="auth-info-content">
+            <div className="auth-badge">
+              <Briefcase size={20} />
+              <span>For Recruiters</span>
             </div>
-          )}
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input"
-              placeholder="you@company.com"
-              required
-            />
+            <h1 className="auth-info-title">Find Your Next Top Hire</h1>
+            <p className="auth-info-text">
+              Access a curated pool of exceptional student talent ready to make an impact.
+            </p>
+            
+            <div className="auth-feature-list">
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Advanced student filtering & search</span>
+              </div>
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Direct access to verified transcripts</span>
+              </div>
+              <div className="auth-feature-item">
+                <CheckCircle size={20} className="text-success" />
+                <span>Streamlined candidate management</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="Enter your password (min 6 characters)"
-              required
-              minLength={6}
-            />
+        {/* Right Side: Form */}
+        <div className="auth-form-side">
+          <div className="auth-form-container">
+            <div className="auth-form-header">
+              <h2 className="auth-form-title">Recruiter Registration</h2>
+              <p className="auth-form-subtitle">Hire the best emerging talent today.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && (
+                <div className="auth-error-message">
+                  {error}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Work Email</label>
+                <div className="input-with-icon">
+                  <Mail className="input-icon" size={18} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    placeholder="you@company.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Password</label>
+                <div className="input-with-icon">
+                  <Lock className="input-icon" size={18} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    placeholder="Min. 6 characters"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-submit-btn recruiter-btn"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign Up as Recruiter</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="auth-form-footer">
+              <p>
+                Already have an account? <Link to="/login" className="auth-link">Log in</Link>
+              </p>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="save-btn primary"
-            style={{ marginTop: '1rem' }}
-          >
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   )

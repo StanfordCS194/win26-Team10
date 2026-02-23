@@ -68,6 +68,7 @@ def get_signing_key(token: str) -> str:
     # Decode header to check algorithm
     unverified_header = jwt.get_unverified_header(token)
     alg = unverified_header.get("alg", "")
+    kid = unverified_header.get("kid")
 
     if alg == "HS256":
         # Symmetric key - use secret
@@ -77,7 +78,6 @@ def get_signing_key(token: str) -> str:
 
     elif alg == "ES256":
         # Asymmetric key - get from JWKS
-        kid = unverified_header.get("kid")
         jwks_data = get_jwks()
 
         for key in jwks_data.get("keys", []):

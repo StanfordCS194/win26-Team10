@@ -1,13 +1,14 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense } from 'react'
+import RecruiterDashboard from './pages/RecruiterDashboard'
 import StudentPage from './pages/StudentPage'
+import StudentDashboard from './pages/StudentDashboard'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import SignupStudent from './pages/SignupStudent'
 import SignupRecruiter from './pages/SignupRecruiter'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navigation from './layouts/Navigation'
-import RecruiterDashboard from './pages/RecruiterDashboard';
 
 function App() {
   return (
@@ -24,7 +25,26 @@ function App() {
               path="/student"
               element={
                 <ProtectedRoute allowType="student">
+                  {localStorage.getItem('profileCompleted') === 'true' 
+                    ? <Navigate to="/student/dashboard" replace />
+                    : <StudentPage />
+                  }
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/profile"
+              element={
+                <ProtectedRoute allowType="student">
                   <StudentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/dashboard"
+              element={
+                <ProtectedRoute allowType="student">
+                  <StudentDashboard />
                 </ProtectedRoute>
               }
             />
