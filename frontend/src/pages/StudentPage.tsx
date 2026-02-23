@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
 import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
 import { supabase } from '../lib/supabase'
