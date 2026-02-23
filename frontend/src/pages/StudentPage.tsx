@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Upload, FileText, X, Check, Plus } from 'lucide-react'
 import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
+import { supabase } from '../lib/supabase'
 
 interface StudentProfile {
   firstName: string
@@ -32,7 +33,7 @@ type JobStatusResponse = {
   error?: string
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 // Minimal typing for the standardized transcript (docs/TRANSCRIPT_SCHEMA.md)
 type TranscriptCourse = {
@@ -93,9 +94,6 @@ export default function StudentPage() {
   const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null)
   const [saved, setSaved] = useState(false)
 
-  // Temporary auth token input (replace later with real Supabase Auth session)
-  const [bearerToken, setBearerToken] = useState('')
-
   // Parse/job state
   const [jobId, setJobId] = useState<string | null>(null)
   const [parseStatus, setParseStatus] = useState<string | null>(null)
@@ -120,8 +118,10 @@ export default function StudentPage() {
     setJobId(null)
     setParseStatus('uploading')
 
-    if (!bearerToken.trim()) {
-      throw new Error('Missing Bearer token (auth). Paste one in the token box first.')
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) {
+      throw new Error('You must be logged in to parse a transcript.')
     }
 
     // 1) Upload PDF → POST /parse (multipart form field name: "file")
@@ -131,7 +131,7 @@ export default function StudentPage() {
     const parseRes = await fetch(`${API_BASE}/parse`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${bearerToken.trim()}`,
+        Authorization: `Bearer ${token}`,
       },
       body: form,
     })
@@ -149,7 +149,7 @@ export default function StudentPage() {
       await new Promise((r) => setTimeout(r, 1500))
 
       const statusRes = await fetch(`${API_BASE}/parse/${parseBody.job_id}`, {
-        headers: { Authorization: `Bearer ${bearerToken.trim()}` },
+        headers: { Authorization: `Bearer ${token}` },
       })
 
       if (!statusRes.ok) {
@@ -169,7 +169,7 @@ export default function StudentPage() {
 
     // 3) Fetch transcript JSON
     const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
-      headers: { Authorization: `Bearer ${bearerToken.trim()}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
 
     if (!transcriptRes.ok) {
@@ -241,25 +241,6 @@ export default function StudentPage() {
         <p className="page-description">
           Fill in your information and upload your transcript to be visible to recruiters.
         </p>
-
-        {/* Temporary auth token input (remove once login is wired up) */}
-        <section className="form-section">
-          <h2 className="section-title">Auth (temporary)</h2>
-          <p className="section-description">
-            Paste your Bearer token here so the frontend can call the API. This will be replaced by
-            real login/session soon.
-          </p>
-          <div className="form-group">
-            <label>Bearer Token</label>
-            <input
-              type="password"
-              value={bearerToken}
-              onChange={(e) => setBearerToken(e.target.value)}
-              className="input"
-              placeholder="eyJhbGciOi..."
-            />
-          </div>
-        </section>
 
         {/* Personal Information */}
         <section className="form-section">
@@ -424,15 +405,10 @@ export default function StudentPage() {
                   })
                 }}
                 className="save-btn primary"
-                disabled={!bearerToken.trim() || parseStatus === 'uploading' || parseStatus === 'queued' || parseStatus === 'running'}
+                disabled={parseStatus === 'uploading' || parseStatus === 'queued' || parseStatus === 'running'}
               >
                 Parse transcript
               </button>
-              {!bearerToken.trim() && (
-                <p className="section-description" style={{ marginTop: 8 }}>
-                  Paste a Bearer token above to enable parsing. (This will go away once login is wired up.)
-                </p>
-              )}
             </div>
           )}
 
