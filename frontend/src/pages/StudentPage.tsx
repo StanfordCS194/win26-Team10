@@ -33,7 +33,7 @@ type JobStatusResponse = {
   error?: string
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 // Minimal typing for the standardized transcript (docs/TRANSCRIPT_SCHEMA.md)
 type TranscriptCourse = {
