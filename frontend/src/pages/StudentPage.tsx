@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
 import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
 import { supabase } from '../lib/supabase'
@@ -94,6 +95,7 @@ export default function StudentPage() {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
   const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null)
   const [saved, setSaved] = useState(false)
+  const navigate = useNavigate()
 
   // Parse/job state
   const [jobId, setJobId] = useState<string | null>(null)
@@ -348,7 +350,16 @@ export default function StudentPage() {
         isComplete: updated.is_complete,
       })
       setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      localStorage.setItem('studentProfile', JSON.stringify({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        major: profile.major,
+        graduationYear: profile.graduationYear,
+        gpa: profile.gpa,
+      }))
+      setTimeout(() => {
+        navigate('/student/dashboard')
+      }, 500)
     } catch (err) {
       setParseError(err instanceof Error ? err.message : String(err))
     } finally {
