@@ -95,7 +95,7 @@ export default function StudentPage() {
   const [saved, setSaved] = useState(false)
 
   // Parse/job state
-  const [jobId, setJobId] = useState<string | null>(null)
+  const [_, setJobId] = useState<string | null>(null)
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
