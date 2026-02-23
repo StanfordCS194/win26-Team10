@@ -202,37 +202,43 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             detail=f"Transcript file not found: {e}",
         )
 
-
-@app.get("/get_all_latest_transcripts")
-async def get_all_latest_transcripts():
+@app.get("/get_users")
+async def get_users():
     """
-    Get a list of all users' latest parsed transcripts.
+    Get all users.
 
-    Returns a json object with the contents of all users' latest transcript.json files, keyed by user_id.
+    Returns:
+        List of user records or None if not found
+    """
+    return await get_all_users()
+
+@app.get("/get_specific_transcript/{user_id}")
+async def get_specific_transcript(user_id: str):
+    """
+    Get a list of a specific user's latest parsed transcript.
+
+    Returns the contents of the user's latest transcript.json file.
     Only available for users with type='recruiter'.
     """
-    db_users = await get_all_users()
-    if not db_users:
-        raise HTTPException(status_code=404, detail="Users not found")
+    # Get user record
+    db_user = await get_user(user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    all_transcripts = {}
-    for user in db_users:
-        # Check if user has a latest transcript
-        latest_path = user.get("latest_repr_path")
-        if not latest_path:
-            raise HTTPException(status_code=404, detail="No transcript found for user"+user["id"])
+    # Check if user has a latest transcript
+    latest_path = db_user.get("latest_repr_path")
+    if not latest_path:
+        raise HTTPException(status_code=404, detail="No transcript found")
 
-        try:
-            # Download and return the transcript
-            content = json.loads(get_file_bytes(latest_path))
-            all_transcripts[user["id"]] = content
-        except Exception as e:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Transcript file not found: {e}",
-            )
-        
-    return Response(
-        content=json.dumps(all_transcripts),
-        media_type="application/json",
-    )
+    try:
+        # Download and return the transcript
+        content = get_file_bytes(latest_path)
+        return Response(
+            content=content,
+            media_type="application/json",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Transcript file not found: {e}",
+        )

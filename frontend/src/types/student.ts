@@ -8,7 +8,7 @@ export interface Student {
   graduationYear: number
   skills: string[]
   transcriptUploaded: boolean
-  transcript: SmallTranscript | null
+  transcript: SmallTranscript | null | string
 }
 
 export interface SmallTranscript {
