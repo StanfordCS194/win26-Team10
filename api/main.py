@@ -273,6 +273,15 @@ async def get_profile(user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Profile not found")
     return applicant
 
+@app.get("/get_specific_profile/{user_id}")
+async def get_specific_profile(user_id: str):
+    """Get a specific user's applicant profile.
+    Only available for users with type='recruiter'.
+    """
+    applicant = await get_applicant(user_id)
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return applicant
 
 @app.post("/profile", response_model=ApplicantProfile)
 async def update_profile(
