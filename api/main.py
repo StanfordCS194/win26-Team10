@@ -82,6 +82,7 @@ class ApplicantProfile(BaseModel):
     skills: Optional[list[str]] = None
     updated_at: Optional[str] = None
     latest_repr_path: Optional[str] = None
+    resume_path: Optional[str] = None
     is_complete: Optional[bool] = None
 
 
@@ -323,3 +324,43 @@ async def update_profile(
     
     updated = await update_applicant(user_id, update_data)
     return updated
+
+@app.post("/upload_resume")
+async def upload_resume(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Upload a resume file for the current user."""
+    user_id = user["id"]
+    
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+    
+    filename_lower = file.filename.lower()
+    if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx')):
+        raise HTTPException(
+            status_code=400, 
+            detail="Only PDF and DOCX files are supported"
+        )
+    
+    # Determine content type
+    content_type = "application/pdf" if filename_lower.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    
+    # Read file content
+    content = await file.read()
+    
+    # Upload to storage: {user_id}/resume.{ext}
+    ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
+    storage_path = f"{user_id}/resume.{ext}"
+    
+    upload_bytes(
+        content=content,
+        dest_path=storage_path,
+        content_type=content_type,
+    )
+    
+    # Update applicant profile with resume path
+    await update_applicant(user_id, {"resume_path": storage_path})
+    
+    return {"resume_path": storage_path, "message": "Resume uploaded successfully"}
