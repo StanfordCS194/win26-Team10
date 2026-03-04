@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Users, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle } from 'lucide-react'
+import { Users, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
@@ -76,6 +76,7 @@ export default function RecruiterDashboard() {
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
 
   // When openConversationId is set (from StudentCard or URL), switch to Messages and select it
   useEffect(() => {
@@ -305,119 +306,171 @@ export default function RecruiterDashboard() {
         )}
 
         {viewMode === 'messages' && (
-          <div className="messages-view">
-            <div className="conversations-list">
-              {conversationsLoading ? (
-                <div className="messages-loading">
-                  <Loader2 size={18} className="animate-spin" />
-                  Loading conversations...
-                </div>
-              ) : conversations.length === 0 ? (
-                <div className="messages-empty">No conversations yet. Message a student from the directory.</div>
-              ) : (
-                conversations.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedConversationId(c.id)}
-                  >
-                    <span className="conversation-name">{studentNames[c.student_id] ?? 'Student'}</span>
-                    {latestMessages[c.id] && (
-                      <span className="conversation-preview">
-                        {latestMessages[c.id].body.slice(0, 40)}
-                        {latestMessages[c.id].body.length > 40 ? '…' : ''}
-                      </span>
-                    )}
-                  </button>
-                ))
-              )}
+          <div className="recruiter-inbox-view">
+            <h2 className="inbox-title">Inbox</h2>
+            <div className="inbox-filters">
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'unread' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('unread')}
+              >
+                Unread
+              </button>
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'archived' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('archived')}
+              >
+                Archived
+              </button>
             </div>
-            <div className="thread-panel">
-              {!selectedConversationId ? (
-                <div className="thread-placeholder">
-                  Select a conversation or message a student from the directory.
-                </div>
-              ) : (
-                <>
-                  <div className="thread-header">
-                    <button
-                      type="button"
-                      className="thread-back"
-                      onClick={() => setSelectedConversationId(null)}
-                      aria-label="Back to list"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <span className="thread-title">{selectedStudentName}</span>
+            <div className="messages-view">
+              <div className="conversations-list">
+                {conversationsLoading ? (
+                  <div className="messages-loading">
+                    <Loader2 size={18} className="animate-spin" />
+                    Loading conversations...
                   </div>
-                  <div className="thread-messages">
-                    {threadError ? (
-                      <div className="messages-error" role="alert">
-                        <AlertCircle size={18} />
-                        {threadError}
-                        <button
-                          type="button"
-                          className="messages-retry"
-                          onClick={() => {
-                            setThreadError(null)
-                            if (!selectedConversationId) return
-                            setThreadLoading(true)
-                            getMessages(selectedConversationId)
-                              .then(setThreadMessages)
-                              .catch((err) => setThreadError(err instanceof Error ? err.message : 'Failed to load messages'))
-                              .finally(() => setThreadLoading(false))
-                          }}
-                        >
-                          Retry
+                ) : conversations.length === 0 ? (
+                  <div className="messages-empty">No conversations yet. Message a student from the directory.</div>
+                ) : (
+                  conversations.map((c) => {
+                    const name = studentNames[c.student_id] ?? 'Student'
+                    const initials = name === 'Student' ? 'S' : name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+                    const latest = latestMessages[c.id]
+                    const isUnread = latest && latest.sender_id !== recruiterId
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''} ${isUnread ? 'has-unread' : ''}`}
+                        onClick={() => setSelectedConversationId(c.id)}
+                      >
+                        {isUnread && <span className="unread-dot" aria-hidden />}
+                        <span className="conversation-avatar" aria-hidden>{initials}</span>
+                        <div className="conversation-row-content">
+                          <span className="conversation-name">{name}</span>
+                          {latest && (
+                            <span className="conversation-preview">
+                              {latest.body.slice(0, 40)}
+                              {latest.body.length > 40 ? '…' : ''}
+                            </span>
+                          )}
+                        </div>
+                        {latest && (
+                          <span className="conversation-date">
+                            {new Date(latest.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+              <div className="thread-panel">
+                {!selectedConversationId ? (
+                  <div className="thread-placeholder">
+                    Select a conversation or message a student from the directory.
+                  </div>
+                ) : (
+                  <>
+                    <div className="thread-header">
+                      <button
+                        type="button"
+                        className="thread-back"
+                        onClick={() => setSelectedConversationId(null)}
+                        aria-label="Back to list"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <div className="thread-header-info">
+                        <span className="thread-title">{selectedStudentName}</span>
+                        <span className="thread-subtitle">Student</span>
+                      </div>
+                    </div>
+                    <div className="thread-messages">
+                      {threadError ? (
+                        <div className="messages-error" role="alert">
+                          <AlertCircle size={18} />
+                          {threadError}
+                          <button
+                            type="button"
+                            className="messages-retry"
+                            onClick={() => {
+                              setThreadError(null)
+                              if (!selectedConversationId) return
+                              setThreadLoading(true)
+                              getMessages(selectedConversationId)
+                                .then(setThreadMessages)
+                                .catch((err) => setThreadError(err instanceof Error ? err.message : 'Failed to load messages'))
+                                .finally(() => setThreadLoading(false))
+                            }}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : threadLoading ? (
+                        <div className="messages-loading">
+                          <Loader2 size={18} className="animate-spin" />
+                          Loading messages...
+                        </div>
+                      ) : (
+                        threadMessages.map((m) => (
+                          <div
+                            key={m.id}
+                            className={`thread-message ${m.sender_id === recruiterId ? 'sent' : 'received'}`}
+                          >
+                            <p className="thread-message-body">{m.body}</p>
+                            <span className="thread-message-time">
+                              {new Date(m.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {sendError && (
+                      <div className="messages-send-error" role="alert">
+                        <AlertCircle size={16} />
+                        {sendError}
+                      </div>
+                    )}
+                    <form
+                      className="thread-compose"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }}
+                    >
+                      <div className="thread-compose-icons">
+                        <button type="button" className="thread-compose-icon" aria-label="Format" disabled>
+                          <Type size={18} />
+                        </button>
+                        <button type="button" className="thread-compose-icon" aria-label="Attach" disabled>
+                          <Paperclip size={18} />
                         </button>
                       </div>
-                    ) : threadLoading ? (
-                      <div className="messages-loading">
-                        <Loader2 size={18} className="animate-spin" />
-                        Loading messages...
-                      </div>
-                    ) : (
-                      threadMessages.map((m) => (
-                        <div
-                          key={m.id}
-                          className={`thread-message ${m.sender_id === recruiterId ? 'sent' : 'received'}`}
-                        >
-                          <p className="thread-message-body">{m.body}</p>
-                          <span className="thread-message-time">
-                            {new Date(m.created_at).toLocaleString()}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  {sendError && (
-                    <div className="messages-send-error" role="alert">
-                      <AlertCircle size={16} />
-                      {sendError}
-                    </div>
-                  )}
-                  <form
-                    className="thread-compose"
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      handleSendMessage()
-                    }}
-                  >
-                    <input
-                      type="text"
-                      className="thread-input"
-                      placeholder="Type a message..."
-                      value={messageDraft}
-                      onChange={(e) => setMessageDraft(e.target.value)}
-                      aria-label="Message"
-                    />
-                    <button type="submit" className="thread-send" aria-label="Send">
-                      <Send size={18} />
-                    </button>
-                  </form>
-                </>
-              )}
+                      <input
+                        type="text"
+                        className="thread-input"
+                        placeholder="Type a message"
+                        value={messageDraft}
+                        onChange={(e) => setMessageDraft(e.target.value)}
+                        aria-label="Message"
+                      />
+                      <button type="submit" className="thread-send" aria-label="Send">
+                        <Send size={18} />
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
