@@ -265,4 +265,5 @@ Output the extracted data as a JSON object following the schema exactly."""
 
         self.logger.info("Transcript standardized and saved to %s", output_path)
 
+        # TODO: Add school-specific analysis here (currently defaults to Stanford in AnalyzeStep)
         return artifacts

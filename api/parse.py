@@ -64,17 +64,66 @@ async def process_job(job: dict) -> None:
         if artifacts.errors:
             raise Exception("; ".join(artifacts.errors))
         
-        # Upload transcript.json to storage if pipeline succeeded
+        # Upload transcript.json and analysis_summary.json to storage if pipeline succeeded
         transcript_path = output_dir / "transcript.json"
-        if storage_path and transcript_path.exists():
-            dest_path = f"{storage_path}/transcript.json"
-            logger.info(f"Uploading transcript to {dest_path}")
-            upload_bytes(
-                content=transcript_path.read_bytes(),
-                dest_path=dest_path,
-                content_type="application/json",
-            )
+        analysis_path = output_dir / "analysis_summary.json"
         
+        transcript_storage_path = None
+        analysis_storage_path = None
+
+        if storage_path:
+            # storage_path: "{user_id}/{job_id}"
+            if transcript_path.exists():
+                transcript_storage_path = f"{storage_path}/transcript.json"
+                logger.info(f"Uploading transcript to {transcript_storage_path}")
+                upload_bytes(
+                    content=transcript_path.read_bytes(),
+                    dest_path=transcript_storage_path,
+                    content_type="application/json",
+                )
+            
+            if analysis_path.exists():
+                analysis_storage_path = f"{storage_path}/analysis_summary.json"
+                logger.info(f"Uploading analysis summary to {analysis_storage_path}")
+                upload_bytes(
+                    content=analysis_path.read_bytes(),
+                    dest_path=analysis_storage_path,
+                    content_type="application/json",
+                )
+
+    try:
+        # 1. Open log file
+        with open("/Users/niall/Dev/win26-Team10/.cursor/debug-ca7aed.log", "a") as f:
+            # 2. Write entry
+            import json, time
+            log_entry = {
+                "sessionId": "ca7aed",
+                "hypothesisId": "A",
+                "location": "api/parse.py:100",
+                "message": "Updating applicant with paths",
+                "data": {
+                    "user_id": user_id,
+                    "storage_path": storage_path,
+                    "transcript_storage_path": transcript_storage_path,
+                    "analysis_storage_path": analysis_storage_path
+                },
+                "timestamp": int(time.time() * 1000)
+            }
+            f.write(json.dumps(log_entry) + "\n")
+    except:
+        pass
+    
+    # Update applicant record if we have a user_id
+    user_id = job.get("user_id")
+    if user_id and transcript_storage_path:
+        from api.supabase import update_user_latest_repr
+        logger.info(f"Updating applicant {user_id} with latest paths: repr={transcript_storage_path}, report={analysis_storage_path}")
+        await update_user_latest_repr(
+            user_id=user_id,
+            storage_path=transcript_storage_path,
+            report_path=analysis_storage_path
+        )
+
         await complete_job(job_id)
         logger.info(f"Job {job_id} completed successfully")
         

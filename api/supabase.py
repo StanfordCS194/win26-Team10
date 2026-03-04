@@ -57,21 +57,26 @@ async def get_all_users() -> Optional[list[dict]]:
     return None
 
 
-async def update_user_latest_repr(user_id: str, storage_path: str) -> dict:
+async def update_user_latest_repr(user_id: str, storage_path: str, report_path: Optional[str] = None) -> dict:
     """
-    Update an applicant's latest_repr_path.
+    Update an applicant's latest_repr_path and latest_report_path.
 
     Args:
         user_id: The user UUID
         storage_path: Path to the transcript.json in storage
+        report_path: Optional path to the analysis_summary.json in storage
 
     Returns:
         The updated applicant record
     """
     client = get_client()
+    update_data = {"latest_repr_path": storage_path}
+    if report_path:
+        update_data["latest_report_path"] = report_path
+
     result = (
         client.table("applicants")
-        .update({"latest_repr_path": storage_path})
+        .update(update_data)
         .eq("id", user_id)
         .execute()
     )

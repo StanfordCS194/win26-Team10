@@ -82,6 +82,7 @@ class ApplicantProfile(BaseModel):
     skills: Optional[list[str]] = None
     updated_at: Optional[str] = None
     latest_repr_path: Optional[str] = None
+    latest_report_path: Optional[str] = None
     is_complete: Optional[bool] = None
 
 
@@ -141,12 +142,19 @@ async def create_parse_job(
     # The actual transcript.json path will be updated by the worker after processing
     db_user = await get_user(user_id)
     if db_user and db_user.get("type") == "student":
-        await update_user_latest_repr(user_id, f"{storage_path}/transcript.json")
+        await update_user_latest_repr(
+            user_id, 
+            f"{storage_path}/transcript.json",
+            f"{storage_path}/analysis_summary.json"
+        )
     
     # Also update applicant record if it exists
     applicant = await get_applicant(user_id)
     if applicant:
-        await update_applicant(user_id, {"latest_repr_path": f"{storage_path}/transcript.json"})
+        await update_applicant(user_id, {
+            "latest_repr_path": f"{storage_path}/transcript.json",
+            "latest_report_path": f"{storage_path}/analysis_summary.json"
+        })
 
     return ParseJobResponse(
         job_id=str(job["id"]),
@@ -311,7 +319,7 @@ async def update_profile(
     
     required_fields = [
         "first_name", "last_name", "email", "major", 
-        "graduation_year", "gpa", "skills", "latest_repr_path"
+        "graduation_year", "gpa", "skills", "latest_repr_path", "latest_report_path"
     ]
     
     is_complete = all(merged.get(f) for f in required_fields)
