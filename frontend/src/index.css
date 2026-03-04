@@ -197,9 +197,47 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 2rem;
   color: #6b7280;
   text-align: center;
+}
+
+.messages-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.messages-retry {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #b91c1c;
+  background: white;
+  border: 1px solid #fecaca;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.messages-retry:hover {
+  background: #fee2e2;
+}
+
+.messages-send-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 0.8125rem;
 }
 
 .thread-header {

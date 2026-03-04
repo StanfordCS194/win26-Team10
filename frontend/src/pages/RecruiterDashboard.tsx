@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Users, MessageSquare, Send, ChevronLeft } from 'lucide-react'
+import { Users, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
@@ -74,6 +74,8 @@ export default function RecruiterDashboard() {
   const [threadLoading, setThreadLoading] = useState(false)
   const [messageDraft, setMessageDraft] = useState('')
   const [conversationsLoading, setConversationsLoading] = useState(false)
+  const [threadError, setThreadError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
 
   // When openConversationId is set (from StudentCard or URL), switch to Messages and select it
   useEffect(() => {
@@ -175,16 +177,19 @@ export default function RecruiterDashboard() {
   useEffect(() => {
     if (!selectedConversationId) {
       setThreadMessages([])
+      setThreadError(null)
+      setSendError(null)
       return
     }
     let cancelled = false
+    setThreadError(null)
     setThreadLoading(true)
     getMessages(selectedConversationId)
       .then((msgs) => {
         if (!cancelled) setThreadMessages(msgs)
       })
       .catch((err) => {
-        if (!cancelled) console.error('Failed to load messages', err)
+        if (!cancelled) setThreadError(err instanceof Error ? err.message : 'Failed to load messages')
       })
       .finally(() => {
         if (!cancelled) setThreadLoading(false)
@@ -206,12 +211,13 @@ export default function RecruiterDashboard() {
 
   const handleSendMessage = async () => {
     if (!selectedConversationId || !recruiterId || !messageDraft.trim()) return
+    setSendError(null)
     try {
       const msg = await sendMessageApi(selectedConversationId, recruiterId, messageDraft.trim())
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
     } catch (err) {
-      console.error('Send failed', err)
+      setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
   }
 
@@ -302,7 +308,10 @@ export default function RecruiterDashboard() {
           <div className="messages-view">
             <div className="conversations-list">
               {conversationsLoading ? (
-                <div className="messages-loading">Loading conversations...</div>
+                <div className="messages-loading">
+                  <Loader2 size={18} className="animate-spin" />
+                  Loading conversations...
+                </div>
               ) : conversations.length === 0 ? (
                 <div className="messages-empty">No conversations yet. Message a student from the directory.</div>
               ) : (
@@ -343,8 +352,31 @@ export default function RecruiterDashboard() {
                     <span className="thread-title">{selectedStudentName}</span>
                   </div>
                   <div className="thread-messages">
-                    {threadLoading ? (
-                      <div className="messages-loading">Loading messages...</div>
+                    {threadError ? (
+                      <div className="messages-error" role="alert">
+                        <AlertCircle size={18} />
+                        {threadError}
+                        <button
+                          type="button"
+                          className="messages-retry"
+                          onClick={() => {
+                            setThreadError(null)
+                            if (!selectedConversationId) return
+                            setThreadLoading(true)
+                            getMessages(selectedConversationId)
+                              .then(setThreadMessages)
+                              .catch((err) => setThreadError(err instanceof Error ? err.message : 'Failed to load messages'))
+                              .finally(() => setThreadLoading(false))
+                          }}
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    ) : threadLoading ? (
+                      <div className="messages-loading">
+                        <Loader2 size={18} className="animate-spin" />
+                        Loading messages...
+                      </div>
                     ) : (
                       threadMessages.map((m) => (
                         <div
@@ -359,6 +391,12 @@ export default function RecruiterDashboard() {
                       ))
                     )}
                   </div>
+                  {sendError && (
+                    <div className="messages-send-error" role="alert">
+                      <AlertCircle size={16} />
+                      {sendError}
+                    </div>
+                  )}
                   <form
                     className="thread-compose"
                     onSubmit={(e) => {

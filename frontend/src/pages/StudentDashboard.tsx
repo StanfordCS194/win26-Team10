@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft } from 'lucide-react'
+import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation, subscribeToNewMessages } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
@@ -50,6 +50,8 @@ export default function StudentDashboard() {
   const [messageDraft, setMessageDraft] = useState('')
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [messagesSectionOpen, setMessagesSectionOpen] = useState(true)
+  const [threadError, setThreadError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -161,16 +163,19 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (!selectedConversationId) {
       setThreadMessages([])
+      setThreadError(null)
+      setSendError(null)
       return
     }
     let cancelled = false
+    setThreadError(null)
     setThreadLoading(true)
     getMessages(selectedConversationId)
       .then((msgs) => {
         if (!cancelled) setThreadMessages(msgs)
       })
       .catch((err) => {
-        if (!cancelled) console.error('Failed to load messages', err)
+        if (!cancelled) setThreadError(err instanceof Error ? err.message : 'Failed to load messages')
       })
       .finally(() => {
         if (!cancelled) setThreadLoading(false)
@@ -192,12 +197,13 @@ export default function StudentDashboard() {
 
   const handleSendMessage = async () => {
     if (!selectedConversationId || !studentId || !messageDraft.trim()) return
+    setSendError(null)
     try {
       const msg = await sendMessageApi(selectedConversationId, studentId, messageDraft.trim())
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
     } catch (err) {
-      console.error('Send failed', err)
+      setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
   }
 
@@ -286,7 +292,10 @@ export default function StudentDashboard() {
             <div className="messages-view student-messages-inner">
               <div className="conversations-list">
                 {conversationsLoading ? (
-                  <div className="messages-loading">Loading conversations...</div>
+                  <div className="messages-loading">
+                    <Loader2 size={18} className="animate-spin" />
+                    Loading conversations...
+                  </div>
                 ) : conversations.length === 0 ? (
                   <div className="messages-empty">No messages yet. Recruiters can contact you from your profile.</div>
                 ) : (
@@ -327,8 +336,31 @@ export default function StudentDashboard() {
                       <span className="thread-title">Recruiter</span>
                     </div>
                     <div className="thread-messages">
-                      {threadLoading ? (
-                        <div className="messages-loading">Loading messages...</div>
+                      {threadError ? (
+                        <div className="messages-error" role="alert">
+                          <AlertCircle size={18} />
+                          {threadError}
+                          <button
+                            type="button"
+                            className="messages-retry"
+                            onClick={() => {
+                              setThreadError(null)
+                              if (!selectedConversationId) return
+                              setThreadLoading(true)
+                              getMessages(selectedConversationId)
+                                .then(setThreadMessages)
+                                .catch((err) => setThreadError(err instanceof Error ? err.message : 'Failed to load messages'))
+                                .finally(() => setThreadLoading(false))
+                            }}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : threadLoading ? (
+                        <div className="messages-loading">
+                          <Loader2 size={18} className="animate-spin" />
+                          Loading messages...
+                        </div>
                       ) : (
                         threadMessages.map((m) => (
                           <div
@@ -343,6 +375,12 @@ export default function StudentDashboard() {
                         ))
                       )}
                     </div>
+                    {sendError && (
+                      <div className="messages-send-error" role="alert">
+                        <AlertCircle size={16} />
+                        {sendError}
+                      </div>
+                    )}
                     <form
                       className="thread-compose"
                       onSubmit={(e) => {
