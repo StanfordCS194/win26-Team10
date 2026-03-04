@@ -229,7 +229,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                   <select
                     className="select"
                     value={locationSelectValue}
-                    onChange={e => setLocationSelectValue(e.target.value)}
+                    onChange={e => addLocation(e.target.value)}
                   >
                     <option value="">Select location</option>
                     {SORTED_LOCATIONS.map(city => (
@@ -238,13 +238,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="button"
-                    className="add-list-btn"
-                    onClick={() => addLocation(locationSelectValue)}
-                  >
-                    <Plus size={14} /> Add
-                  </button>
                 </div>
                 <div className="dynamic-list-item" style={{ marginTop: '0.5rem' }}>
                   <input
@@ -318,7 +311,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                 <select
                   className="select"
                   value={majorSelectValue}
-                  onChange={e => setMajorSelectValue(e.target.value)}
+                  onChange={e => addMajor(e.target.value)}
                 >
                   <option value="">Select major</option>
                   {SORTED_MAJORS.map(major => (
@@ -327,13 +320,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                     </option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  className="add-list-btn"
-                  onClick={() => addMajor(majorSelectValue)}
-                >
-                  <Plus size={14} /> Add
-                </button>
               </div>
               <div className="dynamic-list-item" style={{ marginTop: '0.5rem' }}>
                 <input
