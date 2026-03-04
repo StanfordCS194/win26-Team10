@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation } from '../lib/messaging'
+import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation, subscribeToNewMessages } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
 import mockJobs from '../data/mockJobs.json'
 
@@ -176,6 +176,18 @@ export default function StudentDashboard() {
         if (!cancelled) setThreadLoading(false)
       })
     return () => { cancelled = true }
+  }, [selectedConversationId])
+
+  // Real-time: subscribe to new messages in selected conversation
+  useEffect(() => {
+    if (!selectedConversationId) return
+    const unsubscribe = subscribeToNewMessages(selectedConversationId, (message) => {
+      setThreadMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev
+        return [...prev, message]
+      })
+    })
+    return unsubscribe
   }, [selectedConversationId])
 
   const handleSendMessage = async () => {

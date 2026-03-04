@@ -87,3 +87,42 @@ export async function getLatestMessagePerConversation(
   }
   return results
 }
+
+/**
+ * Subscribe to new messages in a conversation (Supabase Realtime).
+ * Requires replication to be enabled for the messages table in Supabase.
+ * Returns an unsubscribe function.
+ */
+export function subscribeToNewMessages(
+  conversationId: string,
+  onNewMessage: (message: Message) => void
+): () => void {
+  const channel = supabase
+    .channel(`messages:${conversationId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      (payload) => {
+        const row = payload.new as Record<string, unknown>
+        if (row && typeof row.id === 'string' && typeof row.body === 'string') {
+          onNewMessage({
+            id: row.id as string,
+            conversation_id: row.conversation_id as string,
+            sender_id: row.sender_id as string,
+            body: row.body as string,
+            created_at: row.created_at as string,
+          })
+        }
+      }
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}

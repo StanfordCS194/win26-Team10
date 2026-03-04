@@ -11,6 +11,7 @@ import {
   getMessages,
   sendMessage as sendMessageApi,
   getLatestMessagePerConversation,
+  subscribeToNewMessages,
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
 
@@ -189,6 +190,18 @@ export default function RecruiterDashboard() {
         if (!cancelled) setThreadLoading(false)
       })
     return () => { cancelled = true }
+  }, [selectedConversationId])
+
+  // Real-time: subscribe to new messages in selected conversation
+  useEffect(() => {
+    if (!selectedConversationId) return
+    const unsubscribe = subscribeToNewMessages(selectedConversationId, (message) => {
+      setThreadMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev
+        return [...prev, message]
+      })
+    })
+    return unsubscribe
   }, [selectedConversationId])
 
   const handleSendMessage = async () => {
