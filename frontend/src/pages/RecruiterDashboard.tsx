@@ -228,6 +228,8 @@ export default function RecruiterDashboard() {
     async function loadApplicationsForSelectedJob() {
       if (!selectedJobId) {
         setAppliedStudentIds(new Set())
+        setShowAppliedOnly(false)
+        setShowQualifiedOnly(false)
         return
       }
 
@@ -356,15 +358,14 @@ export default function RecruiterDashboard() {
                     value={selectedJobId}
                     onChange={(e) => setSelectedJobId(e.target.value)}
                   >
-                    {companyJobs.length === 0 ? (
-                      <option value="">No live jobs available</option>
-                    ) : (
-                      companyJobs.map((job) => (
-                        <option key={job.id} value={job.id}>
-                          {job.title} ({job.type})
-                        </option>
-                      ))
-                    )}
+                    <option value="">
+                      {companyJobs.length === 0 ? 'No live jobs available' : 'No job selected'}
+                    </option>
+                    {companyJobs.map((job) => (
+                      <option key={job.id} value={job.id}>
+                        {job.title} ({job.type})
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
