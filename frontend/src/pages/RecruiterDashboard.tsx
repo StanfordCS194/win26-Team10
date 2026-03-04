@@ -53,6 +53,7 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
 export default function RecruiterDashboard() {
   const [complete, setComplete] = useState<Array<any> | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters)
+  const [openConversationId, setOpenConversationId] = useState<string | null>(null)
   useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
@@ -134,7 +135,11 @@ export default function RecruiterDashboard() {
           </p>
         </div>
 
-        <StudentList students={filteredStudents} />
+        <StudentList
+          students={filteredStudents}
+          isRecruiter
+          onOpenConversation={setOpenConversationId}
+        />
       </main>
     </div>
   )

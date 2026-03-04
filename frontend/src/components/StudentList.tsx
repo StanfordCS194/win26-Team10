@@ -4,9 +4,11 @@ import StudentCard from './StudentCard'
 
 interface StudentListProps {
   students: Student[]
+  isRecruiter?: boolean
+  onOpenConversation?: (conversationId: string) => void
 }
 
-export default function StudentList({ students }: StudentListProps) {
+export default function StudentList({ students, isRecruiter, onOpenConversation }: StudentListProps) {
   if (students.length === 0) {
     return (
       <div className="empty-state">
@@ -20,7 +22,12 @@ export default function StudentList({ students }: StudentListProps) {
   return (
     <div className="student-grid">
       {students.map((student) => (
-        <StudentCard key={student.id} student={student} />
+        <StudentCard
+          key={student.id}
+          student={student}
+          isRecruiter={isRecruiter}
+          onOpenConversation={onOpenConversation}
+        />
       ))}
     </div>
   )

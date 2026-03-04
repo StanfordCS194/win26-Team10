@@ -1,13 +1,18 @@
-import { Mail, GraduationCap, FileCheck, FileX } from 'lucide-react'
+import { Mail, GraduationCap, FileCheck, FileX, MessageCircle } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
 import { createRoot } from 'react-dom/client';
 import { supabase } from '../lib/supabase'
+import { getOrCreateConversation } from '../lib/messaging'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 interface StudentCardProps {
   student: Student
+  /** When true, show Message button (recruiter view) */
+  isRecruiter?: boolean
+  /** Called after conversation is created or opened; pass conversation id to open Messages view */
+  onOpenConversation?: (conversationId: string) => void
 }
 
 function getGpaClass(gpa: number): string {
@@ -16,7 +21,19 @@ function getGpaClass(gpa: number): string {
   return 'gpa-low'
 }
 
-export default function StudentCard({ student }: StudentCardProps) {
+export default function StudentCard({ student, isRecruiter, onOpenConversation }: StudentCardProps) {
+  const handleMessage = async () => {
+    if (!onOpenConversation) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) return
+    try {
+      const conversation = await getOrCreateConversation(session.user.id, student.id)
+      onOpenConversation(conversation.id)
+    } catch (err) {
+      console.error('Failed to open conversation:', err)
+    }
+  }
+
   return (
     <div className="student-card">
       {/* Header */}
@@ -56,6 +73,17 @@ export default function StudentCard({ student }: StudentCardProps) {
 
       {/* Transcript Status */}
       <div className="card-footer">
+        {isRecruiter && onOpenConversation && (
+          <button
+            type="button"
+            className="student-card-message-btn"
+            onClick={handleMessage}
+            aria-label={`Message ${student.firstName} ${student.lastName}`}
+          >
+            <MessageCircle size={16} />
+            Message
+          </button>
+        )}
         {student.transcriptUploaded ? (
           <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
