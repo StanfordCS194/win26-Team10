@@ -1,8 +1,9 @@
-import { Mail, GraduationCap, FileCheck, FileX } from 'lucide-react'
+import { Mail, GraduationCap, FileCheck, FileText } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
 import { createRoot } from 'react-dom/client';
 import { supabase } from '../lib/supabase'
+import { createResumeViewer } from './ResumeViewer'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
@@ -54,9 +55,9 @@ export default function StudentCard({ student }: StudentCardProps) {
         ))}
       </div>
 
-      {/* Transcript Status */}
-      <div className="card-footer">
-        {student.transcriptUploaded ? (
+      {/* Transcript & Resume Status */}
+      <div className="card-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {student.transcriptUploaded && (
           <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
@@ -109,11 +110,43 @@ export default function StudentCard({ student }: StudentCardProps) {
             <FileCheck size={16} />
             Transcript uploaded
           </div>
-        ) : (
-          <span className="transcript-status missing">
-            <FileX size={16} />
-            No transcript
-          </span>
+        )}
+        
+        {/* Resume Status */}
+        {student.resumeUploaded && (
+          <div className="transcript-status uploaded" onClick={async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            const token = session?.access_token
+            if (!token) {
+              alert('You must be logged in to view resumes.')
+              return
+            }
+            
+            try {
+              const resumeRes = await fetch(`${API_BASE}/get_resume/${student.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              
+              if (!resumeRes.ok) {
+                throw new Error(await resumeRes.text())
+              }
+              
+              // Get the blob and create a URL
+              const blob = await resumeRes.blob()
+              const url = window.URL.createObjectURL(blob)
+              
+              // Create and show popup
+              const popup = createResumeViewer(url, () => {
+                window.URL.revokeObjectURL(url)
+              })
+              document.body.appendChild(popup)
+            } catch (err) {
+              alert('Failed to load resume: ' + (err instanceof Error ? err.message : String(err)))
+            }
+          }}>
+            <FileText size={16} />
+            Resume uploaded
+          </div>
         )}
       </div>
     </div>

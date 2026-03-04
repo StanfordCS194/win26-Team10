@@ -101,6 +101,8 @@ export default function RecruiterDashboard() {
         skills: applicant.skills ?? [],
         transcriptUploaded: !!applicant.latest_repr_path,
         transcript: null,
+        resumeUploaded: !!applicant.resume_path,
+        resumePath: applicant.resume_path,
       }
       loadedStudents.push(newStudent)
     }

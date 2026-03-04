@@ -9,6 +9,8 @@ export interface Student {
   skills: string[]
   transcriptUploaded: boolean
   transcript: SmallTranscript | null | string
+  resumeUploaded: boolean
+  resumePath?: string
 }
 
 export interface SmallTranscript {

@@ -266,6 +266,44 @@ async def get_specific_transcript(user_id: str):
             detail=f"Transcript file not found: {e}",
         )
 
+@app.get("/get_resume/{user_id}")
+async def get_resume(user_id: str):
+    """
+    Get a specific user's resume file.
+    
+    Returns the resume PDF or DOCX file.
+    Only available for recruiters.
+    """
+    # Get applicant profile
+    applicant = await get_applicant(user_id)
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    # Check if user has a resume
+    resume_path = applicant.get("resume_path")
+    if not resume_path:
+        raise HTTPException(status_code=404, detail="No resume found")
+    
+    try:
+        # Download and return the resume
+        content = get_file_bytes(resume_path)
+        
+        # Determine content type based on file extension
+        content_type = "application/pdf" if resume_path.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        
+        return Response(
+            content=content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"inline; filename=resume_{user_id}.{resume_path.split('.')[-1]}"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Resume file not found: {e}",
+        )
+
 @app.get("/profile", response_model=ApplicantProfile)
 async def get_profile(user: dict = Depends(get_current_user)):
     """Get the current user's applicant profile."""
