@@ -1,9 +1,10 @@
 import { useState, useMemo/*, useEffect*/} from 'react'
-import { Users } from 'lucide-react'
+import { Users, Plus, CheckCircle } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
 import StudentList from '../components/StudentList'
+import PostJobModal from '../components/PostJobModal'
 //import { supabase } from '../lib/supabase'
 
 const initialFilters: Filters = {
@@ -53,6 +54,8 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
 export default function RecruiterDashboard() {
   //const [complete, setComplete] = useState<Array<any> | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters)
+  const [showPostJob, setShowPostJob] = useState(false)
+  const [jobPostedBanner, setJobPostedBanner] = useState(false)
   /*useEffect(() => {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession()
@@ -106,6 +109,11 @@ export default function RecruiterDashboard() {
     () => filterStudents(mockStudents, filters),
     [filters]
   )
+  const handleJobSuccess = () => {
+    setJobPostedBanner(true)
+    setTimeout(() => setJobPostedBanner(false), 4000)
+  }
+
   //if (!complete) return <div>Loading...</div>;
   return (
     <div className="dashboard">
@@ -113,17 +121,39 @@ export default function RecruiterDashboard() {
 
       <main className="dashboard-main">
         <div className="dashboard-header">
-          <h1 className="dashboard-title">
-            <Users />
-            Student Directory
-          </h1>
-          <p className="dashboard-subtitle">
-            Showing {filteredStudents.length} of {mockStudents.length} students
-          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div>
+              <h1 className="dashboard-title">
+                <Users />
+                Student Directory
+              </h1>
+              <p className="dashboard-subtitle">
+                Showing {filteredStudents.length} of {mockStudents.length} students
+              </p>
+            </div>
+            <button className="post-job-btn" onClick={() => setShowPostJob(true)}>
+              <Plus size={16} />
+              Post a Job
+            </button>
+          </div>
+
+          {jobPostedBanner && (
+            <div className="success-banner" style={{ marginTop: '1rem' }}>
+              <CheckCircle size={18} />
+              Job posted successfully!
+            </div>
+          )}
         </div>
 
         <StudentList students={filteredStudents} />
       </main>
+
+      {showPostJob && (
+        <PostJobModal
+          onClose={() => setShowPostJob(false)}
+          onSuccess={handleJobSuccess}
+        />
+      )}
     </div>
   )
 }
