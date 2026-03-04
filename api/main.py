@@ -22,6 +22,7 @@ from api.supabase import (
     update_applicant,
     update_user_latest_repr,
     upload_bytes,
+    get_school_id_by_name,
 )
 
 app = FastAPI(
@@ -76,6 +77,8 @@ class ApplicantProfile(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[str] = None
+    school: Optional[str] = None
+    school_id: Optional[str] = None
     major: Optional[str] = None
     graduation_year: Optional[str] = None
     gpa: Optional[float] = None
@@ -294,6 +297,12 @@ async def update_profile(
     # Convert Pydantic model to dict, excluding None values
     update_data = profile.model_dump(exclude_unset=True)
     
+    # Look up school_id if school name is provided
+    if "school" in update_data and update_data["school"]:
+        school_id = await get_school_id_by_name(update_data["school"])
+        if school_id:
+            update_data["school_id"] = school_id
+    
     # Calculate is_complete
     # Required fields: first_name, last_name, email, major, graduation_year, gpa, skills
     # We also need a transcript (latest_repr_path) to be truly complete
@@ -310,7 +319,7 @@ async def update_profile(
     merged = {**existing, **update_data}
     
     required_fields = [
-        "first_name", "last_name", "email", "major", 
+        "first_name", "last_name", "email", "school", "major", 
         "graduation_year", "gpa", "skills", "latest_repr_path"
     ]
     
