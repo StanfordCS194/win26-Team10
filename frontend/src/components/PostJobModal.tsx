@@ -6,46 +6,48 @@ import { ALL_SKILLS, MAJORS } from '../types/student'
 interface PostJobModalProps {
   onClose: () => void
   onSuccess: () => void
+  companyId: string | null
+  companyName: string | null
 }
 
 const JOB_TYPES = ['Internship', 'Full-time', 'Part-time', 'Contract']
 const COMMON_LOCATIONS = [
   'Remote',
-  'San Francisco, CA',
-  'New York, NY',
-  'Seattle, WA',
-  'Los Angeles, CA',
   'Austin, TX',
   'Boston, MA',
   'Chicago, IL',
-  'San Jose, CA',
+  'Los Angeles, CA',
+  'New York, NY',
   'Palo Alto, CA',
+  'San Francisco, CA',
+  'San Jose, CA',
+  'Seattle, WA',
 ]
 
 const COMMON_MAJORS = [
   ...MAJORS,
-  'Statistics',
-  'Information Systems',
-  'Computer Engineering',
-  'Industrial Engineering',
-  'Civil Engineering',
+  'Accounting',
   'Bioengineering',
   'Chemical Engineering',
+  'Civil Engineering',
   'Cognitive Science',
-  'Operations Research',
-  'Finance',
-  'Accounting',
-  'Marketing',
-  'Psychology',
+  'Computer Engineering',
   'Design',
+  'Finance',
+  'Information Systems',
+  'Industrial Engineering',
+  'Marketing',
+  'Operations Research',
+  'Psychology',
+  'Statistics',
 ]
+
 const SORTED_LOCATIONS = [...COMMON_LOCATIONS].sort((a, b) => a.localeCompare(b))
 const SORTED_MAJORS = [...COMMON_MAJORS].sort((a, b) => a.localeCompare(b))
 const JOB_DRAFT_STORAGE_KEY = 'postJobDraft'
 
 type PostJobDraft = {
   title: string
-  company: string
   selectedLocations: string[]
   customLocation: string
   type: string
@@ -70,10 +72,14 @@ function loadDraft(): PostJobDraft | null {
   }
 }
 
-export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) {
+export default function PostJobModal({
+  onClose,
+  onSuccess,
+  companyId,
+  companyName,
+}: PostJobModalProps) {
   const draft = loadDraft()
   const [title, setTitle] = useState(draft?.title ?? '')
-  const [company, setCompany] = useState(draft?.company ?? '')
   const [selectedLocations, setSelectedLocations] = useState<string[]>(
     draft?.selectedLocations ?? []
   )
@@ -105,7 +111,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     if (success) return
     const draftToSave: PostJobDraft = {
       title,
-      company,
       selectedLocations,
       customLocation,
       type,
@@ -122,7 +127,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     sessionStorage.setItem(JOB_DRAFT_STORAGE_KEY, JSON.stringify(draftToSave))
   }, [
     title,
-    company,
     selectedLocations,
     customLocation,
     type,
@@ -181,46 +185,47 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     )
   }
 
-  const handleListChange = (
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    index: number,
-    value: string
-  ) => {
-    setter(prev => {
+  const handleListChange = (index: number, value: string) => {
+    setBenefits(prev => {
       const updated = [...prev]
       updated[index] = value
       return updated
     })
   }
 
-  const addListItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setter(prev => [...prev, ''])
+  const addListItem = () => {
+    setBenefits(prev => [...prev, ''])
   }
 
-  const removeListItem = (
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    index: number
-  ) => {
-    setter(prev => prev.filter((_, i) => i !== index))
+  const removeListItem = (index: number) => {
+    setBenefits(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!title.trim() || !company.trim() || selectedLocations.length === 0 || !description.trim()) {
-      setError('Please fill in all required fields (Title, Company, at least one Location, Description).')
+    if (!companyId || !companyName) {
+      setError('Your recruiter account is not linked to an approved company yet.')
+      return
+    }
+
+    if (!title.trim() || selectedLocations.length === 0 || !description.trim()) {
+      setError('Please fill in all required fields (Title, at least one Location, Description).')
       return
     }
 
     setSubmitting(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
       const { error: insertError } = await supabase.from('jobs').insert({
         recruiter_id: session?.user?.id ?? null,
+        company_id: companyId,
         title: title.trim(),
-        company: company.trim(),
+        company: companyName,
         location: selectedLocations.join(', '),
         type,
         salary_display: compensation.trim() || null,
@@ -270,7 +275,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
             </div>
           )}
 
-          {/* Basic Info */}
           <div className="form-section">
             <h3 className="section-title">Job Details</h3>
             <div className="form-row">
@@ -284,13 +288,8 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                 />
               </div>
               <div className="form-group">
-                <label>Company *</label>
-                <input
-                  className="input"
-                  value={company}
-                  onChange={e => setCompany(e.target.value)}
-                  placeholder="e.g. Google"
-                />
+                <label>Company</label>
+                <input className="input" value={companyName ?? 'No approved company'} readOnly />
               </div>
             </div>
             <div className="form-row">
@@ -300,7 +299,10 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                   <select
                     className="select"
                     value={locationSelectValue}
-                    onChange={e => addLocation(e.target.value)}
+                    onChange={e => {
+                      setLocationSelectValue(e.target.value)
+                      addLocation(e.target.value)
+                    }}
                   >
                     <option value="">Select location</option>
                     {SORTED_LOCATIONS.map(city => (
@@ -317,11 +319,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                     onChange={e => setCustomLocation(e.target.value)}
                     placeholder="Custom location"
                   />
-                  <button
-                    type="button"
-                    className="add-list-btn"
-                    onClick={() => addLocation(customLocation)}
-                  >
+                  <button type="button" className="add-list-btn" onClick={() => addLocation(customLocation)}>
                     <Plus size={14} /> Add Custom
                   </button>
                 </div>
@@ -344,7 +342,11 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
               <div className="form-group">
                 <label>Job Type</label>
                 <select className="select" value={type} onChange={e => setType(e.target.value)}>
-                  {JOB_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  {JOB_TYPES.map(t => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -370,7 +372,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
             </div>
           </div>
 
-          {/* Candidate Qualifications */}
           <div className="form-section">
             <h3 className="section-title">Candidate Qualifications</h3>
             <p className="section-description">
@@ -382,7 +383,10 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                 <select
                   className="select"
                   value={majorSelectValue}
-                  onChange={e => addMajor(e.target.value)}
+                  onChange={e => {
+                    setMajorSelectValue(e.target.value)
+                    addMajor(e.target.value)
+                  }}
                 >
                   <option value="">Select major</option>
                   {SORTED_MAJORS.map(major => (
@@ -399,11 +403,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                   onChange={e => setCustomMajor(e.target.value)}
                   placeholder="Custom major"
                 />
-                <button
-                  type="button"
-                  className="add-list-btn"
-                  onClick={() => addMajor(customMajor)}
-                >
+                <button type="button" className="add-list-btn" onClick={() => addMajor(customMajor)}>
                   <Plus size={14} /> Add Custom
                 </button>
               </div>
@@ -455,7 +455,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
             </div>
           </div>
 
-          {/* Skills */}
           <div className="form-section">
             <h3 className="section-title">Required Skills</h3>
             <p className="section-description">Select skills or add your own manually.</p>
@@ -499,7 +498,6 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
             )}
           </div>
 
-          {/* Benefits */}
           <div className="form-section">
             <h3 className="section-title">Benefits</h3>
             {benefits.map((benefit, i) => (
@@ -507,25 +505,17 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
                 <input
                   className="input"
                   value={benefit}
-                  onChange={e => handleListChange(setBenefits, i, e.target.value)}
+                  onChange={e => handleListChange(i, e.target.value)}
                   placeholder={`Benefit ${i + 1}`}
                 />
                 {benefits.length > 1 && (
-                  <button
-                    type="button"
-                    className="remove-file-btn"
-                    onClick={() => removeListItem(setBenefits, i)}
-                  >
+                  <button type="button" className="remove-file-btn" onClick={() => removeListItem(i)}>
                     <Trash2 size={16} />
                   </button>
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              className="add-list-btn"
-              onClick={() => addListItem(setBenefits)}
-            >
+            <button type="button" className="add-list-btn" onClick={addListItem}>
               <Plus size={14} /> Add Benefit
             </button>
           </div>

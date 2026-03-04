@@ -145,6 +145,7 @@ export default function StudentDashboard() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [jobsError, setJobsError] = useState('')
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
+  const [studentUserId, setStudentUserId] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [expandedJob, setExpandedJob] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -162,15 +163,27 @@ export default function StudentDashboard() {
       if (session?.user?.email) {
         setEmail(session.user.email)
       }
+      if (session?.user?.id) {
+        setStudentUserId(session.user.id)
+      }
 
       const savedProfile = localStorage.getItem('studentProfile')
       if (savedProfile) {
         setProfile(JSON.parse(savedProfile))
       }
 
-      const savedApplied = localStorage.getItem('appliedJobs')
-      if (savedApplied) {
-        setAppliedJobs(new Set(JSON.parse(savedApplied)))
+      if (session?.user?.id) {
+        const { data: applications, error: applicationsError } = await supabase
+          .from('job_applications')
+          .select('job_id')
+          .eq('student_id', session.user.id)
+
+        if (applicationsError) {
+          console.error('Failed to load applied jobs:', applicationsError)
+        } else {
+          const appliedIds = new Set((applications || []).map(row => row.job_id as string))
+          setAppliedJobs(appliedIds)
+        }
       }
 
       const { data, error } = await supabase
@@ -192,12 +205,23 @@ export default function StudentDashboard() {
     loadData()
   }, [])
 
-  const handleApply = (jobId: string, e: React.MouseEvent) => {
+  const handleApply = async (jobId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!studentUserId) return
+    if (appliedJobs.has(jobId)) return
     const newApplied = new Set(appliedJobs)
     newApplied.add(jobId)
     setAppliedJobs(newApplied)
-    localStorage.setItem('appliedJobs', JSON.stringify([...newApplied]))
+
+    const { error } = await supabase.from('job_applications').insert({
+      job_id: jobId,
+      student_id: studentUserId,
+    })
+
+    if (error && error.code !== '23505') {
+      console.error('Failed to apply to job:', error)
+      setAppliedJobs(new Set(appliedJobs))
+    }
   }
 
   const toggleExpanded = (jobId: string) => {
