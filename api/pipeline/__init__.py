@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Iterable
 
 from api.pipeline.executor import ParseExecutor
-from api.pipeline.steps import ParseStep, ReductoStep, TextExtractStep, StandardizeStep
+from api.pipeline.steps import ParseStep, ReductoStep, TextExtractStep, StandardizeStep, AnalyzeStep
 from api.pipeline.types import ParseArtifacts, ParseInput
 
 
@@ -33,12 +33,14 @@ def default_steps() -> list[ParseStep]:
     
     1. TextExtractStep: Extract raw text from PDF using PyPDF2
     2. StandardizeStep: Convert text to standardized transcript JSON using LLM
+    3. AnalyzeStep: DO a meta anlysis: e.g. calculate grade percentiles using stored distributions, identify repeated courses, etc.
     
-    To use Reducto instead: steps=[ReductoStep(), StandardizeStep()]
+    To use Reducto instead: steps=[ReductoStep(), StandardizeStep(), AnalyzeStep()]
     """
     return [
         TextExtractStep(),
         StandardizeStep(),
+        AnalyzeStep(),
     ]
 
 
