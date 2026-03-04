@@ -90,6 +90,212 @@ body {
   margin-top: 0.25rem;
 }
 
+.dashboard-header-with-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.dashboard-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #4b5563;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.dashboard-tab:hover {
+  background: #f9fafb;
+  color: #111827;
+}
+
+.dashboard-tab.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+/* Messages view (recruiter & student) */
+.messages-view {
+  display: flex;
+  gap: 1rem;
+  min-height: 400px;
+  margin-top: 1rem;
+}
+
+.conversations-list {
+  width: 280px;
+  min-width: 280px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.conversation-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+}
+
+.conversation-row:hover {
+  background: #f9fafb;
+}
+
+.conversation-row.selected {
+  background: #eff6ff;
+}
+
+.conversation-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.conversation-preview {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.thread-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  min-width: 0;
+}
+
+.thread-placeholder,
+.messages-loading,
+.messages-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.thread-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.thread-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.thread-back:hover {
+  color: #111827;
+}
+
+.thread-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.thread-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 200px;
+}
+
+.thread-message {
+  max-width: 80%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.thread-message.sent {
+  align-self: flex-end;
+  background: #2563eb;
+  color: white;
+}
+
+.thread-message.received {
+  align-self: flex-start;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.thread-message-time {
+  font-size: 0.6875rem;
+  opacity: 0.85;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.thread-compose {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.thread-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.thread-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.thread-send:hover {
+  background: #1d4ed8;
+}
+
 /* Filter Sidebar */
 .sidebar {
   width: 18rem;
