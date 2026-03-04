@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X, Plus, Trash2, Briefcase, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { ALL_SKILLS, MAJORS } from '../types/student'
@@ -41,24 +41,57 @@ const COMMON_MAJORS = [
 ]
 const SORTED_LOCATIONS = [...COMMON_LOCATIONS].sort((a, b) => a.localeCompare(b))
 const SORTED_MAJORS = [...COMMON_MAJORS].sort((a, b) => a.localeCompare(b))
+const JOB_DRAFT_STORAGE_KEY = 'postJobDraft'
+
+type PostJobDraft = {
+  title: string
+  company: string
+  selectedLocations: string[]
+  customLocation: string
+  type: string
+  compensation: string
+  description: string
+  selectedSkills: string[]
+  customSkill: string
+  preferredMajors: string[]
+  customMajor: string
+  preferredGradYears: string[]
+  minGpa: string
+  benefits: string[]
+}
+
+function loadDraft(): PostJobDraft | null {
+  try {
+    const raw = sessionStorage.getItem(JOB_DRAFT_STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as PostJobDraft
+  } catch {
+    return null
+  }
+}
 
 export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) {
-  const [title, setTitle] = useState('')
-  const [company, setCompany] = useState('')
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
+  const draft = loadDraft()
+  const [title, setTitle] = useState(draft?.title ?? '')
+  const [company, setCompany] = useState(draft?.company ?? '')
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(
+    draft?.selectedLocations ?? []
+  )
   const [locationSelectValue, setLocationSelectValue] = useState('')
-  const [customLocation, setCustomLocation] = useState('')
-  const [type, setType] = useState('Internship')
-  const [compensation, setCompensation] = useState('')
-  const [description, setDescription] = useState('')
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
-  const [customSkill, setCustomSkill] = useState('')
-  const [preferredMajors, setPreferredMajors] = useState<string[]>([])
+  const [customLocation, setCustomLocation] = useState(draft?.customLocation ?? '')
+  const [type, setType] = useState(draft?.type ?? 'Internship')
+  const [compensation, setCompensation] = useState(draft?.compensation ?? '')
+  const [description, setDescription] = useState(draft?.description ?? '')
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(draft?.selectedSkills ?? [])
+  const [customSkill, setCustomSkill] = useState(draft?.customSkill ?? '')
+  const [preferredMajors, setPreferredMajors] = useState<string[]>(draft?.preferredMajors ?? [])
   const [majorSelectValue, setMajorSelectValue] = useState('')
-  const [customMajor, setCustomMajor] = useState('')
-  const [preferredGradYears, setPreferredGradYears] = useState<string[]>([])
-  const [minGpa, setMinGpa] = useState('')
-  const [benefits, setBenefits] = useState<string[]>([''])
+  const [customMajor, setCustomMajor] = useState(draft?.customMajor ?? '')
+  const [preferredGradYears, setPreferredGradYears] = useState<string[]>(
+    draft?.preferredGradYears ?? []
+  )
+  const [minGpa, setMinGpa] = useState(draft?.minGpa ?? '')
+  const [benefits, setBenefits] = useState<string[]>(draft?.benefits ?? [''])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -67,6 +100,43 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     const currentYear = new Date().getFullYear()
     return Array.from({ length: 5 }, (_, index) => String(currentYear + index))
   }, [])
+
+  useEffect(() => {
+    if (success) return
+    const draftToSave: PostJobDraft = {
+      title,
+      company,
+      selectedLocations,
+      customLocation,
+      type,
+      compensation,
+      description,
+      selectedSkills,
+      customSkill,
+      preferredMajors,
+      customMajor,
+      preferredGradYears,
+      minGpa,
+      benefits,
+    }
+    sessionStorage.setItem(JOB_DRAFT_STORAGE_KEY, JSON.stringify(draftToSave))
+  }, [
+    title,
+    company,
+    selectedLocations,
+    customLocation,
+    type,
+    compensation,
+    description,
+    selectedSkills,
+    customSkill,
+    preferredMajors,
+    customMajor,
+    preferredGradYears,
+    minGpa,
+    benefits,
+    success,
+  ])
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills(prev =>
@@ -166,6 +236,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
       if (insertError) throw insertError
 
       setSuccess(true)
+      sessionStorage.removeItem(JOB_DRAFT_STORAGE_KEY)
       setTimeout(() => {
         onSuccess()
         onClose()
@@ -179,8 +250,8 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
   }
 
   return (
-    <div className="post-job-overlay" onClick={onClose}>
-      <div className="post-job-modal" onClick={e => e.stopPropagation()}>
+    <div className="post-job-overlay">
+      <div className="post-job-modal">
         <div className="post-job-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Briefcase size={20} style={{ color: '#2563eb' }} />

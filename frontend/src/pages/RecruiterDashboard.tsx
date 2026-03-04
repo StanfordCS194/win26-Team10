@@ -6,6 +6,7 @@ import FilterSidebar from '../components/FilterSidebar'
 import StudentList from '../components/StudentList'
 import PostJobModal from '../components/PostJobModal'
 //import { supabase } from '../lib/supabase'
+const POST_JOB_OPEN_KEY = 'postJobModalOpen'
 
 const initialFilters: Filters = {
   search: '',
@@ -54,7 +55,9 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
 export default function RecruiterDashboard() {
   //const [complete, setComplete] = useState<Array<any> | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters)
-  const [showPostJob, setShowPostJob] = useState(false)
+  const [showPostJob, setShowPostJob] = useState(
+    () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
+  )
   const [jobPostedBanner, setJobPostedBanner] = useState(false)
   /*useEffect(() => {
     async function load() {
@@ -114,6 +117,16 @@ export default function RecruiterDashboard() {
     setTimeout(() => setJobPostedBanner(false), 4000)
   }
 
+  const openPostJob = () => {
+    sessionStorage.setItem(POST_JOB_OPEN_KEY, 'true')
+    setShowPostJob(true)
+  }
+
+  const closePostJob = () => {
+    sessionStorage.removeItem(POST_JOB_OPEN_KEY)
+    setShowPostJob(false)
+  }
+
   //if (!complete) return <div>Loading...</div>;
   return (
     <div className="dashboard">
@@ -131,7 +144,7 @@ export default function RecruiterDashboard() {
                 Showing {filteredStudents.length} of {mockStudents.length} students
               </p>
             </div>
-            <button className="post-job-btn" onClick={() => setShowPostJob(true)}>
+            <button className="post-job-btn" onClick={openPostJob}>
               <Plus size={16} />
               Post a Job
             </button>
@@ -150,7 +163,7 @@ export default function RecruiterDashboard() {
 
       {showPostJob && (
         <PostJobModal
-          onClose={() => setShowPostJob(false)}
+          onClose={closePostJob}
           onSuccess={handleJobSuccess}
         />
       )}

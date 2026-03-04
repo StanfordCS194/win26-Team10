@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -14,6 +14,8 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
   const [user, setUser] = useState<User | null>(null)
   const [userType, setUserType] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
+  const userIdRef = useRef<string | null>(null)
+  const userTypeRef = useRef<UserType | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -22,6 +24,8 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
       if (!u) {
         if (!cancelled) {
           setUserType(null)
+          userTypeRef.current = null
+          userIdRef.current = null
           setLoading(false)
         }
         return
@@ -38,9 +42,12 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
       if (error) {
         console.error('Failed to load user type:', error)
         setUserType(null)
+        userTypeRef.current = null
       } else {
         const t = data?.type
-        setUserType(t === 'student' || t === 'recruiter' ? t : null)
+        const resolvedType = t === 'student' || t === 'recruiter' ? t : null
+        setUserType(resolvedType)
+        userTypeRef.current = resolvedType
       }
 
       setLoading(false)
@@ -50,15 +57,26 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
       const u = session?.user ?? null
       if (cancelled) return
       setUser(u)
+      userIdRef.current = u?.id ?? null
       loadTypeForUser(u)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
       if (cancelled) return
       setUser(u)
+
+      const nextUserId = u?.id ?? null
+      const isSameUser = userIdRef.current === nextUserId
+      userIdRef.current = nextUserId
+
+      // Token refresh happens often (including tab switches). Avoid remount flicker/state loss.
+      if (event === 'TOKEN_REFRESHED' && isSameUser && userTypeRef.current) {
+        return
+      }
+
       setLoading(true)
       loadTypeForUser(u)
     })
