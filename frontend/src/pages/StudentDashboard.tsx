@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X } from 'lucide-react'
+import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation } from '../lib/messaging'
+import type { Conversation, Message } from '../types/messaging'
 import mockJobs from '../data/mockJobs.json'
 
 interface StudentProfile {
@@ -38,6 +40,17 @@ export default function StudentDashboard() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null)
   const navigate = useNavigate()
 
+  // Messages
+  const [studentId, setStudentId] = useState<string | null>(null)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [latestMessages, setLatestMessages] = useState<Record<string, Message>>({})
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [threadMessages, setThreadMessages] = useState<Message[]>([])
+  const [threadLoading, setThreadLoading] = useState(false)
+  const [messageDraft, setMessageDraft] = useState('')
+  const [conversationsLoading, setConversationsLoading] = useState(false)
+  const [messagesSectionOpen, setMessagesSectionOpen] = useState(true)
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
@@ -49,6 +62,9 @@ export default function StudentDashboard() {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user?.email) {
         setEmail(session.user.email)
+      }
+      if (session?.user?.id) {
+        setStudentId(session.user.id)
       }
 
       const savedProfile = localStorage.getItem('studentProfile')
@@ -116,6 +132,63 @@ export default function StudentDashboard() {
   const hasActiveFilters = searchQuery || selectedCompanies.length > 0 || selectedTypes.length > 0 || minPay
   const profileComplete = profile && profile.firstName && profile.lastName && profile.major
 
+  // Load conversations for student (where they are student_id)
+  useEffect(() => {
+    if (!studentId) return
+    let cancelled = false
+    setConversationsLoading(true)
+    getMyConversations(studentId)
+      .then((list) => {
+        if (cancelled) return
+        setConversations(list)
+        const ids = list.map((c) => c.id)
+        return getLatestMessagePerConversation(ids)
+      })
+      .then((latest) => {
+        if (cancelled) return
+        setLatestMessages(latest)
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load conversations', err)
+      })
+      .finally(() => {
+        if (!cancelled) setConversationsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [studentId])
+
+  // Load thread messages when selection changes
+  useEffect(() => {
+    if (!selectedConversationId) {
+      setThreadMessages([])
+      return
+    }
+    let cancelled = false
+    setThreadLoading(true)
+    getMessages(selectedConversationId)
+      .then((msgs) => {
+        if (!cancelled) setThreadMessages(msgs)
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load messages', err)
+      })
+      .finally(() => {
+        if (!cancelled) setThreadLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [selectedConversationId])
+
+  const handleSendMessage = async () => {
+    if (!selectedConversationId || !studentId || !messageDraft.trim()) return
+    try {
+      const msg = await sendMessageApi(selectedConversationId, studentId, messageDraft.trim())
+      setThreadMessages((prev) => [...prev, msg])
+      setMessageDraft('')
+    } catch (err) {
+      console.error('Send failed', err)
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -181,6 +254,107 @@ export default function StudentDashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Messages / Inbox section */}
+        <div className="student-messages-section">
+          <button
+            type="button"
+            className="student-messages-section-header"
+            onClick={() => setMessagesSectionOpen(!messagesSectionOpen)}
+            aria-expanded={messagesSectionOpen}
+          >
+            <MessageSquare size={24} />
+            <h2 className="jobs-title">Messages</h2>
+            {conversations.length > 0 && (
+              <span className="messages-badge">{conversations.length}</span>
+            )}
+          </button>
+          {messagesSectionOpen && (
+            <div className="messages-view student-messages-inner">
+              <div className="conversations-list">
+                {conversationsLoading ? (
+                  <div className="messages-loading">Loading conversations...</div>
+                ) : conversations.length === 0 ? (
+                  <div className="messages-empty">No messages yet. Recruiters can contact you from your profile.</div>
+                ) : (
+                  conversations.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedConversationId(c.id)}
+                    >
+                      <span className="conversation-name">Recruiter</span>
+                      {latestMessages[c.id] && (
+                        <span className="conversation-preview">
+                          {latestMessages[c.id].body.slice(0, 40)}
+                          {latestMessages[c.id].body.length > 40 ? '…' : ''}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="thread-panel">
+                {!selectedConversationId ? (
+                  <div className="thread-placeholder">
+                    Select a conversation to view messages and reply.
+                  </div>
+                ) : (
+                  <>
+                    <div className="thread-header">
+                      <button
+                        type="button"
+                        className="thread-back"
+                        onClick={() => setSelectedConversationId(null)}
+                        aria-label="Back to list"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span className="thread-title">Recruiter</span>
+                    </div>
+                    <div className="thread-messages">
+                      {threadLoading ? (
+                        <div className="messages-loading">Loading messages...</div>
+                      ) : (
+                        threadMessages.map((m) => (
+                          <div
+                            key={m.id}
+                            className={`thread-message ${m.sender_id === studentId ? 'sent' : 'received'}`}
+                          >
+                            <p className="thread-message-body">{m.body}</p>
+                            <span className="thread-message-time">
+                              {new Date(m.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <form
+                      className="thread-compose"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }}
+                    >
+                      <input
+                        type="text"
+                        className="thread-input"
+                        placeholder="Type a message..."
+                        value={messageDraft}
+                        onChange={(e) => setMessageDraft(e.target.value)}
+                        aria-label="Message"
+                      />
+                      <button type="submit" className="thread-send" aria-label="Send">
+                        <Send size={18} />
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="jobs-section">
