@@ -16,12 +16,13 @@ create index if not exists conversations_student_id_idx on public.conversations 
 
 alter table public.conversations enable row level security;
 
--- Participants can read their own conversations
+-- Participants can read their own conversations (request user must be defined and be recruiter or student)
 create policy "Participants can read conversation"
     on public.conversations
     for select
     using (
-        auth.uid() = recruiter_id or auth.uid() = student_id
+        auth.uid() is not null
+        and (auth.uid() = recruiter_id or auth.uid() = student_id)
     );
 
 -- Only recruiters can create a conversation
@@ -58,12 +59,13 @@ create index if not exists messages_created_at_idx on public.messages (created_a
 
 alter table public.messages enable row level security;
 
--- Participants of the conversation can read messages
+-- Participants of the conversation can read messages (request user must be defined and be recruiter or student)
 create policy "Participants can read messages"
     on public.messages
     for select
     using (
-        exists (
+        auth.uid() is not null
+        and exists (
             select 1 from public.conversations c
             where c.id = conversation_id
             and (c.recruiter_id = auth.uid() or c.student_id = auth.uid())
