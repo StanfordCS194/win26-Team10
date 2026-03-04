@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import mockJobs from '../data/mockJobs.json'
 
 interface StudentProfile {
   firstName: string
@@ -24,11 +23,29 @@ interface Job {
   posted: string
   description: string
   skills: string[]
-  requirements: string[]
-  benefits: string[]
+  requirements?: string[]
+  benefits?: string[]
   preferred_majors?: string[]
   preferred_grad_years?: string[]
   min_gpa?: number | null
+}
+
+interface JobRow {
+  id: string
+  title: string
+  company: string
+  location: string
+  type: string
+  salary_display: string | null
+  salary_min: number | null
+  description: string
+  skills: string[] | null
+  requirements: string[] | null
+  benefits: string[] | null
+  preferred_majors: string[] | null
+  preferred_grad_years: string[] | null
+  min_gpa: number | null
+  created_at: string | null
 }
 
 interface Qualification {
@@ -40,10 +57,11 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
   const quals: Qualification[] = []
 
   if (job.preferred_majors && job.preferred_majors.length > 0) {
-    const label =
-      job.preferred_majors.length === 1
-        ? job.preferred_majors[0]
-        : job.preferred_majors.join(' or ')
+    const matchedMajor = profile?.major
+      ? job.preferred_majors.find(major => major === profile.major)
+      : null
+    const shownMajor = matchedMajor ?? job.preferred_majors[0]
+    const label = `Major: ${shownMajor}`
     quals.push({
       label,
       met: profile?.major ? job.preferred_majors.includes(profile.major) : null,
@@ -51,7 +69,13 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
   }
 
   if (job.preferred_grad_years && job.preferred_grad_years.length > 0) {
-    const label = `Class of ${job.preferred_grad_years.join('/')}`
+    const matchingYear = profile?.graduationYear
+      ? job.preferred_grad_years.find(year => year === profile.graduationYear)
+      : null
+    const minimumYear = [...job.preferred_grad_years]
+      .sort((a, b) => Number(a) - Number(b))[0]
+    const shownYear = matchingYear ?? minimumYear
+    const label = `Class of ${shownYear}`
     quals.push({
       label,
       met: profile?.graduationYear
@@ -70,12 +94,56 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
   return quals
 }
 
-const ALL_COMPANIES = [...new Set((mockJobs as Job[]).map(j => j.company))]
-const ALL_JOB_TYPES = ['Internship', 'Full-time']
+function formatPosted(createdAt: string | null): string {
+  if (!createdAt) return 'Recently posted'
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now.getTime() - created.getTime()
+  const dayMs = 24 * 60 * 60 * 1000
+  const hourMs = 60 * 60 * 1000
+
+  if (diffMs < hourMs) {
+    const hours = Math.max(1, Math.floor(diffMs / (60 * 1000)))
+    return `${hours} min ago`
+  }
+  if (diffMs < dayMs) {
+    const hours = Math.floor(diffMs / hourMs)
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  }
+
+  const days = Math.floor(diffMs / dayMs)
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks} week${weeks === 1 ? '' : 's'} ago`
+  const months = Math.floor(days / 30)
+  return `${months} month${months === 1 ? '' : 's'} ago`
+}
+
+function mapJobRow(row: JobRow): Job {
+  return {
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    type: row.type,
+    salary: row.salary_display || 'Compensation not listed',
+    salaryMin: row.salary_min ?? 0,
+    posted: formatPosted(row.created_at),
+    description: row.description,
+    skills: row.skills ?? [],
+    requirements: row.requirements ?? [],
+    benefits: row.benefits ?? [],
+    preferred_majors: row.preferred_majors ?? [],
+    preferred_grad_years: row.preferred_grad_years ?? [],
+    min_gpa: row.min_gpa,
+  }
+}
 
 export default function StudentDashboard() {
   const [profile, setProfile] = useState<StudentProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [jobsError, setJobsError] = useState('')
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
   const [email, setEmail] = useState('')
   const [expandedJob, setExpandedJob] = useState<string | null>(null)
@@ -103,6 +171,20 @@ export default function StudentDashboard() {
       const savedApplied = localStorage.getItem('appliedJobs')
       if (savedApplied) {
         setAppliedJobs(new Set(JSON.parse(savedApplied)))
+      }
+
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, created_at')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Failed to load jobs:', error)
+        setJobsError('Unable to load jobs right now.')
+      } else {
+        const rows = (data || []) as JobRow[]
+        setJobs(rows.map(mapJobRow))
       }
 
       setLoading(false)
@@ -138,7 +220,16 @@ export default function StudentDashboard() {
     }
   }
 
-  const filteredJobs = (mockJobs as Job[]).filter(job => {
+  const allCompanies = useMemo(
+    () => [...new Set(jobs.map(j => j.company))].sort((a, b) => a.localeCompare(b)),
+    [jobs]
+  )
+  const allJobTypes = useMemo(
+    () => [...new Set(jobs.map(j => j.type))].sort((a, b) => a.localeCompare(b)),
+    [jobs]
+  )
+
+  const filteredJobs = jobs.filter(job => {
     if (
       searchQuery &&
       !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -250,7 +341,7 @@ export default function StudentDashboard() {
               Open Positions
             </h2>
             <span className="jobs-count">
-              {filteredJobs.length} of {mockJobs.length} jobs
+              {filteredJobs.length} of {jobs.length} jobs
             </span>
           </div>
 
@@ -288,7 +379,7 @@ export default function StudentDashboard() {
               <div className="filter-group">
                 <label>Job Type</label>
                 <div className="filter-tags">
-                  {ALL_JOB_TYPES.map(type => (
+                  {allJobTypes.map(type => (
                     <button
                       key={type}
                       className={`filter-tag ${selectedTypes.includes(type) ? 'selected' : ''}`}
@@ -303,7 +394,7 @@ export default function StudentDashboard() {
               <div className="filter-group">
                 <label>Company</label>
                 <div className="filter-tags">
-                  {ALL_COMPANIES.map(company => (
+                  {allCompanies.map(company => (
                     <button
                       key={company}
                       className={`filter-tag ${selectedCompanies.includes(company) ? 'selected' : ''}`}
@@ -343,7 +434,7 @@ export default function StudentDashboard() {
           <div className="jobs-list">
             {filteredJobs.length === 0 ? (
               <div className="no-jobs">
-                <p>No jobs match your filters</p>
+                <p>{jobsError || 'No jobs match your filters'}</p>
                 <button onClick={clearFilters}>Clear filters</button>
               </div>
             ) : (
@@ -503,23 +594,27 @@ export default function StudentDashboard() {
                           </div>
                         </div>
 
-                        <div className="job-detail-section">
-                          <h4>Requirements</h4>
-                          <ul className="job-requirements">
-                            {job.requirements.map((req, i) => (
-                              <li key={i}>{req}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        {job.requirements && job.requirements.length > 0 && (
+                          <div className="job-detail-section">
+                            <h4>Requirements</h4>
+                            <ul className="job-requirements">
+                              {job.requirements.map((req, i) => (
+                                <li key={i}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                        <div className="job-detail-section">
-                          <h4>Benefits</h4>
-                          <ul className="job-benefits">
-                            {job.benefits.map((benefit, i) => (
-                              <li key={i}>{benefit}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        {job.benefits && job.benefits.length > 0 && (
+                          <div className="job-detail-section">
+                            <h4>Benefits</h4>
+                            <ul className="job-benefits">
+                              {job.benefits.map((benefit, i) => (
+                                <li key={i}>{benefit}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
