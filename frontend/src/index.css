@@ -1797,6 +1797,17 @@ body {
   cursor: not-allowed;
 }
 
+.auth-submit-btn.google-btn {
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.auth-submit-btn.google-btn:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
 .auth-error-message {
   padding: 1rem;
   background-color: #fef2f2;

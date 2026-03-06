@@ -3,10 +3,39 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Briefcase, ArrowRight, CheckCircle, Mail, Lock, Loader2 } from 'lucide-react'
 
+const GoogleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    style={{ marginRight: '0.5rem' }}
+  >
+    <path
+      fill="#EA4335"
+      d="M12 10.2v3.9h5.4c-.2 1.2-.9 2.3-1.9 3.1l3.1 2.4C20.6 18.1 21.5 15.7 21.5 13c0-.7-.1-1.3-.2-1.8H12z"
+    />
+    <path
+      fill="#34A853"
+      d="M6.6 14.3l-.9.7-2.5 2C5 19.9 8.3 21.5 12 21.5c2.7 0 5-.9 6.7-2.4l-3.1-2.4c-.9.6-2 1-3.6 1-2.8 0-5.1-1.9-5.9-4.4z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M3.2 7.6A8.46 8.46 0 0 0 2.5 10c0 .8.1 1.6.4 2.4 0 .1.4 1.1.9 1.9l3-2.3c-.2-.6-.4-1.2-.4-2 0-.7.1-1.3.4-1.9z"
+    />
+    <path
+      fill="#4285F4"
+      d="M12 4.5c1.5 0 2.8.5 3.8 1.4l2.8-2.8C16.9 1.7 14.7.9 12 .9 8.3.9 5 2.5 3.2 5.1l3.6 2.8C7 6.4 9.2 4.5 12 4.5z"
+    />
+  </svg>
+)
+
 export default function SignupRecruiter() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -61,6 +90,30 @@ export default function SignupRecruiter() {
       console.error('Signup error:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignUp = async () => {
+    setError(null)
+    setGoogleLoading(true)
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login`,
+        },
+      })
+
+      if (authError) {
+        throw authError
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'An error occurred during Google sign-up',
+      )
+      console.error('Google sign-up error (recruiter):', err)
+      setGoogleLoading(false)
     }
   }
 
@@ -152,7 +205,7 @@ export default function SignupRecruiter() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || googleLoading}
                 className="auth-submit-btn recruiter-btn"
               >
                 {loading ? (
@@ -164,6 +217,26 @@ export default function SignupRecruiter() {
                   <>
                     <span>Sign Up as Recruiter</span>
                     <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                disabled={loading || googleLoading}
+                onClick={handleGoogleSignUp}
+                className="auth-submit-btn google-btn"
+                style={{ marginTop: '0.75rem' }}
+              >
+                {googleLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Continue with Google...</span>
+                  </>
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    <span>Sign Up with Google</span>
                   </>
                 )}
               </button>

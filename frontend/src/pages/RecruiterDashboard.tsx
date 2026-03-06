@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Users, Plus, CheckCircle } from 'lucide-react'
@@ -50,6 +51,7 @@ const initialFilters: Filters = {
   graduationYear: '',
   skills: [],
 }
+
 
 function filterStudents(students: Student[], filters: Filters): Student[] {
   return students.filter((student) => {
