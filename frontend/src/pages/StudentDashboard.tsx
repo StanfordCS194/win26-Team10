@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X } from 'lucide-react'
+import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { useApplyModal } from '../contexts/ApplyModalContext'
 
 interface StudentProfile {
   firstName: string
@@ -57,20 +58,22 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
   const quals: Qualification[] = []
 
   if (job.preferred_majors && job.preferred_majors.length > 0) {
-    const matchedMajor = profile?.major
-      ? job.preferred_majors.find(major => major === profile.major)
+    const profileMajor = profile?.major ? String(profile.major).trim() : null
+    const matchedMajor = profileMajor
+      ? job.preferred_majors.find(major => String(major).trim() === profileMajor)
       : null
     const shownMajor = matchedMajor ?? job.preferred_majors[0]
     const label = `Major: ${shownMajor}`
     quals.push({
       label,
-      met: profile?.major ? job.preferred_majors.includes(profile.major) : null,
+      met: profileMajor ? job.preferred_majors.some(m => String(m).trim() === profileMajor) : null,
     })
   }
 
   if (job.preferred_grad_years && job.preferred_grad_years.length > 0) {
-    const matchingYear = profile?.graduationYear
-      ? job.preferred_grad_years.find(year => year === profile.graduationYear)
+    const profileYear = profile?.graduationYear != null ? String(profile.graduationYear) : null
+    const matchingYear = profileYear
+      ? job.preferred_grad_years.find(year => String(year) === profileYear)
       : null
     const minimumYear = [...job.preferred_grad_years]
       .sort((a, b) => Number(a) - Number(b))[0]
@@ -78,8 +81,8 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
     const label = `Class of ${shownYear}`
     quals.push({
       label,
-      met: profile?.graduationYear
-        ? job.preferred_grad_years.includes(profile.graduationYear)
+      met: profileYear
+        ? job.preferred_grad_years.some(year => String(year) === profileYear)
         : null,
     })
   }
@@ -92,6 +95,21 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
   }
 
   return quals
+}
+
+function getMismatchReasons(job: Job, profile: StudentProfile | null): string[] {
+  const quals = getQualifications(job, profile)
+  const reasons: string[] = []
+  for (const q of quals) {
+    if (q.met === false) {
+      reasons.push(q.label)
+    } else if (q.met === null && profile) {
+      reasons.push(`${q.label} (not in your profile)`)
+    } else if (q.met === null && !profile) {
+      reasons.push(`${q.label} (complete your profile to check)`)
+    }
+  }
+  return reasons
 }
 
 function formatPosted(createdAt: string | null): string {
@@ -148,6 +166,10 @@ export default function StudentDashboard() {
   const [studentUserId, setStudentUserId] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [expandedJob, setExpandedJob] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'open' | 'applications'>('open')
+  const [appliedJobsList, setAppliedJobsList] = useState<Job[]>([])
+  const [mismatchConfirmJob, setMismatchConfirmJob] = useState<Job | null>(null)
+  const { openApplyModal: openApplyModalCtx } = useApplyModal()
   const navigate = useNavigate()
 
   // Filters
@@ -183,6 +205,18 @@ export default function StudentDashboard() {
         } else {
           const appliedIds = new Set((applications || []).map(row => row.job_id as string))
           setAppliedJobs(appliedIds)
+
+          if (appliedIds.size > 0) {
+            const { data: appliedJobRows } = await supabase
+              .from('jobs')
+              .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, created_at')
+              .in('id', [...appliedIds])
+              .order('created_at', { ascending: false })
+            const rows = (appliedJobRows || []) as JobRow[]
+            setAppliedJobsList(rows.map(mapJobRow))
+          } else {
+            setAppliedJobsList([])
+          }
         }
       }
 
@@ -205,23 +239,26 @@ export default function StudentDashboard() {
     loadData()
   }, [])
 
-  const handleApply = async (jobId: string, e: React.MouseEvent) => {
+  const openApplyModal = (job: Job, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!studentUserId) return
-    if (appliedJobs.has(jobId)) return
-    const newApplied = new Set(appliedJobs)
-    newApplied.add(jobId)
-    setAppliedJobs(newApplied)
-
-    const { error } = await supabase.from('job_applications').insert({
-      job_id: jobId,
-      student_id: studentUserId,
-    })
-
-    if (error && error.code !== '23505') {
-      console.error('Failed to apply to job:', error)
-      setAppliedJobs(new Set(appliedJobs))
+    if (!studentUserId || appliedJobs.has(job.id)) return
+    const mismatchReasons = getMismatchReasons(job, profile)
+    if (mismatchReasons.length > 0) {
+      setMismatchConfirmJob(job)
+    } else {
+      openApplyModalCtx(job, studentUserId, () => {
+        setAppliedJobs(prev => new Set(prev).add(job.id))
+      })
     }
+  }
+
+  const confirmMismatchAndOpenApply = () => {
+    if (!mismatchConfirmJob || !studentUserId) return
+    const job = mismatchConfirmJob
+    setMismatchConfirmJob(null)
+    openApplyModalCtx(job, studentUserId, () => {
+      setAppliedJobs(prev => new Set(prev).add(job.id))
+    })
   }
 
   const toggleExpanded = (jobId: string) => {
@@ -360,15 +397,37 @@ export default function StudentDashboard() {
 
         <div className="jobs-section">
           <div className="jobs-header">
-            <h2 className="jobs-title">
-              <Briefcase size={24} />
-              Open Positions
-            </h2>
-            <span className="jobs-count">
-              {filteredJobs.length} of {jobs.length} jobs
-            </span>
+            <div className="jobs-header-top">
+              <h2 className="jobs-title">
+                <Briefcase size={24} />
+                Jobs
+              </h2>
+              <div className="student-dashboard-tabs">
+                <button
+                  className={`student-tab ${activeTab === 'open' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('open')}
+                >
+                  Open Positions
+                  <span className="tab-count">{jobs.length}</span>
+                </button>
+                <button
+                  className={`student-tab ${activeTab === 'applications' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('applications')}
+                >
+                  My Applications
+                  <span className="tab-count">{appliedJobsList.length}</span>
+                </button>
+              </div>
+            </div>
+            {activeTab === 'open' && (
+              <span className="jobs-count">
+                {filteredJobs.length} of {jobs.length} jobs
+              </span>
+            )}
           </div>
 
+          {activeTab === 'open' && (
+          <>
           {/* Filters */}
           <div className="jobs-filters">
             <div className="filter-search">
@@ -472,7 +531,7 @@ export default function StudentDashboard() {
                 return (
                   <div
                     key={job.id}
-                    className={`job-card-compact ${isExpanded ? 'expanded' : ''}`}
+                    className={`job-card-compact ${isExpanded ? 'expanded' : ''} ${hasApplied ? 'job-applied' : ''}`}
                   >
                     <div className="job-card-row" onClick={() => toggleExpanded(job.id)}>
                       <div className="job-company-logo">
@@ -535,7 +594,7 @@ export default function StudentDashboard() {
                       ) : (
                         <button
                           className="apply-btn-compact"
-                          onClick={e => handleApply(job.id, e)}
+                          onClick={e => openApplyModal(job, e)}
                           disabled={!profileComplete}
                           title={!profileComplete ? 'Complete your profile to apply' : ''}
                         >
@@ -646,8 +705,213 @@ export default function StudentDashboard() {
               })
             )}
           </div>
+          </>
+          )}
+
+          {activeTab === 'applications' && (
+            <div className="jobs-list">
+              {appliedJobsList.length === 0 ? (
+                <div className="no-jobs">
+                  <p>You haven&apos;t applied to any jobs yet.</p>
+                  <button onClick={() => setActiveTab('open')}>Browse open positions</button>
+                </div>
+              ) : (
+                appliedJobsList.map(job => {
+                  const isExpanded = expandedJob === job.id
+                  const quals = getQualifications(job, profile)
+                  const metCount = quals.filter(q => q.met === true).length
+                  const totalCount = quals.length
+
+                  return (
+                    <div
+                      key={job.id}
+                      className={`job-card-compact job-applied ${isExpanded ? 'expanded' : ''}`}
+                    >
+                      <div className="job-card-row" onClick={() => toggleExpanded(job.id)}>
+                        <div className="job-company-logo">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="job-summary">
+                          <span className="job-title-compact">{job.title}</span>
+                          <span className="job-company-compact">{job.company}</span>
+                          {quals.length > 0 && (
+                            <div className="job-qual-chips">
+                              {quals.map((q, i) => (
+                                <span
+                                  key={i}
+                                  className={`job-qual-chip ${q.met === true ? 'met' : q.met === false ? 'unmet' : 'unknown'}`}
+                                >
+                                  {q.met === true ? '✓' : q.met === false ? '⊘' : '·'} {q.label}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <span className={`job-type-badge ${job.type === 'Internship' ? 'internship' : 'fulltime'}`}>
+                          {job.type}
+                        </span>
+                        <span className="job-salary-compact">{job.salary}</span>
+                        <span className="job-posted-compact">{job.posted}</span>
+                        {totalCount > 0 && (
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: metCount === totalCount ? '#15803d' : metCount > 0 ? '#b45309' : '#6b7280',
+                              minWidth: '48px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {metCount}/{totalCount}
+                          </span>
+                        )}
+                        <span className="applied-badge">
+                          <CheckCircle size={16} />
+                          Applied
+                        </span>
+                        <ChevronDown size={20} className={`expand-icon ${isExpanded ? 'rotated' : ''}`} />
+                      </div>
+
+                      {isExpanded && (
+                        <div className="job-card-details">
+                          <div className="job-detail-section">
+                            <h4>Description</h4>
+                            <p>{job.description}</p>
+                          </div>
+                          <div className="job-detail-row">
+                            <div className="job-detail-section">
+                              <h4>Location</h4>
+                              <p className="job-location-detail">
+                                <MapPin size={16} />
+                                {job.location}
+                              </p>
+                            </div>
+                            <div className="job-detail-section">
+                              <h4>Compensation</h4>
+                              <p className="job-pay-detail">
+                                <DollarSign size={16} />
+                                {job.salary}
+                              </p>
+                            </div>
+                          </div>
+                          {quals.length > 0 && (
+                            <div className="job-detail-section">
+                              <h4>What They&apos;re Looking For</h4>
+                              {profile ? (
+                                <p className="qual-match-summary">
+                                  {metCount === totalCount ? 'You meet all qualifications.' : metCount > 0 ? `You match ${metCount} of ${totalCount} qualifications.` : "You don't meet the listed qualifications."}
+                                </p>
+                              ) : (
+                                <p className="qual-match-summary">Complete your profile to see how you match.</p>
+                              )}
+                              <div className="qual-chips-expanded">
+                                {quals.map((q, i) => (
+                                  <span
+                                    key={i}
+                                    className={`qual-chip-expanded ${q.met === true ? 'met' : q.met === false ? 'unmet' : 'unknown'}`}
+                                  >
+                                    {q.met === true ? '✓' : q.met === false ? '⊘' : '·'} {q.label}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div className="job-detail-section">
+                            <h4>Required Skills</h4>
+                            <div className="job-skills-detail">
+                              {job.skills.map(skill => (
+                                <span key={skill} className="job-skill-tag">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                          {job.requirements && job.requirements.length > 0 && (
+                            <div className="job-detail-section">
+                              <h4>Requirements</h4>
+                              <ul className="job-requirements">
+                                {job.requirements.map((req, i) => (
+                                  <li key={i}>{req}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {job.benefits && job.benefits.length > 0 && (
+                            <div className="job-detail-section">
+                              <h4>Benefits</h4>
+                              <ul className="job-benefits">
+                                {job.benefits.map((benefit, i) => (
+                                  <li key={i}>{benefit}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {mismatchConfirmJob && (
+        <div
+          className="post-job-overlay"
+          role="dialog"
+          aria-modal
+          aria-labelledby="mismatch-confirm-title"
+        >
+          <div className="post-job-modal" style={{ maxWidth: '28rem' }}>
+            <div className="post-job-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <AlertTriangle size={20} style={{ color: '#b45309' }} />
+                <h2 id="mismatch-confirm-title" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#111827' }}>
+                  Profile Mismatch
+                </h2>
+              </div>
+              <button className="close-feedback" onClick={() => setMismatchConfirmJob(null)} type="button">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="post-job-body">
+              <p style={{ color: '#6b7280', marginBottom: '1rem', fontSize: '0.9375rem' }}>
+                {mismatchConfirmJob.company} – {mismatchConfirmJob.title}
+              </p>
+              <p style={{ marginBottom: '0.75rem', fontSize: '0.875rem' }}>
+                <strong>Note:</strong> The job you are applying to does not match your current profile.
+              </p>
+              <p style={{ marginBottom: '0.5rem', fontSize: '0.8125rem', color: '#6b7280' }}>
+                Reasons:
+              </p>
+              <ul style={{ margin: '0 0 1rem 1.25rem', padding: 0, fontSize: '0.875rem' }}>
+                {getMismatchReasons(mismatchConfirmJob, profile).map((r, i) => (
+                  <li key={i} style={{ marginBottom: '0.25rem' }}>{r}</li>
+                ))}
+              </ul>
+              <p style={{ marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                Do you still want to apply?
+              </p>
+              <div className="post-job-footer" style={{ borderTop: 'none', paddingTop: 0 }}>
+                <button
+                  type="button"
+                  className="edit-profile-btn"
+                  onClick={() => setMismatchConfirmJob(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="submit-btn"
+                  onClick={confirmMismatchAndOpenApply}
+                >
+                  Yes, Continue to Application
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

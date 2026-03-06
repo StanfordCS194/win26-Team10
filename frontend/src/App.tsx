@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense } from 'react'
+import { ApplyModalProvider } from './contexts/ApplyModalContext'
 import RecruiterDashboard from './pages/RecruiterDashboard'
 import RecruiterJobsPage from './pages/RecruiterJobsPage'
 import StudentPage from './pages/StudentPage'
@@ -15,6 +16,7 @@ import FeedbackSidebar from './components/FeedbackSidebar'
 function App() {
   return (
     <BrowserRouter>
+      <ApplyModalProvider>
       <div className="app-container">
         <Navigation />
         <FeedbackSidebar />
@@ -72,6 +74,7 @@ function App() {
           </Routes>
         </div>
       </div>
+      </ApplyModalProvider>
     </BrowserRouter>
   )
 }

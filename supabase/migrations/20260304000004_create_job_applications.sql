@@ -4,6 +4,12 @@ create table if not exists public.job_applications (
     job_id uuid not null references public.jobs(id) on delete cascade,
     student_id uuid not null references public.users(id) on delete cascade,
     created_at timestamptz not null default now(),
+    eeo_response text,
+    work_authorization text,
+    disability_status text,
+    veteran_status text,
+    location_preference text,
+    message_to_recruiter text,
     unique (job_id, student_id)
 );
 

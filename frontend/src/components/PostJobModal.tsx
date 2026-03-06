@@ -226,7 +226,7 @@ export default function PostJobModal({
         company_id: companyId,
         title: title.trim(),
         company: companyName,
-        location: selectedLocations.join(', '),
+        location: selectedLocations.join(' | '),
         type,
         salary_display: compensation.trim() || null,
         description: description.trim(),
