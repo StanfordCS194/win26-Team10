@@ -11,6 +11,7 @@ interface StudentProfile {
   graduationYear: string
   gpa: string
   skills?: string[]
+  workAuthorization?: string
 }
 
 interface Job {
@@ -29,6 +30,7 @@ interface Job {
   preferred_majors?: string[]
   preferred_grad_years?: string[]
   min_gpa?: number | null
+  required_work_authorization?: string | null
 }
 
 interface JobRow {
@@ -46,6 +48,7 @@ interface JobRow {
   preferred_majors: string[] | null
   preferred_grad_years: string[] | null
   min_gpa: number | null
+  required_work_authorization: string | null
   created_at: string | null
 }
 
@@ -91,6 +94,14 @@ function getQualifications(job: Job, profile: StudentProfile | null): Qualificat
     quals.push({
       label: `${job.min_gpa}+ GPA`,
       met: profile?.gpa ? parseFloat(profile.gpa) >= job.min_gpa : null,
+    })
+  }
+
+  if (job.required_work_authorization) {
+    const profileWorkAuth = profile?.workAuthorization ? String(profile.workAuthorization).trim() : null
+    quals.push({
+      label: `Work Auth: ${job.required_work_authorization}`,
+      met: profileWorkAuth ? profileWorkAuth === job.required_work_authorization : null,
     })
   }
 
@@ -154,6 +165,7 @@ function mapJobRow(row: JobRow): Job {
     preferred_majors: row.preferred_majors ?? [],
     preferred_grad_years: row.preferred_grad_years ?? [],
     min_gpa: row.min_gpa,
+    required_work_authorization: row.required_work_authorization ?? null,
   }
 }
 
@@ -209,7 +221,7 @@ export default function StudentDashboard() {
           if (appliedIds.size > 0) {
             const { data: appliedJobRows } = await supabase
               .from('jobs')
-              .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, created_at')
+              .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization, created_at')
               .in('id', [...appliedIds])
               .order('created_at', { ascending: false })
             const rows = (appliedJobRows || []) as JobRow[]
@@ -222,7 +234,7 @@ export default function StudentDashboard() {
 
       const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, created_at')
+        .select('id, title, company, location, type, salary_display, salary_min, description, skills, requirements, benefits, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization, created_at')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
@@ -318,7 +330,10 @@ export default function StudentDashboard() {
         job.preferred_grad_years.includes(profile.graduationYear)
       const matchesGpa =
         job.min_gpa == null || parseFloat(profile.gpa || '0') >= job.min_gpa
-      if (!matchesMajor || !matchesYear || !matchesGpa) return false
+      const matchesWorkAuth =
+        !job.required_work_authorization ||
+        (profile.workAuthorization && profile.workAuthorization === job.required_work_authorization)
+      if (!matchesMajor || !matchesYear || !matchesGpa || !matchesWorkAuth) return false
     }
     return true
   })

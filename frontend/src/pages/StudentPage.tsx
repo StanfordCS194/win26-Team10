@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
-import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
+import { MAJORS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
 import { supabase } from '../lib/supabase'
 
 interface StudentProfile {
@@ -11,6 +11,7 @@ interface StudentProfile {
   graduationYear: string
   gpa: string
   skills: string[]
+  workAuthorization?: string
   isComplete?: boolean
   updatedAt?: string
   latestReprPath?: string
@@ -130,6 +131,7 @@ export default function StudentPage() {
           graduationYear: data.graduation_year ?? '',
           gpa: data.gpa ? String(data.gpa) : '',
           skills: data.skills ?? [],
+          workAuthorization: data.work_authorization ?? '',
           isComplete: data.is_complete ?? false,
           updatedAt: data.updated_at,
           latestReprPath: data.latest_repr_path,
@@ -339,6 +341,7 @@ export default function StudentPage() {
           graduation_year: profile.graduationYear,
           gpa: parseFloat(profile.gpa),
           skills: profile.skills,
+          work_authorization: profile.workAuthorization || null,
         }),
       })
 
@@ -358,6 +361,7 @@ export default function StudentPage() {
         major: profile.major,
         graduationYear: profile.graduationYear,
         gpa: profile.gpa,
+        workAuthorization: profile.workAuthorization || '',
       }))
       setTimeout(() => {
         navigate('/student/dashboard')
@@ -467,18 +471,38 @@ export default function StudentPage() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label>GPA</label>
-            <input
-              type="number"
-              min="0"
-              max="4"
-              step="0.01"
-              value={profile.gpa}
-              onChange={(e) => updateProfile('gpa', e.target.value)}
-              className="input input-small"
-              placeholder="3.50"
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label>GPA</label>
+              <input
+                type="number"
+                min="0"
+                max="4"
+                step="0.01"
+                value={profile.gpa}
+                onChange={(e) => updateProfile('gpa', e.target.value)}
+                className="input input-small"
+                placeholder="3.50"
+              />
+            </div>
+            <div className="form-group">
+              <label>Work Authorization</label>
+              <select
+                value={profile.workAuthorization ?? ''}
+                onChange={(e) => updateProfile('workAuthorization', e.target.value)}
+                className="select"
+              >
+                <option value="">Select (optional)</option>
+                {WORK_AUTH_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                Required by some jobs. Add this to see accurate match checks.
+              </p>
+            </div>
           </div>
         </section>
 

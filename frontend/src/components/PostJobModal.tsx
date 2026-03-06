@@ -46,6 +46,15 @@ const SORTED_LOCATIONS = [...COMMON_LOCATIONS].sort((a, b) => a.localeCompare(b)
 const SORTED_MAJORS = [...COMMON_MAJORS].sort((a, b) => a.localeCompare(b))
 const JOB_DRAFT_STORAGE_KEY = 'postJobDraft'
 
+const REQUIRED_WORK_AUTH_OPTIONS = [
+  '',
+  'US Citizen or National',
+  'Permanent Resident (Green Card)',
+  'H-1B Visa',
+  'F-1 / OPT',
+  'Other work authorization',
+] as const
+
 type PostJobDraft = {
   title: string
   selectedLocations: string[]
@@ -59,6 +68,7 @@ type PostJobDraft = {
   customMajor: string
   preferredGradYears: string[]
   minGpa: string
+  requiredWorkAuth: string
   benefits: string[]
 }
 
@@ -97,6 +107,7 @@ export default function PostJobModal({
     draft?.preferredGradYears ?? []
   )
   const [minGpa, setMinGpa] = useState(draft?.minGpa ?? '')
+  const [requiredWorkAuth, setRequiredWorkAuth] = useState(draft?.requiredWorkAuth ?? '')
   const [benefits, setBenefits] = useState<string[]>(draft?.benefits ?? [''])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -122,6 +133,7 @@ export default function PostJobModal({
       customMajor,
       preferredGradYears,
       minGpa,
+      requiredWorkAuth,
       benefits,
     }
     sessionStorage.setItem(JOB_DRAFT_STORAGE_KEY, JSON.stringify(draftToSave))
@@ -138,6 +150,7 @@ export default function PostJobModal({
     customMajor,
     preferredGradYears,
     minGpa,
+    requiredWorkAuth,
     benefits,
     success,
   ])
@@ -234,6 +247,7 @@ export default function PostJobModal({
         preferred_majors: preferredMajors,
         preferred_grad_years: preferredGradYears,
         min_gpa: minGpa ? parseFloat(minGpa) : null,
+        required_work_authorization: requiredWorkAuth.trim() || null,
         benefits: benefits.filter(b => b.trim()),
         is_active: true,
       })
@@ -452,6 +466,20 @@ export default function PostJobModal({
                   step="0.1"
                 />
               </div>
+            </div>
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label>Required Work Authorization</label>
+              <select
+                className="select"
+                value={requiredWorkAuth}
+                onChange={e => setRequiredWorkAuth(e.target.value)}
+              >
+                {REQUIRED_WORK_AUTH_OPTIONS.map(opt => (
+                  <option key={opt || 'none'} value={opt}>
+                    {opt || 'No requirement'}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

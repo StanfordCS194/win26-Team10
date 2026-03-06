@@ -80,6 +80,7 @@ class ApplicantProfile(BaseModel):
     graduation_year: Optional[str] = None
     gpa: Optional[float] = None
     skills: Optional[list[str]] = None
+    work_authorization: Optional[str] = None
     updated_at: Optional[str] = None
     latest_repr_path: Optional[str] = None
     is_complete: Optional[bool] = None

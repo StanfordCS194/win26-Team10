@@ -26,6 +26,7 @@ type CompanyJobRow = {
   preferred_majors: string[] | null
   preferred_grad_years: string[] | null
   min_gpa: number | null
+  required_work_authorization: string | null
 }
 
 type ApplicantRow = {
@@ -38,6 +39,7 @@ type ApplicantRow = {
   gpa: number | null
   skills: string[] | null
   latest_repr_path: string | null
+  work_authorization: string | null
 }
 
 const initialFilters: Filters = {
@@ -94,6 +96,7 @@ function mapApplicantToStudent(row: ApplicantRow): Student {
     skills: row.skills || [],
     transcriptUploaded: !!row.latest_repr_path,
     transcript: row.latest_repr_path ? 'supabase' : null,
+    workAuthorization: row.work_authorization ?? null,
   }
 }
 
@@ -123,6 +126,12 @@ function isStudentQualified(student: Student, job: CompanyJobRow | null): boolea
 
   if (job.min_gpa != null) {
     if (student.gpa < job.min_gpa) return false
+  }
+
+  if (job.required_work_authorization) {
+    if (!student.workAuthorization || student.workAuthorization !== job.required_work_authorization) {
+      return false
+    }
   }
 
   return true
@@ -192,7 +201,7 @@ export default function RecruiterDashboard() {
 
         const { data: jobs, error: jobsError } = await supabase
           .from('jobs')
-          .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa')
+          .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
           .eq('company_id', resolvedCompanyId)
           .eq('is_active', true)
           .order('created_at', { ascending: false })
@@ -208,7 +217,7 @@ export default function RecruiterDashboard() {
 
         const { data: applicants, error: applicantsError } = await supabase
           .from('applicants')
-          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path')
+          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization')
 
         if (applicantsError) throw applicantsError
 
