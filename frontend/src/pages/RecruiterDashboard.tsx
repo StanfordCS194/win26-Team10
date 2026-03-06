@@ -140,6 +140,7 @@ export default function RecruiterDashboard() {
   const [companyJobs, setCompanyJobs] = useState<CompanyJobRow[]>([])
   const [directoryStudents, setDirectoryStudents] = useState<Student[]>([])
   const [appliedStudentIds, setAppliedStudentIds] = useState<Set<string>>(new Set())
+  const [applicationDetailsMap, setApplicationDetailsMap] = useState<Map<string, { work_authorization: string | null; message_to_recruiter: string | null }>>(new Map())
 
   const [selectedJobId, setSelectedJobId] = useState<string>('')
   const [showAppliedOnly, setShowAppliedOnly] = useState(false)
@@ -228,6 +229,7 @@ export default function RecruiterDashboard() {
     async function loadApplicationsForSelectedJob() {
       if (!selectedJobId) {
         setAppliedStudentIds(new Set())
+        setApplicationDetailsMap(new Map())
         setShowAppliedOnly(false)
         setShowQualifiedOnly(false)
         return
@@ -235,16 +237,26 @@ export default function RecruiterDashboard() {
 
       const { data, error } = await supabase
         .from('job_applications')
-        .select('student_id')
+        .select('student_id, work_authorization, message_to_recruiter')
         .eq('job_id', selectedJobId)
 
       if (error) {
         console.error('Failed to load applications:', error)
         setAppliedStudentIds(new Set())
+        setApplicationDetailsMap(new Map())
         return
       }
 
-      setAppliedStudentIds(new Set((data || []).map(row => row.student_id as string)))
+      const rows = data || []
+      setAppliedStudentIds(new Set(rows.map(row => row.student_id as string)))
+      const detailsMap = new Map<string, { work_authorization: string | null; message_to_recruiter: string | null }>()
+      for (const row of rows) {
+        detailsMap.set(row.student_id as string, {
+          work_authorization: row.work_authorization ?? null,
+          message_to_recruiter: row.message_to_recruiter ?? null,
+        })
+      }
+      setApplicationDetailsMap(detailsMap)
     }
 
     loadApplicationsForSelectedJob()
@@ -389,7 +401,12 @@ export default function RecruiterDashboard() {
           )}
         </div>
 
-        <StudentList students={filteredStudents} />
+        <StudentList
+          students={filteredStudents}
+          appliedStudentIds={appliedStudentIds}
+          applicationDetailsMap={applicationDetailsMap}
+          hasSelectedJob={hasSelectedJob}
+        />
       </main>
 
       {showPostJob && (

@@ -186,6 +186,26 @@ export default function ApplyModal({
           )}
 
           <div className="form-section">
+            <h3 className="section-title">Visa / Work Authorization</h3>
+            <div className="form-group">
+              <label>Work Authorization *</label>
+              <select
+                className="select"
+                value={workAuth}
+                onChange={e => setWorkAuth(e.target.value)}
+                required
+              >
+                <option value="">Select an option</option>
+                {WORK_AUTH_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-section">
             <h3 className="section-title">Equal Employment Opportunity</h3>
             <p style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: '0.75rem' }}>
               This information is voluntary and will be kept confidential.
@@ -200,21 +220,6 @@ export default function ApplyModal({
               >
                 <option value="">Select an option</option>
                 {EEO_OPTIONS.map(opt => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Visa / Work Authorization *</label>
-              <select
-                className="select"
-                value={workAuth}
-                onChange={e => setWorkAuth(e.target.value)}
-              >
-                <option value="">Select an option</option>
-                {WORK_AUTH_OPTIONS.map(opt => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
