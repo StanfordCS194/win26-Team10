@@ -255,7 +255,7 @@ async def get_specific_transcript(user_id: str):
     Only available for users with type='recruiter'.
     """
     # Get user record
-    db_user = await get_user(user_id)
+    db_user = await get_applicant(user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
