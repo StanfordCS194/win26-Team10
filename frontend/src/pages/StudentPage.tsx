@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
 import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
 import { supabase } from '../lib/supabase'
+import universities from '../data/universities.json'
 
 interface StudentProfile {
   firstName: string
   lastName: string
+  school: string
   major: string
   graduationYear: string
   gpa: string
@@ -85,6 +87,7 @@ type StandardizedTranscript = {
 const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
+  school: '',
   major: '',
   graduationYear: '',
   gpa: '',
@@ -114,8 +117,51 @@ export default function StudentPage() {
   const [resumeUploading, setResumeUploading] = useState(false)
   const [resumeError, setResumeError] = useState<string | null>(null)
 
+  // School autocomplete state
+  const [schoolInput, setSchoolInput] = useState('')
+  const [showSchoolDropdown, setShowSchoolDropdown] = useState(false)
+  const [filteredSchools, setFilteredSchools] = useState<string[]>([])
+  const schoolInputRef = useRef<HTMLInputElement>(null)
+  const schoolDropdownRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     fetchProfile()
+  }, [])
+
+  // Initialize school input when profile loads
+  useEffect(() => {
+    if (profile.school) {
+      setSchoolInput(profile.school)
+    }
+  }, [profile.school])
+
+  // Filter schools based on input
+  useEffect(() => {
+    if (schoolInput.trim()) {
+      const filtered = universities.filter((school) =>
+        school.toLowerCase().includes(schoolInput.toLowerCase())
+      )
+      setFilteredSchools(filtered.slice(0, 10)) // Show max 10 results
+    } else {
+      setFilteredSchools([])
+    }
+  }, [schoolInput])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        schoolDropdownRef.current &&
+        !schoolDropdownRef.current.contains(event.target as Node) &&
+        schoolInputRef.current &&
+        !schoolInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSchoolDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const fetchProfile = async () => {
@@ -132,6 +178,7 @@ export default function StudentPage() {
         setProfile({
           firstName: data.first_name ?? '',
           lastName: data.last_name ?? '',
+          school: data.school ?? '',
           major: data.major ?? '',
           graduationYear: data.graduation_year ?? '',
           gpa: data.gpa ? String(data.gpa) : '',
@@ -380,6 +427,7 @@ export default function StudentPage() {
 
     if (!profile.firstName) errors.push('First name is required')
     if (!profile.lastName) errors.push('Last name is required')
+    if (!profile.school) errors.push('School is required')
     if (!profile.major) errors.push('Major is required')
     if (!profile.graduationYear) errors.push('Graduation year is required')
     if (!profile.gpa) errors.push('GPA is required')
@@ -405,6 +453,7 @@ export default function StudentPage() {
         body: JSON.stringify({
           first_name: profile.firstName,
           last_name: profile.lastName,
+          school: profile.school,
           major: profile.major,
           graduation_year: profile.graduationYear,
           gpa: parseFloat(profile.gpa),
@@ -425,6 +474,7 @@ export default function StudentPage() {
       localStorage.setItem('studentProfile', JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
+        school: profile.school,
         major: profile.major,
         graduationYear: profile.graduationYear,
         gpa: profile.gpa,
@@ -502,6 +552,67 @@ export default function StudentPage() {
                 placeholder="Doe"
               />
             </div>
+          </div>
+
+          <div className="form-group" style={{ position: 'relative' }}>
+            <label>School</label>
+            <input
+              ref={schoolInputRef}
+              type="text"
+              value={schoolInput}
+              onChange={(e) => {
+                setSchoolInput(e.target.value)
+                setShowSchoolDropdown(true)
+              }}
+              onFocus={() => setShowSchoolDropdown(true)}
+              className="input"
+              placeholder="Start typing your school name..."
+              autoComplete="off"
+            />
+            {showSchoolDropdown && filteredSchools.length > 0 && (
+              <div
+                ref={schoolDropdownRef}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  marginTop: '4px',
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  zIndex: 1000,
+                }}
+              >
+                {filteredSchools.map((school) => (
+                  <div
+                    key={school}
+                    onClick={() => {
+                      setSchoolInput(school)
+                      updateProfile('school', school)
+                      setShowSchoolDropdown(false)
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #f1f5f9',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f8fafc'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white'
+                    }}
+                  >
+                    {school}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="form-row">

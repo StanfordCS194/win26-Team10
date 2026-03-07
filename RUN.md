@@ -62,3 +62,8 @@ If you encounter SSL certificate errors:
 python -m pip install -U certifi
 export SSL_CERT_FILE="$(python -c 'import certifi; print(certifi.where())')"
 ```
+
+## Testing the Pipeline
+```bash
+python -m api --pdf transcripts/niall.pdf --job-id test-niall-$(date +%s)
+```
