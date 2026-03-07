@@ -1,10 +1,11 @@
 """
-Analyze step - calculates grade percentiles using stored distributions.
+Transcript Statistics step - calculates grade percentiles and general statistics.
 """
 
 from __future__ import annotations
 
 import json
+from collections import Counter
 from typing import Any, Dict, List, Optional
 from api.pipeline.steps.base import ParseStep
 from api.pipeline.types import ParseArtifacts
@@ -13,10 +14,10 @@ from api.supabase import get_client
 # Define the ordering of grades from worst to best
 GRADE_ORDER = ["F", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"]
 
-class AnalyzeStep(ParseStep):
-    """Analyze transcript data to calculate grade percentiles."""
+class TranscriptStatisticsStep(ParseStep):
+    """Analyze transcript data to calculate grade percentiles and statistics."""
 
-    name = "analyze"
+    name = "transcript_statistics"
 
     def __init__(self, school_name: str = "Stanford"):
         super().__init__()
@@ -58,14 +59,14 @@ class AnalyzeStep(ParseStep):
             
         current_weight = distribution.get(grade, 0.0)
         
-        # Percentile calculation
+        # Percentile calculation: midpoint
         percentile = lower_sum + (0.5 * current_weight)
         return round(percentile * 100, 2)
 
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         """
         Analyze standardized transcript data.
-        Matches course codes and calculates percentiles.
+        Matches course codes and calculates percentiles and statistics.
         """
         if not artifacts.transcript:
             self.logger.warning("No transcript data to analyze")
@@ -82,6 +83,13 @@ class AnalyzeStep(ParseStep):
         # Process terms and courses to build a summary list
         grades = []
         repeated = {}
+        department_counts = Counter()
+        
+        weighted_percentile_sum = 0.0
+        units_with_percentile = 0.0
+        
+        percentile_sum = 0.0
+        count_with_percentile = 0
         
         terms = artifacts.transcript.get("terms", [])
         for term in terms:
@@ -92,6 +100,10 @@ class AnalyzeStep(ParseStep):
                 num = course.get("number") or ""
                 course_code = f"{dept}{num}".replace(" ", "").upper()
                 title = course.get("title", "")
+                units_earned = float(course.get("units_earned") or 0.0)
+                
+                if dept:
+                    department_counts[dept] += 1
                 
                 grade_raw = course.get("grade")
                 if grade_raw is None:
@@ -114,24 +126,27 @@ class AnalyzeStep(ParseStep):
                 
                 # Try to find a match in distributions for the grades section
                 distribution = self._distributions.get(course_code)
+                percentile = None
                 if distribution:
                     percentile = self.calculate_percentile(grade, distribution)
                     if percentile is not None:
-                        # Add to our grades list
-                        grades.append({
-                            "course_code": course_code,
-                            "title": title,
-                            "grade": grade,
-                            "percentile": percentile,
-                            "term": term_name
-                        })
+                        weighted_percentile_sum += percentile * units_earned
+                        units_with_percentile += units_earned
+                        percentile_sum += percentile
+                        count_with_percentile += 1
                         self.logger.info(f"Calculated percentile for {course_code}: {percentile}%")
-                else:
-                    self.logger.debug(f"No distribution found for {course_code}")
+                
+                # Add to our grades list (always include if it has a grade)
+                grades.append({
+                    "course_code": course_code,
+                    "title": title,
+                    "grade": grade,
+                    "percentile": percentile,
+                    "units_earned": units_earned,
+                    "term": term_name
+                })
 
         # Filter repeated to only those with > 1 attempt and different grades
-        # This helps identify potential Honor Code violations by excluding 
-        # lecture/activity pairs that often share the same grade.
         repeated_list = []
         for v in repeated.values():
             if len(v["attempts"]) > 1:
@@ -139,22 +154,67 @@ class AnalyzeStep(ParseStep):
                 if len(grades_seen) > 1:
                     repeated_list.append(v)
 
+        # Top 3 departments
+        common_departments = dict(department_counts.most_common(3))
+        most_common_dept = department_counts.most_common(1)[0][0] if department_counts else None
+
+        # Major-specific scores (heuristic: most frequent department)
+        major_weighted_sum = 0.0
+        major_units = 0.0
+        major_unweighted_sum = 0.0
+        major_count = 0
+
+        for g in grades:
+            if most_common_dept and g["course_code"].startswith(most_common_dept) and g["percentile"] is not None:
+                major_weighted_sum += g["percentile"] * g["units_earned"]
+                major_units += g["units_earned"]
+                major_unweighted_sum += g["percentile"]
+                major_count += 1
+
+        # Universal (all courses) and Major-specific scores
+        universal_scores = {
+            "weighted_percentile": round(weighted_percentile_sum / units_with_percentile, 2) if units_with_percentile > 0 else None,
+            "unweighted_percentile": round(percentile_sum / count_with_percentile, 2) if count_with_percentile > 0 else None,
+            "weighted_gpa": (
+                artifacts.transcript.get("career_totals", {})
+                .get("undergraduate", {})
+                .get("gpa")
+                if artifacts.transcript.get("career_totals") 
+                else artifacts.transcript.get("gpa")
+            )
+        }
+        
+        major_scores = {
+            "weighted_percentile": round(major_weighted_sum / major_units, 2) if major_units > 0 else None,
+            "unweighted_percentile": round(major_unweighted_sum / major_count, 2) if major_count > 0 else None,
+            "heuristic_note": f"Major identified as '{most_common_dept}' based on highest course frequency." if most_common_dept else "No major identified."
+        }
+
+        # Academic scores (deprecated/legacy support)
+        academic_scores = {
+            "weighted_average_percentile": universal_scores["weighted_percentile"],
+            "unweighted_average_percentile": universal_scores["unweighted_percentile"]
+        }
+
         # Save the filtered summary instead of the full transcript
         analysis_result = {
             "school": self.school_name,
             "analyzed_at": artifacts.transcript.get("standardized_at"),
+            "common_departments": common_departments,
+            "universal_scores": universal_scores,
+            "major_scores": major_scores,
+            "academic_scores": academic_scores, # Keep for legacy support
             "grades": grades,
             "repeated": repeated_list
         }
 
-        output_path = artifacts.input.output_dir / "analysis_summary.json"
+        output_path = artifacts.input.output_dir / "statistics_summary.json"
         output_path.write_text(
             json.dumps(analysis_result, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
-        artifacts.outputs["analysis_summary"] = output_path
+        artifacts.outputs["statistics_summary"] = output_path
         
-        # Also update artifacts.transcript if needed by subsequent steps, 
-        # but the primary output of this step is now the summary.
-        self.logger.info(f"Analysis complete, saved summary to {output_path}")
+        self.logger.info(f"Statistics complete, saved summary to {output_path}")
         return artifacts
+

@@ -100,7 +100,7 @@ async def health_check():
     return {"status": "healthy", "service": "api"}
 
 
-@app.post("/parse", status_code=202, response_model=ParseJobResponse)
+@app.post("/transcript/parse", status_code=202, response_model=ParseJobResponse)
 async def create_parse_job(
     file: UploadFile = File(...),
     user: dict = Depends(get_current_user),
@@ -166,7 +166,7 @@ async def create_parse_job(
     )
 
 
-@app.get("/parse/{job_id}", response_model=JobStatusResponse)
+@app.get("/transcript/parse/{job_id}", response_model=JobStatusResponse)
 async def get_parse_job_status(
     job_id: str,
     user: dict = Depends(get_current_user),

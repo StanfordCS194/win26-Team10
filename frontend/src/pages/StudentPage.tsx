@@ -229,11 +229,11 @@ export default function StudentPage() {
       throw new Error('You must be logged in to parse a transcript.')
     }
 
-    // 1) Upload PDF → POST /parse (multipart form field name: "file")
+    // 1) Upload PDF → POST /transcript/parse (multipart form field name: "file")
     const form = new FormData()
     form.append('file', file)
 
-    const parseRes = await fetch(`${API_BASE}/parse`, {
+    const parseRes = await fetch(`${API_BASE}/transcript/parse`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -253,7 +253,7 @@ export default function StudentPage() {
     while (true) {
       await new Promise((r) => setTimeout(r, 1500))
 
-      const statusRes = await fetch(`${API_BASE}/parse/${parseBody.job_id}`, {
+      const statusRes = await fetch(`${API_BASE}/transcript/parse/${parseBody.job_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

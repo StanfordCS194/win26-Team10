@@ -65,7 +65,7 @@ def test_upload(client: httpx.Client, api_url: str, pdf_path: Path, token: str) 
     with open(pdf_path, "rb") as f:
         files = {"file": (pdf_path.name, f, "application/pdf")}
         response = client.post(
-            f"{api_url}/parse",
+            f"{api_url}/transcript/parse",
             files=files,
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -92,7 +92,7 @@ def test_job_status(client: httpx.Client, api_url: str, job_id: str, token: str)
     
     while attempt < max_attempts:
         response = client.get(
-            f"{api_url}/parse/{job_id}",
+            f"{api_url}/transcript/parse/{job_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         

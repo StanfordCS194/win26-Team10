@@ -37,13 +37,13 @@ const token = data.session?.access_token
 Include the token in the `Authorization` header for all API requests:
 
 ```typescript
-const response = await fetch(`${API_URL}/parse`, {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-  },
-  body: formData,
-})
+  const response = await fetch(`${API_URL}/transcript/parse`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  })
 ```
 
 ## Endpoints
@@ -69,7 +69,7 @@ No authentication required. Returns API status.
 ### Upload Transcript
 
 ```
-POST /parse
+POST /transcript/parse
 ```
 
 Upload a PDF transcript for parsing. The file is stored and a background job is queued.
@@ -84,7 +84,7 @@ async function uploadTranscript(file: File, token: string) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${API_URL}/parse`, {
+  const response = await fetch(`${API_URL}/transcript/parse`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -118,7 +118,7 @@ async function uploadTranscript(file: File, token: string) {
 ### Get Job Status
 
 ```
-GET /parse/{job_id}
+GET /transcript/parse/{job_id}
 ```
 
 Check the status of a parse job. Users can only view their own jobs.
@@ -126,7 +126,7 @@ Check the status of a parse job. Users can only view their own jobs.
 **Example:**
 ```typescript
 async function getJobStatus(jobId: string, token: string) {
-  const response = await fetch(`${API_URL}/parse/${jobId}`, {
+  const response = await fetch(`${API_URL}/transcript/parse/${jobId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -226,7 +226,7 @@ function TranscriptUploader() {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${API_URL}/parse`, {
+    const response = await fetch(`${API_URL}/transcript/parse`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData,
@@ -241,7 +241,7 @@ function TranscriptUploader() {
   }
 
   async function pollJobStatus(jobId: string, token: string) {
-    const response = await fetch(`${API_URL}/parse/${jobId}`, {
+    const response = await fetch(`${API_URL}/transcript/parse/${jobId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
 

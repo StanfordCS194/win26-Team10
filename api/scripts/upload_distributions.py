@@ -1,5 +1,4 @@
 import json
-import os
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -9,6 +8,17 @@ from typing import Dict, Any
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from api.supabase import get_client
+
+"""
+Example usage:
+
+    # Upload Stanford grade distributions
+    python api/scripts/upload_distributions.py data/stanford.csv
+
+    # Upload UT Austin grade distributions
+    python api/scripts/upload_distributions.py data/UT_austin.csv
+"""
+
 
 def upload_distributions(json_path: str):
     """

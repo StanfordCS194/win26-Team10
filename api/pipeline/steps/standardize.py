@@ -144,11 +144,11 @@ class StandardizeStep(ParseStep):
 
     def __init__(
         self,
-        model: str = "openai/gpt-oss-120b",
+        model: str | None = None,
         api_key: str | None = None,
     ):
         super().__init__()
-        self.model = model
+        self.model = model or os.getenv("MODEL_ID") or "openai/gpt-oss-120b"
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
 
