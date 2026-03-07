@@ -106,6 +106,24 @@ async def update_applicant(user_id: str, data: dict) -> dict:
     return result.data[0] if result.data else {}
 
 
+async def get_school_id_by_name(school_name: str) -> Optional[str]:
+    """
+    Look up a school's UUID by its name.
+    
+    Args:
+        school_name: The name of the school
+        
+    Returns:
+        The school UUID or None if not found
+    """
+    client = get_client()
+    result = client.table("schools").select("id").eq("name", school_name).execute()
+    
+    if result.data:
+        return result.data[0]["id"]
+    return None
+
+
 async def get_user_type(user_id: str) -> Optional[str]:
     """
     Get a user's type (student or recruiter).

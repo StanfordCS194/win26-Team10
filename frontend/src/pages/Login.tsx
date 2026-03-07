@@ -108,22 +108,41 @@ export default function Login() {
     setLoading(true)
 
     try {
+      console.log('Attempting login with email:', email)
+      
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({ email, password })
 
-      if (authError) throw authError
+      if (authError) {
+        console.error('Auth error:', authError)
+        throw authError
+      }
 
       if (!authData.user) {
         throw new Error('Failed to sign in')
       }
 
-      const { data: userRow } = await supabase
+      console.log('Auth successful, fetching user type...')
+      
+      const { data: userRow, error: userError } = await supabase
         .from('users')
         .select('type')
         .eq('id', authData.user.id)
         .maybeSingle()
 
-      const userType = userRow?.type
+      if (userError) {
+        console.error('Error fetching user type:', userError)
+        throw new Error(`Failed to fetch user profile: ${userError.message}`)
+      }
+
+      if (!userRow) {
+        console.error('No user row found for:', authData.user.id)
+        throw new Error('User profile not found. Please contact support.')
+      }
+
+      const userType = userRow.type
+      console.log('User type:', userType)
+      
       if (userType === 'recruiter') {
         navigate('/recruiter')
       } else if (userType === 'student') {
@@ -132,7 +151,8 @@ export default function Login() {
         navigate('/')
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred during login')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
+      setError(errorMessage)
       console.error('Login error:', err)
     } finally {
       setLoading(false)

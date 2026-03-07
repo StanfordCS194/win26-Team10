@@ -22,6 +22,7 @@ from api.supabase import (
     update_applicant,
     update_user_latest_repr,
     upload_bytes,
+    get_school_id_by_name,
 )
 
 app = FastAPI(
@@ -76,6 +77,8 @@ class ApplicantProfile(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[str] = None
+    school: Optional[str] = None
+    school_id: Optional[str] = None
     major: Optional[str] = None
     graduation_year: Optional[str] = None
     gpa: Optional[float] = None
@@ -302,6 +305,12 @@ async def update_profile(
     # Convert Pydantic model to dict, excluding None values
     update_data = profile.model_dump(exclude_unset=True)
     
+    # Look up school_id if school name is provided
+    if "school" in update_data and update_data["school"]:
+        school_id = await get_school_id_by_name(update_data["school"])
+        if school_id:
+            update_data["school_id"] = school_id
+    
     # Calculate is_complete
     # Required fields: first_name, last_name, email, major, graduation_year, gpa, skills
     # We also need a transcript (latest_repr_path) to be truly complete
@@ -318,7 +327,7 @@ async def update_profile(
     merged = {**existing, **update_data}
     
     required_fields = [
-        "first_name", "last_name", "email", "major", 
+        "first_name", "last_name", "email", "school", "major", 
         "graduation_year", "gpa", "skills", "latest_repr_path", "latest_report_path"
     ]
     
@@ -331,3 +340,44 @@ async def update_profile(
     
     updated = await update_applicant(user_id, update_data)
     return updated
+
+@app.post("/upload_resume")
+async def upload_resume(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Upload a resume file for the current user."""
+    user_id = user["id"]
+    
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+    
+    filename_lower = file.filename.lower()
+    if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx')):
+        raise HTTPException(
+            status_code=400, 
+            detail="Only PDF and DOCX files are supported"
+        )
+    
+    # Determine content type
+    content_type = "application/pdf" if filename_lower.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    
+    # Read file content
+    content = await file.read()
+    
+    # Upload to storage: {user_id}/resume.{ext}
+    ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
+    storage_path = f"{user_id}/resume.{ext}"
+    
+    upload_bytes(
+        content=content,
+        dest_path=storage_path,
+        content_type=content_type,
+    )
+    
+    # Update applicant profile with resume path
+    await update_applicant(user_id, {"resume_path": storage_path})
+    
+    return {"resume_path": storage_path, "message": "Resume uploaded successfully"}
+
