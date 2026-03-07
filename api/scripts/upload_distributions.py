@@ -13,10 +13,10 @@ from api.supabase import get_client
 Example usage:
 
     # Upload Stanford grade distributions
-    python api/scripts/upload_distributions.py data/stanford.csv
+    python api/scripts/upload_distributions.py analysis/out/stanford_grades.json
 
     # Upload UT Austin grade distributions
-    python api/scripts/upload_distributions.py data/UT_austin.csv
+    python api/scripts/upload_distributions.py analysis/out/ut_austin_grades.json
 """
 
 

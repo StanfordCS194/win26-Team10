@@ -27,10 +27,21 @@ class TranscriptStatisticsStep(ParseStep):
         self._distributions: Dict[str, Dict[str, float]] = {}
 
     def _get_school_id(self) -> Optional[str]:
-        """Fetch school ID from Supabase."""
+        """Fetch school ID from Supabase using normalization function."""
         if self._school_id:
             return self._school_id
             
+        # Call the normalization function in Supabase
+        try:
+            result = self.client.rpc("normalize_school_name", {"input_name": self.school_name}).execute()
+            if result.data:
+                self._school_id = result.data
+                self.logger.info(f"Normalized '{self.school_name}' to school ID {self._school_id}")
+                return self._school_id
+        except Exception as e:
+            self.logger.error(f"Error calling normalize_school_name: {e}")
+
+        # Fallback to direct name match if RPC fails or returns nothing
         result = self.client.table("schools").select("id").eq("name", self.school_name).execute()
         if result.data:
             self._school_id = result.data[0]["id"]
@@ -72,13 +83,26 @@ class TranscriptStatisticsStep(ParseStep):
             self.logger.warning("No transcript data to analyze")
             return artifacts
 
+        # Try to identify school from transcript if not explicitly set to a non-default
+        if self.school_name == "Stanford" and artifacts.transcript.get("institution", {}).get("name"):
+            self.school_name = artifacts.transcript["institution"]["name"]
+            self.logger.info(f"Identified school from transcript: {self.school_name}")
+
         school_id = self._get_school_id()
         if not school_id:
             self.logger.error(f"School '{self.school_name}' not found in database")
-            return artifacts
+        else:
+            # Update school_name to canonical name if we found a match
+            try:
+                canonical_result = self.client.table("schools").select("name").eq("id", school_id).execute()
+                if canonical_result.data:
+                    self.school_name = canonical_result.data[0]["name"]
+                    self.logger.info(f"Using canonical school name: {self.school_name}")
+            except Exception as e:
+                self.logger.warning(f"Failed to fetch canonical school name: {e}")
 
-        self._load_distributions(school_id)
-        self.logger.info(f"Loaded {len(self._distributions)} distributions for {self.school_name}")
+            self._load_distributions(school_id)
+            self.logger.info(f"Loaded {len(self._distributions)} distributions for {self.school_name}")
 
         # Process terms and courses to build a summary list
         grades = []
@@ -214,6 +238,16 @@ class TranscriptStatisticsStep(ParseStep):
             encoding="utf-8",
         )
         artifacts.outputs["statistics_summary"] = output_path
+        
+        # Prepare data for applicants_detail table
+        # We store the summary statistics and identified major
+        artifacts.outputs["applicants_detail_update"] = {
+            "transcript_stats": {
+                "universal_scores": universal_scores,
+                "major_scores": major_scores,
+                "common_departments": common_departments
+            }
+        }
         
         self.logger.info(f"Statistics complete, saved summary to {output_path}")
         return artifacts

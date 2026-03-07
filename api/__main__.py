@@ -96,7 +96,7 @@ def run_analyze_step(args) -> int:
         print("\n=== Post-Standardize Analysis Complete ===")
         print(f"Job ID: {args.job_id}")
         print(f"Statistics Output: {artifacts.outputs.get('statistics_summary')}")
-        print(f"Analysis Output: {artifacts.outputs.get('analyzed_transcript')}")
+        print(f"Analysis Output: {artifacts.outputs.get('analysis_report')}")
         return 0
         
     except Exception as e:

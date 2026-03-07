@@ -152,6 +152,19 @@ class StandardizeStep(ParseStep):
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
 
+    def should_skip(self, artifacts: ParseArtifacts) -> bool:
+        """Skip if transcript already exists in output directory."""
+        output_path = artifacts.input.output_dir / "transcript.json"
+        if output_path.exists():
+            try:
+                if not artifacts.transcript:
+                    artifacts.transcript = json.loads(output_path.read_text(encoding="utf-8"))
+                self.logger.info(f"Using existing transcript from {output_path}")
+                return True
+            except Exception as e:
+                self.logger.warning(f"Failed to load existing transcript: {e}")
+        return False
+
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         """
         Convert text to standardized transcript JSON using LLM.
@@ -238,6 +251,16 @@ Output the extracted data as a JSON object following the schema exactly."""
         self.logger.info("Extracting content from response...")
         content = result["choices"][0]["message"]["content"]
         self.logger.info("Got %d chars of content", len(content))
+
+        # Clean markdown code blocks if present
+        if content.strip().startswith("```"):
+            self.logger.info("Cleaning markdown code blocks from response...")
+            lines = content.strip().splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            content = "\n".join(lines).strip()
 
         # Parse JSON response
         self.logger.info("Parsing JSON...")

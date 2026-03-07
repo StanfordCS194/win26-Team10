@@ -106,6 +106,26 @@ async def update_applicant(user_id: str, data: dict) -> dict:
     return result.data[0] if result.data else {}
 
 
+async def get_applicant_detail(user_id: str) -> Optional[dict]:
+    """
+    Get an applicant's detailed data (transcript/resume raw and analysis).
+    """
+    client = get_client()
+    result = client.table("applicants_detail").select("*").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
+async def upsert_applicant_detail(user_id: str, data: dict) -> dict:
+    """
+    Upsert an applicant's detailed data.
+    """
+    client = get_client()
+    # Ensure ID is in the data for upsert
+    data["id"] = user_id
+    result = client.table("applicants_detail").upsert(data).execute()
+    return result.data[0] if result.data else {}
+
+
 async def get_school_id_by_name(school_name: str) -> Optional[str]:
     """
     Look up a school's UUID by its name.

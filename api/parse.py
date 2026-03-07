@@ -11,7 +11,14 @@ import uuid
 import logging
 from pathlib import Path
 
-from api.supabase import claim_parse_job, complete_job, fail_job, download_file, upload_bytes
+from api.supabase import (
+    claim_parse_job, 
+    complete_job, 
+    fail_job, 
+    download_file, 
+    upload_bytes,
+    upsert_applicant_detail
+)
 from api.pipeline import run_pipeline
 
 # Configure logging
@@ -101,6 +108,22 @@ async def process_job(job: dict) -> None:
                 storage_path=transcript_storage_path,
                 report_path=analysis_storage_path
             )
+
+            # Update applicants_detail table with raw and analyzed data
+            detail_data = {
+                "transcript_raw": artifacts.transcript,
+                "transcript_stats": artifacts.outputs.get("applicants_detail_update", {}).get("transcript_stats")
+            }
+            # Also include qualitative analysis report if available
+            if artifacts.outputs.get("analysis_report"):
+                import json
+                report_path = artifacts.outputs["analysis_report"]
+                if report_path.exists():
+                    report_data = json.loads(report_path.read_text())
+                    detail_data["transcript_analysis"] = report_data
+
+            logger.info(f"Upserting applicants_detail for {user_id}")
+            await upsert_applicant_detail(user_id, detail_data)
 
             await complete_job(job_id)
             logger.info(f"Job {job_id} completed successfully")

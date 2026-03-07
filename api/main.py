@@ -23,6 +23,8 @@ from api.supabase import (
     update_user_latest_repr,
     upload_bytes,
     get_school_id_by_name,
+    get_applicant_detail,
+    upsert_applicant_detail,
 )
 
 app = FastAPI(
@@ -234,6 +236,33 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             status_code=404,
             detail=f"Transcript file not found: {e}",
         )
+
+
+@app.get("/transcript/detail")
+async def get_my_transcript_detail(user: dict = Depends(get_current_user)):
+    """
+    Get the current user's detailed transcript data from applicants_detail table.
+    """
+    detail = await get_applicant_detail(user["id"])
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
+
+@app.get("/transcript/detail/{user_id}")
+async def get_user_transcript_detail(user_id: str, user: dict = Depends(get_current_user)):
+    """
+    Get a specific user's detailed transcript data.
+    Only available for recruiters.
+    """
+    if user.get("type") != "recruiter":
+        raise HTTPException(status_code=403, detail="Only recruiters can access other users' details")
+    
+    detail = await get_applicant_detail(user_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
 
 @app.get("/get_users")
 async def get_users():

@@ -151,6 +151,16 @@ Output the qualitative analysis as a JSON object following the schema exactly.""
         # Extract content from response
         content = result["choices"][0]["message"]["content"]
 
+        # Clean markdown code blocks if present
+        if content.strip().startswith("```"):
+            self.logger.info("Cleaning markdown code blocks from response...")
+            lines = content.strip().splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            content = "\n".join(lines).strip()
+
         # Parse JSON response
         try:
             analysis_report = json.loads(content)
