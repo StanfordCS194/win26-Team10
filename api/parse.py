@@ -11,7 +11,14 @@ import uuid
 import logging
 from pathlib import Path
 
-from api.supabase import claim_parse_job, complete_job, fail_job, download_file, upload_bytes
+from api.supabase import (
+    claim_parse_job, 
+    complete_job, 
+    fail_job, 
+    download_file, 
+    upload_bytes,
+    upsert_applicant_detail
+)
 from api.pipeline import run_pipeline
 
 # Configure logging
@@ -90,43 +97,37 @@ async def process_job(job: dict) -> None:
                     dest_path=analysis_storage_path,
                     content_type="application/json",
                 )
-
-    try:
-        # 1. Open log file
-        with open("/Users/niall/Dev/win26-Team10/.cursor/debug-ca7aed.log", "a") as f:
-            # 2. Write entry
-            import json, time
-            log_entry = {
-                "sessionId": "ca7aed",
-                "hypothesisId": "A",
-                "location": "api/parse.py:100",
-                "message": "Updating applicant with paths",
-                "data": {
-                    "user_id": user_id,
-                    "storage_path": storage_path,
-                    "transcript_storage_path": transcript_storage_path,
-                    "analysis_storage_path": analysis_storage_path
-                },
-                "timestamp": int(time.time() * 1000)
-            }
-            f.write(json.dumps(log_entry) + "\n")
-    except:
-        pass
     
-    # Update applicant record if we have a user_id
-    user_id = job.get("user_id")
-    if user_id and transcript_storage_path:
-        from api.supabase import update_user_latest_repr
-        logger.info(f"Updating applicant {user_id} with latest paths: repr={transcript_storage_path}, report={analysis_storage_path}")
-        await update_user_latest_repr(
-            user_id=user_id,
-            storage_path=transcript_storage_path,
-            report_path=analysis_storage_path
-        )
+        # Update applicant record if we have a user_id
+        user_id = job.get("user_id")
+        if user_id and transcript_storage_path:
+            from api.supabase import update_user_latest_repr
+            logger.info(f"Updating applicant {user_id} with latest paths: repr={transcript_storage_path}, report={analysis_storage_path}")
+            await update_user_latest_repr(
+                user_id=user_id,
+                storage_path=transcript_storage_path,
+                report_path=analysis_storage_path
+            )
 
-        await complete_job(job_id)
-        logger.info(f"Job {job_id} completed successfully")
-        
+            # Update applicants_detail table with raw and analyzed data
+            detail_data = {
+                "transcript_raw": artifacts.transcript,
+                "transcript_stats": artifacts.outputs.get("applicants_detail_update", {}).get("transcript_stats")
+            }
+            # Also include qualitative analysis report if available
+            if artifacts.outputs.get("analysis_report"):
+                import json
+                report_path = artifacts.outputs["analysis_report"]
+                if report_path.exists():
+                    report_data = json.loads(report_path.read_text())
+                    detail_data["transcript_analysis"] = report_data
+
+            logger.info(f"Upserting applicants_detail for {user_id}")
+            await upsert_applicant_detail(user_id, detail_data)
+
+            await complete_job(job_id)
+            logger.info(f"Job {job_id} completed successfully")
+            
     except Exception as e:
         logger.error(f"Job {job_id} failed: {e}")
         await fail_job(job_id, str(e))

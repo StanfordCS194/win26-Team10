@@ -106,6 +106,39 @@ async def update_applicant(user_id: str, data: dict) -> dict:
     return result.data[0] if result.data else {}
 
 
+async def get_applicant_detail(user_id: str) -> Optional[dict]:
+    """
+    Get an applicant's detailed data (transcript/resume raw and analysis).
+    """
+    client = get_client()
+    result = client.table("applicants_detail").select("*").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
+async def upsert_applicant_detail(user_id: str, data: dict) -> dict:
+    """
+    Upsert an applicant's detailed data.
+    """
+    client = get_client()
+    # Ensure ID is in the data for upsert
+    data["id"] = user_id
+    
+    # Check if record exists first to decide whether to insert or update
+    # This is a workaround for some Supabase client versions/configurations
+    # that might struggle with RLS on upsert if the record doesn't exist yet.
+    result = client.table("applicants_detail").upsert(data).execute()
+    
+    if not result.data:
+        # Fallback: try direct insert if upsert didn't return data
+        try:
+            result = client.table("applicants_detail").insert(data).execute()
+        except Exception:
+            # If insert fails (e.g. already exists), try update
+            result = client.table("applicants_detail").update(data).eq("id", user_id).execute()
+            
+    return result.data[0] if result.data else {}
+
+
 async def get_school_id_by_name(school_name: str) -> Optional[str]:
     """
     Look up a school's UUID by its name.
