@@ -174,17 +174,18 @@ export default function RecruiterDashboard() {
           return { ...student, applicant }
         })
       )
-      setComplete(studentsWithApplicants);
+      setComplete(studentsWithApplicants)
     }
-    load();
-  }, []);
-  const loadedStudents = []
+    load()
+  }, [])
+
+  const loadedStudents: Student[] = []
   if (complete != null) {
     const allStudents = complete
     for (const student of allStudents) {
       const applicant = student.applicant
       if (!applicant) continue
-      const newStudent = {
+      const newStudent: Student = {
         id: student.id,
         firstName: applicant.first_name ?? '',
         lastName: applicant.last_name ?? '',
@@ -201,7 +202,7 @@ export default function RecruiterDashboard() {
       loadedStudents.push(newStudent)
     }
   }
-  const mockStudentsIDs = []
+  const mockStudentsIDs: string[] = []
   for (const student of mockStudents) {
     mockStudentsIDs.push(student.id)
   }
