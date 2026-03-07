@@ -1,13 +1,17 @@
-import { Mail, GraduationCap, FileCheck, FileX } from 'lucide-react'
+import { useState } from 'react'
+import { Mail, GraduationCap, FileCheck, FileX, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
-import { createRoot } from 'react-dom/client';
+import { createRoot } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
+import type { ApplicationDetails } from './StudentList'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 interface StudentCardProps {
   student: Student
+  hasApplied?: boolean
+  applicationDetails?: ApplicationDetails | null
 }
 
 function getGpaClass(gpa: number): string {
@@ -16,9 +20,17 @@ function getGpaClass(gpa: number): string {
   return 'gpa-low'
 }
 
-export default function StudentCard({ student }: StudentCardProps) {
+export default function StudentCard({ student, hasApplied, applicationDetails }: StudentCardProps) {
+  const [expanded, setExpanded] = useState(false)
+  const showApplicationDetails = hasApplied && applicationDetails
+
   return (
-    <div className="student-card">
+    <div className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
+      {hasApplied && (
+        <div className="student-card-applied-badge" title="Applied to selected job">
+          <CheckCircle size={20} />
+        </div>
+      )}
       {/* Header */}
       <div className="card-header">
         <div>
@@ -53,6 +65,45 @@ export default function StudentCard({ student }: StudentCardProps) {
           </span>
         ))}
       </div>
+
+      {showApplicationDetails && (
+        <>
+          <button
+            type="button"
+            className="student-card-expand-btn"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? (
+              <>
+                Hide application details <ChevronUp size={16} />
+              </>
+            ) : (
+              <>
+                View application details <ChevronDown size={16} />
+              </>
+            )}
+          </button>
+          {expanded && applicationDetails && (
+            <div className="student-card-application-details">
+              {applicationDetails.work_authorization && (
+                <div className="application-detail-row">
+                  <strong>Work Authorization:</strong>
+                  <span>{applicationDetails.work_authorization}</span>
+                </div>
+              )}
+              {applicationDetails.message_to_recruiter && (
+                <div className="application-detail-row">
+                  <strong>Message to Recruiter:</strong>
+                  <p className="application-message">{applicationDetails.message_to_recruiter}</p>
+                </div>
+              )}
+              {!applicationDetails.work_authorization && !applicationDetails.message_to_recruiter && (
+                <p className="application-detail-empty">No additional details provided</p>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Transcript Status */}
       <div className="card-footer">
