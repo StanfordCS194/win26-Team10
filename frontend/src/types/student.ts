@@ -11,7 +11,16 @@ export interface Student {
   transcript: SmallTranscript | null | string
   resumeUploaded: boolean
   resumePath?: string
+  workAuthorization?: string | null
 }
+
+export const WORK_AUTH_OPTIONS = [
+  'US Citizen or National',
+  'Permanent Resident (Green Card)',
+  'H-1B Visa',
+  'F-1 / OPT',
+  'Other work authorization',
+] as const
 
 export interface SmallTranscript {
   id: string
