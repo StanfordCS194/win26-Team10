@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { formatSalaryForDisplay } from '../lib/salary'
 import { useApplyModal } from '../contexts/ApplyModalContext'
 
 interface StudentProfile {
@@ -155,7 +156,7 @@ function mapJobRow(row: JobRow): Job {
     company: row.company,
     location: row.location,
     type: row.type,
-    salary: row.salary_display || 'Compensation not listed',
+    salary: formatSalaryForDisplay(row.salary_display || 'Compensation not listed'),
     salaryMin: row.salary_min ?? 0,
     posted: formatPosted(row.created_at),
     description: row.description,

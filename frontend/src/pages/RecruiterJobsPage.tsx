@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Briefcase, Building2, ChevronDown, DollarSign, MapPin } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { formatSalaryForDisplay } from '../lib/salary'
 
 type CompanyMembershipRow = {
   company_id: string
@@ -68,7 +69,7 @@ function mapJob(row: RecruiterJobRow): RecruiterJob {
     company: row.company,
     location: row.location,
     type: row.type,
-    salary: row.salary_display || 'Compensation not listed',
+    salary: formatSalaryForDisplay(row.salary_display || 'Compensation not listed'),
     description: row.description,
     skills: row.skills ?? [],
     benefits: row.benefits ?? [],

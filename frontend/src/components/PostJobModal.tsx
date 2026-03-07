@@ -55,12 +55,15 @@ const REQUIRED_WORK_AUTH_OPTIONS = [
   'Other work authorization',
 ] as const
 
+const SALARY_PERIODS = ['hourly', 'weekly', 'monthly', 'yearly'] as const
+
 type PostJobDraft = {
   title: string
   selectedLocations: string[]
   customLocation: string
   type: string
-  compensation: string
+  salaryAmount: string
+  salaryPeriod: string
   description: string
   selectedSkills: string[]
   customSkill: string
@@ -96,7 +99,8 @@ export default function PostJobModal({
   const [locationSelectValue, setLocationSelectValue] = useState('')
   const [customLocation, setCustomLocation] = useState(draft?.customLocation ?? '')
   const [type, setType] = useState(draft?.type ?? 'Internship')
-  const [compensation, setCompensation] = useState(draft?.compensation ?? '')
+  const [salaryAmount, setSalaryAmount] = useState(draft?.salaryAmount ?? '')
+  const [salaryPeriod, setSalaryPeriod] = useState(draft?.salaryPeriod ?? 'yearly')
   const [description, setDescription] = useState(draft?.description ?? '')
   const [selectedSkills, setSelectedSkills] = useState<string[]>(draft?.selectedSkills ?? [])
   const [customSkill, setCustomSkill] = useState(draft?.customSkill ?? '')
@@ -125,7 +129,8 @@ export default function PostJobModal({
       selectedLocations,
       customLocation,
       type,
-      compensation,
+      salaryAmount,
+      salaryPeriod,
       description,
       selectedSkills,
       customSkill,
@@ -142,7 +147,8 @@ export default function PostJobModal({
     selectedLocations,
     customLocation,
     type,
-    compensation,
+    salaryAmount,
+    salaryPeriod,
     description,
     selectedSkills,
     customSkill,
@@ -234,6 +240,16 @@ export default function PostJobModal({
         data: { session },
       } = await supabase.auth.getSession()
 
+      let salaryDisplay: string | null = null
+      const amount = salaryAmount.trim()
+      if (amount) {
+        const num = parseFloat(amount.replace(/,/g, ''))
+        if (!isNaN(num) && num >= 0) {
+          const formatted = num >= 1000 ? num.toLocaleString() : String(num)
+          salaryDisplay = `$${formatted} ${salaryPeriod}`
+        }
+      }
+
       const { error: insertError } = await supabase.from('jobs').insert({
         recruiter_id: session?.user?.id ?? null,
         company_id: companyId,
@@ -241,7 +257,7 @@ export default function PostJobModal({
         company: companyName,
         location: selectedLocations.join(' | '),
         type,
-        salary_display: compensation.trim() || null,
+        salary_display: salaryDisplay,
         description: description.trim(),
         skills: selectedSkills,
         preferred_majors: preferredMajors,
@@ -365,13 +381,32 @@ export default function PostJobModal({
               </div>
             </div>
             <div className="form-group">
-              <label>Compensation (optional)</label>
-              <input
-                className="input"
-                value={compensation}
-                onChange={e => setCompensation(e.target.value)}
-                placeholder="e.g. $120k-$150k or $8,000/mo"
-              />
+              <label>Salary (optional)</label>
+              <div className="form-row" style={{ gap: '0.5rem', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <input
+                    className="input"
+                    type="text"
+                    inputMode="numeric"
+                    value={salaryAmount}
+                    onChange={e => setSalaryAmount(e.target.value.replace(/[^0-9.,]/g, ''))}
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+                <div style={{ flex: '0 0 120px' }}>
+                  <select
+                    className="select"
+                    value={salaryPeriod}
+                    onChange={e => setSalaryPeriod(e.target.value)}
+                  >
+                    {SALARY_PERIODS.map(p => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
             <div className="form-group">
               <label>Description *</label>
