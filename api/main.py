@@ -4,6 +4,7 @@ FastAPI application for the parse job queue API.
 
 import uuid
 import json
+from datetime import datetime
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -388,9 +389,10 @@ async def upload_resume(
     # Read file content
     content = await file.read()
     
-    # Upload to storage: {user_id}/resume.{ext}
+    # Upload to storage: {user_id}/resumes/{timestamp}.{ext}
     ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
-    storage_path = f"{user_id}/resume.{ext}"
+    timestamp = int(datetime.now().timestamp())
+    storage_path = f"{user_id}/resumes/{timestamp}.{ext}"
     
     upload_bytes(
         content=content,
