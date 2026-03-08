@@ -17,6 +17,7 @@ interface StudentProfile {
   isComplete?: boolean
   updatedAt?: string
   latestReprPath?: string
+  resumePath?: string
 }
 
 interface UploadedFile {
@@ -114,6 +115,11 @@ export default function StudentPage() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
+  // Resume state
+  const [uploadedResume, setUploadedResume] = useState<UploadedFile | null>(null)
+  const [resumeUploading, setResumeUploading] = useState(false)
+  const [resumeError, setResumeError] = useState<string | null>(null)
+
   // School autocomplete state
   const [schoolInput, setSchoolInput] = useState('')
   const [showSchoolDropdown, setShowSchoolDropdown] = useState(false)
@@ -184,9 +190,18 @@ export default function StudentPage() {
           isComplete: data.is_complete ?? false,
           updatedAt: data.updated_at,
           latestReprPath: data.latest_repr_path,
+          resumePath: data.resume_path,
         })
         if (data.latest_repr_path) {
           fetchTranscriptDetail(token)
+        }
+        if (data.resume_path) {
+          setUploadedResume({
+            name: data.resume_path.split('/').pop() || 'resume',
+            size: 0,
+            type: data.resume_path.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            preview: null,
+          })
         }
       }
     } catch (err) {
@@ -398,6 +413,61 @@ export default function StudentPage() {
     setParseStatus(null)
     setTranscriptJson(null)
     setParseError(null)
+  }
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const fileName = file.name.toLowerCase()
+    if (!fileName.endsWith('.pdf') && !fileName.endsWith('.docx')) {
+      setResumeError('Only PDF and DOCX files are supported')
+      return
+    }
+
+    setUploadedResume({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      preview: null,
+    })
+    setResumeError(null)
+
+    // Upload immediately
+    setResumeUploading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('You must be logged in to upload a resume.')
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch(`${API_BASE}/upload_resume`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      const data = await res.json()
+      setProfile((prev) => ({ ...prev, resumePath: data.resume_path }))
+    } catch (err) {
+      setResumeError(err instanceof Error ? err.message : 'Failed to upload resume')
+      setUploadedResume(null)
+    } finally {
+      setResumeUploading(false)
+    }
+  }
+
+  const removeResume = () => {
+    setUploadedResume(null)
+    setResumeError(null)
   }
 
   const handleSave = async () => {
@@ -1009,6 +1079,129 @@ export default function StudentPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </section>
+
+        {/* Resume Upload Section */}
+        <section className="form-section">
+          <h2 className="section-title">Resume</h2>
+          <p className="section-description">
+            Upload your resume (PDF or DOCX format)
+          </p>
+
+          {profile.resumePath && !uploadedResume && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              backgroundColor: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #bcf0da',
+              marginBottom: 12
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={18} color="#16a34a" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: '#16a34a' }}>
+                  Resume on file
+                </span>
+              </div>
+              <Check size={18} color="#16a34a" />
+            </div>
+          )}
+
+          {!uploadedResume ? (
+            <label 
+              className="upload-area"
+              style={{
+                border: '2px dashed #ccc',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 20px',
+                borderRadius: '8px',
+                gap: '8px'
+              }}
+            >
+              <Upload size={32} color="#666" />
+              <span style={{ fontWeight: 500 }}>
+                Click to upload resume
+              </span>
+              <small style={{ color: '#666' }}>PDF or DOCX (max 10MB)</small>
+              <input
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleResumeUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+          ) : (
+            <div className="uploaded-file" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '16px',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <div className="file-info" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: 8, 
+                  backgroundColor: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <FileText size={24} color="#4a90e2" />
+                </div>
+                <div>
+                  <p className="file-name" style={{ margin: 0, fontWeight: 500, color: '#1e293b' }}>{uploadedResume.name}</p>
+                  {uploadedResume.size > 0 && (
+                    <p className="file-size" style={{ margin: 0, fontSize: '0.85em', color: '#64748b' }}>{formatFileSize(uploadedResume.size)}</p>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {!resumeUploading && <Check size={20} color="#10b981" />}
+                {resumeUploading && <Loader2 className="animate-spin" size={20} color="#4a90e2" />}
+                <button 
+                  onClick={removeResume} 
+                  className="remove-file-btn"
+                  style={{
+                    padding: 8,
+                    borderRadius: '50%',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {resumeError && (
+            <p className="section-description" style={{ color: 'crimson', marginTop: 8 }}>
+              {resumeError}
+            </p>
+          )}
+
+          {resumeUploading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, color: '#4a90e2' }}>
+              <Loader2 className="animate-spin" size={20} />
+              <p className="section-description" style={{ margin: 0 }}>
+                Uploading resume...
+              </p>
             </div>
           )}
         </section>

@@ -9,6 +9,7 @@ import StudentList from '../components/StudentList'
 import PostJobModal from '../components/PostJobModal'
 import { supabase } from '../lib/supabase'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 const POST_JOB_OPEN_KEY = 'postJobModalOpen'
 
 type CompanyMembershipRow = {
@@ -41,11 +42,12 @@ type ApplicantRow = {
   skills: string[] | null
   latest_repr_path: string | null
   work_authorization: string | null
+  resume_path: string | null
 }
 
 const initialFilters: Filters = {
   search: '',
-  minGpa: 0,
+  minGpa: 0.1,
   maxGpa: 4,
   major: '',
   graduationYear: '',
@@ -98,6 +100,8 @@ function mapApplicantToStudent(row: ApplicantRow): Student {
     skills: row.skills || [],
     transcriptUploaded: !!row.latest_repr_path,
     transcript: row.latest_repr_path ? 'supabase' : null,
+    resumeUploaded: !!row.resume_path,
+    resumePath: row.resume_path ?? undefined,
     workAuthorization: row.work_authorization ?? null,
   }
 }
@@ -141,6 +145,73 @@ function isStudentQualified(student: Student, job: CompanyJobRow | null): boolea
 
 export default function RecruiterDashboard() {
   const [filters, setFilters] = useState<Filters>(initialFilters)
+  const [complete, setComplete] = useState<any>(null)
+
+  useEffect(() => {
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        throw new Error('You must be logged in to access transcripts.')
+      }
+
+      const users = await fetch(`${API_BASE}/get_users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!users.ok) {
+        throw new Error(await users.text())
+      }
+
+      const allUsers = await users.json()
+      const allStudents = allUsers.filter((user: any) => user.type === 'student')
+      const studentsWithApplicants = await Promise.all(
+        allStudents.map(async (student: any) => {
+          const applicantRes = await fetch(`${API_BASE}/get_specific_profile/${student.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          const applicant = applicantRes.ok ? await applicantRes.json() : null
+          return { ...student, applicant }
+        })
+      )
+      setComplete(studentsWithApplicants)
+    }
+    load()
+  }, [])
+
+  const loadedStudents: Student[] = []
+  if (complete != null) {
+    const allStudents = complete
+    for (const student of allStudents) {
+      const applicant = student.applicant
+      if (!applicant) continue
+      const newStudent: Student = {
+        id: student.id,
+        firstName: applicant.first_name ?? '',
+        lastName: applicant.last_name ?? '',
+        email: applicant.email ?? '',
+        gpa: applicant.gpa ?? -1,
+        major: applicant.major ?? '',
+        graduationYear: applicant.graduation_year ?? 0,
+        skills: applicant.skills ?? [],
+        transcriptUploaded: !!applicant.latest_repr_path,
+        transcript: null,
+        resumeUploaded: !!applicant.resume_path,
+        resumePath: applicant.resume_path,
+      }
+      loadedStudents.push(newStudent)
+    }
+  }
+  const mockStudentsIDs: string[] = []
+  for (const student of mockStudents) {
+    mockStudentsIDs.push(student.id)
+  }
+  for (const student of loadedStudents) {
+    if (!mockStudentsIDs.includes(student.id)) {
+      mockStudents.push(student)
+    }
+  }
+
   const [showPostJob, setShowPostJob] = useState(
     () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
   )
@@ -219,12 +290,30 @@ export default function RecruiterDashboard() {
 
         const { data: applicants, error: applicantsError } = await supabase
           .from('applicants')
-          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization')
+          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
 
         if (applicantsError) throw applicantsError
 
+        const { data: analyses, error: analysesError } = await supabase
+          .from('applicants_detail')
+          .select('id, transcript_stats, transcript_analysis')
+
+        if (analysesError) throw analysesError
+
         const mappedStudents = ((applicants || []) as ApplicantRow[]).map(mapApplicantToStudent)
-        setDirectoryStudents(mergeWithMockStudents(mappedStudents))
+
+        const analysesMap = new Map((analyses || []).map(a => [a.id, a]))
+        const studentsWithAnalyses = mappedStudents.map(student => {
+          const analysis = analysesMap.get(student.id)
+          if (!analysis) return student
+          return {
+            ...student,
+            transcript_stats: analysis.transcript_stats ?? null,
+            transcript_analysis: analysis.transcript_analysis ?? null,
+          }
+        })
+
+        setDirectoryStudents(mergeWithMockStudents(studentsWithAnalyses))
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to load company data.'
         setCompanyJobsError(message)

@@ -31,6 +31,8 @@ logger = logging.getLogger("worker-parse")
 # Configuration from environment
 POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "2.0"))
 LOCK_SECONDS = int(os.getenv("WORKER_LOCK_SECONDS", "900"))
+WORKER_CONCURRENCY = max(1, int(os.getenv("WORKER_CONCURRENCY", "10")))
+JOB_TIMEOUT_SECONDS = int(os.getenv("WORKER_JOB_TIMEOUT_SECONDS", "1200"))
 WORKER_ID = f"worker-parse-{uuid.uuid4().hex[:8]}"
 
 
@@ -58,14 +60,18 @@ async def process_job(job: dict) -> None:
             # storage_path is like "{user_id}/{job_id}/source.pdf"
             source_file = f"{storage_path}/source.pdf"
             logger.info(f"Downloading {source_file} to {pdf_path}")
-            download_file(source_file, pdf_path)
+            await asyncio.to_thread(download_file, source_file, pdf_path)
         
         # Run pipeline
-        artifacts = run_pipeline(
-            job_id=job_id,
-            file_id=storage_path,  # Use storage_path as file_id for compatibility
-            local_pdf_path=pdf_path if pdf_path.exists() else None,
-            output_dir=output_dir,
+        artifacts = await asyncio.wait_for(
+            asyncio.to_thread(
+                run_pipeline,
+                job_id=job_id,
+                file_id=storage_path,  # Use storage_path as file_id for compatibility
+                local_pdf_path=pdf_path if pdf_path.exists() else None,
+                output_dir=output_dir,
+            ),
+            timeout=JOB_TIMEOUT_SECONDS,
         )
         
         if artifacts.errors:
@@ -83,7 +89,8 @@ async def process_job(job: dict) -> None:
             if transcript_path.exists():
                 transcript_storage_path = f"{storage_path}/transcript.json"
                 logger.info(f"Uploading transcript to {transcript_storage_path}")
-                upload_bytes(
+                await asyncio.to_thread(
+                    upload_bytes,
                     content=transcript_path.read_bytes(),
                     dest_path=transcript_storage_path,
                     content_type="application/json",
@@ -92,7 +99,8 @@ async def process_job(job: dict) -> None:
             if analysis_path.exists():
                 analysis_storage_path = f"{storage_path}/analysis_summary.json"
                 logger.info(f"Uploading analysis summary to {analysis_storage_path}")
-                upload_bytes(
+                await asyncio.to_thread(
+                    upload_bytes,
                     content=analysis_path.read_bytes(),
                     dest_path=analysis_storage_path,
                     content_type="application/json",
@@ -125,12 +133,15 @@ async def process_job(job: dict) -> None:
             logger.info(f"Upserting applicants_detail for {user_id}")
             await upsert_applicant_detail(user_id, detail_data)
 
-            await complete_job(job_id)
-            logger.info(f"Job {job_id} completed successfully")
+        await complete_job(job_id)
+        logger.info(f"Job {job_id} completed successfully")
             
     except Exception as e:
-        logger.error(f"Job {job_id} failed: {e}")
-        await fail_job(job_id, str(e))
+        logger.exception("Job %s failed", job_id)
+        try:
+            await fail_job(job_id, str(e))
+        except Exception:
+            logger.exception("Failed to mark job %s as failed", job_id)
 
 
 async def worker_loop() -> None:
@@ -140,17 +151,31 @@ async def worker_loop() -> None:
     Continuously polls for jobs and processes them.
     """
     logger.info(f"Starting worker {WORKER_ID}")
-    logger.info(f"Poll interval: {POLL_SECONDS}s, Lock timeout: {LOCK_SECONDS}s")
+    logger.info(
+        f"Poll interval: {POLL_SECONDS}s, Lock timeout: {LOCK_SECONDS}s, "
+        f"Concurrency: {WORKER_CONCURRENCY}, Job timeout: {JOB_TIMEOUT_SECONDS}s"
+    )
+    active_tasks: set[asyncio.Task] = set()
     
     while True:
         try:
-            # Try to claim a job
-            job = await claim_parse_job(WORKER_ID, LOCK_SECONDS)
-            
-            if job:
-                await process_job(job)
+            # Fill available worker slots with claimed jobs.
+            while len(active_tasks) < WORKER_CONCURRENCY:
+                job = await claim_parse_job(WORKER_ID, LOCK_SECONDS)
+                if not job:
+                    break
+                active_tasks.add(asyncio.create_task(process_job(job)))
+
+            if active_tasks:
+                done, pending = await asyncio.wait(
+                    active_tasks,
+                    timeout=POLL_SECONDS,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                active_tasks = set(pending)
+                for task in done:
+                    task.result()
             else:
-                # No jobs available, wait before polling again
                 await asyncio.sleep(POLL_SECONDS)
                 
         except Exception as e:

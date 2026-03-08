@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SmallTranscript, Student } from '../types/student'
+//import stanfordRatings from '../data/stanford_ratings.json'
 
 const SKILL_LABELS: Record<string, string> = {
   technical_domain_skill: 'Technical',
@@ -22,6 +23,18 @@ interface StudentTranscriptCardProps {
     student: Student
     skillScores?: Record<string, { score: number; justification?: string }> | null
 }
+
+/*type TranscriptCourse = {
+  department: string
+  number: string
+  component?: string | null
+  title?: string | null
+  instructors?: string[] | null
+  units_attempted?: number | null
+  units_earned?: number | null
+  grade?: string | null
+  grade_points?: number | null
+}*/
 
 const percentageToColor = (percentage: number) => {
   const minColor = { r: 255, g: 0, b: 0 };
@@ -191,7 +204,36 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
   )
 }
 
+/*const calculateCourseDifficulty = (courses: Array<TranscriptCourse>) => {
+    let totalUnits = 0;
+    let totalDifficulty = 0;
+
+    for (const course of courses) {
+        const courseCode = course.department + course.number;
+        const rating = (stanfordRatings as Record<string, number>)[courseCode];
+        if (rating !== undefined) {
+            totalDifficulty += rating;
+            totalUnits += course.units_earned || 0;
+        }
+    }
+
+    return totalUnits > 0 ? totalDifficulty / totalUnits : 5;
+}*/
+
+const getPredictedMajorStats = (student: Student) => {
+    console.log(student.transcript_analysis)
+    if (student.transcript_stats) {
+        const common = student.transcript_stats.common_departments
+        if (common) {
+            const entries = Object.entries(common as Record<string, number>)
+            return entries.sort((a, b) => b[1] - a[1]).slice(0, 2)
+        }
+    }
+    return null
+}
+
 export default function StudentTranscriptCard({ transcript, student, skillScores }: StudentTranscriptCardProps) {
+    const predictedMajorStats = getPredictedMajorStats(student)
     const radarData = skillScores
       ? (['technical_domain_skill', 'problem_solving', 'communication', 'execution', 'collaboration'] as const)
           .filter((k) => skillScores[k] != null)
@@ -220,14 +262,30 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                             }}
                         ></div>
                     </div>
-                    <label>{student.major}</label>
-                    <div className="progress-bar">
-                        <div className="progress" style={{ width: '50%', backgroundColor: 'green', borderRadius: '5px' }}></div>
-                    </div>
-                    <label>{student.major === "Computer Science" ? "Math" : "Computer Science"}</label>
-                    <div className="progress-bar">
-                        <div className="progress" style={{ width: '20%', backgroundColor: 'green', borderRadius: '5px' }}></div>
-                    </div>
+                    {predictedMajorStats ? (
+                        <div>
+                            <label>Predicted Major: {predictedMajorStats[0][0]} ({predictedMajorStats[0][1]} classes taken)</label>
+                            <div className="progress-bar">
+                                <div className="progress" style=
+                                    {{
+                                        width: `${Math.min(predictedMajorStats[0][1] / (predictedMajorStats[0][1] + predictedMajorStats[1][1] + 1) * 100, 100)}%`, 
+                                        background: `${percentageToColor(Math.min(predictedMajorStats[0][1] / (predictedMajorStats[0][1] + predictedMajorStats[1][1] + 1) * 100, 100))}`,
+                                        borderRadius: '5px'
+                                    }}
+                                ></div>
+                            </div>
+                            <label>Also Takes Classes in: {predictedMajorStats[1][0]} ({predictedMajorStats[1][1]} classes taken)</label>
+                            <div className="progress-bar">
+                                <div className="progress" style=
+                                    {{
+                                        width: `${Math.min(predictedMajorStats[1][1] / (predictedMajorStats[0][1] + predictedMajorStats[1][1] + 1) * 100, 100)}%`, 
+                                        background: `${percentageToColor(Math.min(predictedMajorStats[1][1] / (predictedMajorStats[0][1] + predictedMajorStats[1][1] + 1) * 100, 100))}`,
+                                        borderRadius: '5px'
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    ) : (null)}
                 </div>
                 <div className="info-box">
                     <h2>Performance</h2>
