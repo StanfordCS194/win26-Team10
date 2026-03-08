@@ -10,7 +10,7 @@ Usage:
     python scripts/test_transcript_api.py
 
     # Or specify a custom PDF
-    python scripts/test_transcript_api.py --pdf path/to/file.pdf
+    python scripts/test_transcript_api.py --pdf transcripts/niall.pdf
 
     # Or specify a custom API URL
     python scripts/test_transcript_api.py --api-url http://localhost:8000

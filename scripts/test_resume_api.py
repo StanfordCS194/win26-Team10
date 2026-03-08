@@ -10,7 +10,7 @@ Usage:
     python scripts/test_resume_api.py
 
     # Or specify a custom PDF
-    python scripts/test_resume_api.py --pdf path/to/resume.pdf
+    python scripts/test_resume_api.py --pdf transcripts/NIALL_KEHOE.pdf
 
     # Or specify a custom API URL
     python scripts/test_resume_api.py --api-url http://localhost:8000

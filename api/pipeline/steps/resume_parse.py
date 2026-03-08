@@ -15,8 +15,10 @@ from pydantic import BaseModel, Field
 from api.pipeline.steps.base import ParseStep
 from api.pipeline.types import ParseArtifacts
 
+# NOTE: I added current date to orientate the model with time periods
+SYSTEM_PROMPT_TEMPLATE = """You are a resume extraction assistant.
 
-SYSTEM_PROMPT = """You are a resume extraction assistant.
+Current date: {current_date}
 
 Extract structured resume data and return ONLY valid JSON with this exact shape:
 {
@@ -154,7 +156,7 @@ class ResumeRaw(BaseModel):
 
 
 class ResumeAnalysis(BaseModel):
-    jobs: list[ResumeJob] = Field(default_factory=list)
+    jobs: list[ResumeJob | str] = Field(default_factory=list)
     highlights: list[str] = Field(default_factory=list)
     gaps_or_uncertain_dates: list[str] = Field(default_factory=list)
 
@@ -182,6 +184,45 @@ class ResumeParseStep(ParseStep):
         encoded = base64.b64encode(content).decode("ascii")
         return f"data:application/pdf;base64,{encoded}"
 
+    def _normalize_analysis_jobs(
+        self,
+        analysis_jobs: list[ResumeJob | str],
+        resume_jobs: list[dict],
+    ) -> list[dict]:
+        normalized: list[dict] = []
+        for item in analysis_jobs:
+            if isinstance(item, ResumeJob):
+                normalized.append(item.model_dump())
+                continue
+
+            job_name = item.strip()
+            matched_job = next(
+                (
+                    job
+                    for job in resume_jobs
+                    if (job.get("company") and str(job.get("company")).strip().lower() == job_name.lower())
+                    or (job.get("role") and str(job.get("role")).strip().lower() == job_name.lower())
+                ),
+                None,
+            )
+            if matched_job:
+                normalized.append(matched_job)
+            else:
+                normalized.append(
+                    {
+                        "company": job_name or None,
+                        "role": None,
+                        "start_date": None,
+                        "end_date": None,
+                        "is_current": None,
+                        "location": None,
+                        "employment_type": None,
+                        "details": [],
+                        "skills_used": [],
+                    }
+                )
+        return normalized
+
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         if artifacts.input.dry_run:
             self.logger.info("Dry run - skipping resume parse")
@@ -202,7 +243,12 @@ class ResumeParseStep(ParseStep):
         request_payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT_TEMPLATE.format(
+                        current_date=datetime.now(timezone.utc).date().isoformat()
+                    ),
+                },
                 {
                     "role": "user",
                     "content": [
@@ -271,9 +317,12 @@ class ResumeParseStep(ParseStep):
         if not resume_raw.get("parsed_at"):
             resume_raw["parsed_at"] = datetime.now(timezone.utc).isoformat()
 
-        resume_analysis = validated.resume_analysis.model_dump()
-        if not resume_analysis.get("jobs"):
-            resume_analysis["jobs"] = resume_raw.get("jobs", [])
+        resume_analysis = validated.resume_analysis.model_dump(exclude={"jobs"})
+        normalized_analysis_jobs = self._normalize_analysis_jobs(
+            validated.resume_analysis.jobs,
+            resume_raw.get("jobs", []),
+        )
+        resume_analysis["jobs"] = normalized_analysis_jobs or resume_raw.get("jobs", [])
 
         resume_path = artifacts.input.output_dir / "resume.json"
         analysis_path = artifacts.input.output_dir / "resume_analysis.json"
