@@ -32,6 +32,7 @@ logger = logging.getLogger("worker-parse")
 POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "2.0"))
 LOCK_SECONDS = int(os.getenv("WORKER_LOCK_SECONDS", "900"))
 WORKER_CONCURRENCY = max(1, int(os.getenv("WORKER_CONCURRENCY", "10")))
+JOB_TIMEOUT_SECONDS = int(os.getenv("WORKER_JOB_TIMEOUT_SECONDS", "1200"))
 WORKER_ID = f"worker-parse-{uuid.uuid4().hex[:8]}"
 
 
@@ -62,12 +63,15 @@ async def process_job(job: dict) -> None:
             await asyncio.to_thread(download_file, source_file, pdf_path)
         
         # Run pipeline
-        artifacts = await asyncio.to_thread(
-            run_pipeline,
-            job_id=job_id,
-            file_id=storage_path,  # Use storage_path as file_id for compatibility
-            local_pdf_path=pdf_path if pdf_path.exists() else None,
-            output_dir=output_dir,
+        artifacts = await asyncio.wait_for(
+            asyncio.to_thread(
+                run_pipeline,
+                job_id=job_id,
+                file_id=storage_path,  # Use storage_path as file_id for compatibility
+                local_pdf_path=pdf_path if pdf_path.exists() else None,
+                output_dir=output_dir,
+            ),
+            timeout=JOB_TIMEOUT_SECONDS,
         )
         
         if artifacts.errors:
@@ -133,8 +137,11 @@ async def process_job(job: dict) -> None:
         logger.info(f"Job {job_id} completed successfully")
             
     except Exception as e:
-        logger.error(f"Job {job_id} failed: {e}")
-        await fail_job(job_id, str(e))
+        logger.exception("Job %s failed", job_id)
+        try:
+            await fail_job(job_id, str(e))
+        except Exception:
+            logger.exception("Failed to mark job %s as failed", job_id)
 
 
 async def worker_loop() -> None:
@@ -146,7 +153,7 @@ async def worker_loop() -> None:
     logger.info(f"Starting worker {WORKER_ID}")
     logger.info(
         f"Poll interval: {POLL_SECONDS}s, Lock timeout: {LOCK_SECONDS}s, "
-        f"Concurrency: {WORKER_CONCURRENCY}"
+        f"Concurrency: {WORKER_CONCURRENCY}, Job timeout: {JOB_TIMEOUT_SECONDS}s"
     )
     active_tasks: set[asyncio.Task] = set()
     
