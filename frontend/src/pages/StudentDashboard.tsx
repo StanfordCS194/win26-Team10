@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
@@ -186,6 +186,16 @@ export default function StudentDashboard() {
   const [mismatchConfirmJob, setMismatchConfirmJob] = useState<Job | null>(null)
   const { openApplyModal: openApplyModalCtx } = useApplyModal()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // When route is /student/inbox, show Inbox tab by default
+  useEffect(() => {
+    if (location.pathname === '/student/inbox') {
+      setViewMode('inbox')
+    } else if (location.pathname === '/student/dashboard' || location.pathname === '/student') {
+      setViewMode('jobs')
+    }
+  }, [location.pathname])
 
   const [studentId, setStudentId] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])

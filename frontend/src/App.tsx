@@ -5,7 +5,8 @@ import RecruiterDashboard from './pages/RecruiterDashboard'
 import RecruiterJobsPage from './pages/RecruiterJobsPage'
 import RecruiterProfilePage from './pages/RecruiterProfilePage'
 import RecruiterLayout from './layouts/RecruiterLayout'
-import StudentPage from './pages/StudentPage'
+import StudentLayout from './layouts/StudentLayout'
+import StudentProfilePage from './pages/StudentProfilePage'
 import StudentDashboard from './pages/StudentDashboard'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
@@ -32,29 +33,24 @@ function App() {
               path="/student"
               element={
                 <ProtectedRoute allowType="student">
-                  {localStorage.getItem('profileCompleted') === 'true' 
-                    ? <Navigate to="/student/dashboard" replace />
-                    : <StudentPage />
-                  }
+                  <StudentLayout />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/student/profile"
-              element={
-                <ProtectedRoute allowType="student">
-                  <StudentPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/dashboard"
-              element={
-                <ProtectedRoute allowType="student">
-                  <StudentDashboard />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route
+                index
+                element={
+                  localStorage.getItem('profileCompleted') === 'true' ? (
+                    <Navigate to="/student/dashboard" replace />
+                  ) : (
+                    <Navigate to="/student/profile" replace />
+                  )
+                }
+              />
+              <Route path="dashboard" element={<Suspense fallback={<div>Loading...</div>}><StudentDashboard /></Suspense>} />
+              <Route path="inbox" element={<Suspense fallback={<div>Loading...</div>}><StudentDashboard /></Suspense>} />
+              <Route path="profile" element={<StudentProfilePage />} />
+            </Route>
             <Route
               path="/recruiter"
               element={

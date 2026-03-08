@@ -65,7 +65,19 @@ export default function Navigation() {
               .maybeSingle()
             setUserDisplayName(profile?.full_name ?? null)
           } else {
-            setUserDisplayName(null)
+            try {
+              const { data: applicant } = await supabase
+                .from('applicants')
+                .select('first_name, last_name')
+                .eq('id', session.user.id)
+                .maybeSingle()
+              const first = (applicant as { first_name?: string } | null)?.first_name ?? ''
+              const last = (applicant as { last_name?: string } | null)?.last_name ?? ''
+              const name = [first, last].filter(Boolean).join(' ').trim() || null
+              setUserDisplayName(name)
+            } catch {
+              setUserDisplayName(null)
+            }
           }
           return
         }
