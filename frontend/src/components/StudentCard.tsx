@@ -1,17 +1,21 @@
 import { useState } from 'react'
-import { Mail, GraduationCap, FileCheck, FileText, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Mail, GraduationCap, FileCheck, FileText, CheckCircle, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
 import { createRoot } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
+import { getOrCreateConversation } from '../lib/messaging'
 import { createResumeViewer } from './ResumeViewer'
 import type { ApplicationDetails } from './StudentList'
-
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 interface StudentCardProps {
   student: Student
+  /** When true, show Message button (recruiter view) */
+  isRecruiter?: boolean
+  /** Called after conversation is created or opened; pass conversation id to open Messages view */
+  onOpenConversation?: (conversationId: string) => void
   hasApplied?: boolean
   applicationDetails?: ApplicationDetails | null
 }
@@ -22,9 +26,21 @@ function getGpaClass(gpa: number): string {
   return 'gpa-low'
 }
 
-export default function StudentCard({ student, hasApplied, applicationDetails }: StudentCardProps) {
+export default function StudentCard({ student, isRecruiter, onOpenConversation, hasApplied, applicationDetails }: StudentCardProps) {
   const [expanded, setExpanded] = useState(false)
   const showApplicationDetails = hasApplied && applicationDetails
+
+  const handleMessage = async () => {
+    if (!onOpenConversation) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) return
+    try {
+      const conversation = await getOrCreateConversation(session.user.id, student.id)
+      onOpenConversation(conversation.id)
+    } catch (err) {
+      console.error('Failed to open conversation:', err)
+    }
+  }
 
   return (
     <div className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
@@ -111,10 +127,11 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
         </>
       )}
 
-      {/* Transcript & Resume Status */}
-      <div className="card-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {student.transcriptUploaded && (
-          <div className="transcript-status uploaded" onClick={async () => {
+      {/* Transcript & Resume Status + Message */}
+      <div className="card-footer">
+        <div className="card-footer-docs">
+          {student.transcriptUploaded && (
+            <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
             const popupBackground = document.createElement('div')
@@ -192,7 +209,7 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
             Transcript uploaded
           </div>
         )}
-        
+
         {/* Resume Status */}
         {student.resumeUploaded && (
           <div className="transcript-status uploaded" onClick={async () => {
@@ -202,20 +219,20 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
               alert('You must be logged in to view resumes.')
               return
             }
-            
+
             try {
               const resumeRes = await fetch(`${API_BASE}/get_resume/${student.id}`, {
                 headers: { Authorization: `Bearer ${token}` },
               })
-              
+
               if (!resumeRes.ok) {
                 throw new Error(await resumeRes.text())
               }
-              
+
               // Get the blob and create a URL
               const blob = await resumeRes.blob()
               const url = window.URL.createObjectURL(blob)
-              
+
               // Create and show popup
               const popup = createResumeViewer(url, () => {
                 window.URL.revokeObjectURL(url)
@@ -228,6 +245,18 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
             <FileText size={16} />
             Resume uploaded
           </div>
+        )}
+        </div>
+        {isRecruiter && onOpenConversation && (
+          <button
+            type="button"
+            className="student-card-message-btn"
+            onClick={handleMessage}
+            aria-label={`Message ${student.firstName} ${student.lastName}`}
+          >
+            <MessageCircle size={16} />
+            Message
+          </button>
         )}
       </div>
     </div>

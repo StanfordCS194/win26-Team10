@@ -9,16 +9,22 @@ export interface ApplicationDetails {
 
 interface StudentListProps {
   students: Student[]
-  appliedStudentIds: Set<string>
-  applicationDetailsMap: Map<string, ApplicationDetails>
-  hasSelectedJob: boolean
+  /** Recruiter view: show Message button and open conversation on click */
+  isRecruiter?: boolean
+  onOpenConversation?: (conversationId: string) => void
+  /** When set, show applied badge and application details per student */
+  appliedStudentIds?: Set<string>
+  applicationDetailsMap?: Map<string, ApplicationDetails>
+  hasSelectedJob?: boolean
 }
 
 export default function StudentList({
   students,
-  appliedStudentIds,
-  applicationDetailsMap,
-  hasSelectedJob,
+  isRecruiter,
+  onOpenConversation,
+  appliedStudentIds = new Set(),
+  applicationDetailsMap = new Map(),
+  hasSelectedJob = false,
 }: StudentListProps) {
   if (students.length === 0) {
     return (
@@ -36,6 +42,8 @@ export default function StudentList({
         <StudentCard
           key={student.id}
           student={student}
+          isRecruiter={isRecruiter}
+          onOpenConversation={onOpenConversation}
           hasApplied={hasSelectedJob && appliedStudentIds.has(student.id)}
           applicationDetails={applicationDetailsMap.get(student.id)}
         />

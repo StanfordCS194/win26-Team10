@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, AlertTriangle } from 'lucide-react'
+import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
 import { useApplyModal } from '../contexts/ApplyModalContext'
+import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation, subscribeToNewMessages } from '../lib/messaging'
+import type { Conversation, Message } from '../types/messaging'
 
 interface StudentProfile {
   firstName: string
@@ -185,6 +187,19 @@ export default function StudentDashboard() {
   const { openApplyModal: openApplyModalCtx } = useApplyModal()
   const navigate = useNavigate()
 
+  const [studentId, setStudentId] = useState<string | null>(null)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [latestMessages, setLatestMessages] = useState<Record<string, Message>>({})
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [threadMessages, setThreadMessages] = useState<Message[]>([])
+  const [threadLoading, setThreadLoading] = useState(false)
+  const [messageDraft, setMessageDraft] = useState('')
+  const [conversationsLoading, setConversationsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'jobs' | 'inbox'>('jobs')
+  const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
+  const [threadError, setThreadError] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
@@ -200,6 +215,7 @@ export default function StudentDashboard() {
       }
       if (session?.user?.id) {
         setStudentUserId(session.user.id)
+        setStudentId(session.user.id)
       }
 
       const savedProfile = localStorage.getItem('studentProfile')
@@ -348,6 +364,79 @@ export default function StudentDashboard() {
 
   const profileComplete = profile && profile.firstName && profile.lastName && profile.major
 
+  // Load conversations for student (where they are student_id)
+  useEffect(() => {
+    if (!studentId) return
+    let cancelled = false
+    setConversationsLoading(true)
+    getMyConversations(studentId)
+      .then((list) => {
+        if (cancelled) return
+        setConversations(list)
+        const ids = list.map((c) => c.id)
+        return getLatestMessagePerConversation(ids)
+      })
+      .then((latest) => {
+        if (cancelled) return
+        setLatestMessages(latest)
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load conversations', err)
+      })
+      .finally(() => {
+        if (!cancelled) setConversationsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [studentId])
+
+  // Load thread messages when selection changes
+  useEffect(() => {
+    if (!selectedConversationId) {
+      setThreadMessages([])
+      setThreadError(null)
+      setSendError(null)
+      return
+    }
+    let cancelled = false
+    setThreadError(null)
+    setThreadLoading(true)
+    getMessages(selectedConversationId)
+      .then((msgs) => {
+        if (!cancelled) setThreadMessages(msgs)
+      })
+      .catch((err) => {
+        if (!cancelled) setThreadError(err instanceof Error ? err.message : 'Failed to load messages')
+      })
+      .finally(() => {
+        if (!cancelled) setThreadLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [selectedConversationId])
+
+  // Real-time: subscribe to new messages in selected conversation
+  useEffect(() => {
+    if (!selectedConversationId) return
+    const unsubscribe = subscribeToNewMessages(selectedConversationId, (message) => {
+      setThreadMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev
+        return [...prev, message]
+      })
+    })
+    return unsubscribe
+  }, [selectedConversationId])
+
+  const handleSendMessage = async () => {
+    if (!selectedConversationId || !studentId || !messageDraft.trim()) return
+    setSendError(null)
+    try {
+      const msg = await sendMessageApi(selectedConversationId, studentId, messageDraft.trim())
+      setThreadMessages((prev) => [...prev, msg])
+      setMessageDraft('')
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : 'Failed to send')
+    }
+  }
+
   if (loading) {
     return <div className="dashboard-loading">Loading...</div>
   }
@@ -411,7 +500,38 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <div className="jobs-section">
+        {/* Tab bar: Open Positions | Inbox */}
+        <div className="dashboard-header dashboard-header-with-tabs student-dashboard-tabs">
+          <div className="dashboard-tabs">
+            <button
+              type="button"
+              className={`dashboard-tab ${viewMode === 'jobs' ? 'active' : ''}`}
+              onClick={() => setViewMode('jobs')}
+            >
+              <Briefcase size={18} />
+              Open Positions
+            </button>
+            <button
+              type="button"
+              className={`dashboard-tab ${viewMode === 'inbox' ? 'active' : ''}`}
+              onClick={() => setViewMode('inbox')}
+            >
+              <MessageSquare size={18} />
+              Inbox
+              {conversations.length > 0 && (
+                <span className="messages-badge">{conversations.length}</span>
+              )}
+            </button>
+          </div>
+          {viewMode === 'jobs' && (
+            <span className="dashboard-subtitle student-dashboard-subtitle">
+              {filteredJobs.length} of {jobs.length} jobs
+            </span>
+          )}
+        </div>
+
+        {viewMode === 'jobs' && (
+          <div className="jobs-section">
           <div className="jobs-header">
             <div className="jobs-header-top">
               <h2 className="jobs-title">
@@ -869,6 +989,175 @@ export default function StudentDashboard() {
             </div>
           )}
         </div>
+        )}
+
+        {viewMode === 'inbox' && (
+          <div className="student-inbox-view">
+            <h2 className="inbox-title">Inbox</h2>
+            <div className="inbox-filters">
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'unread' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('unread')}
+              >
+                Unread
+              </button>
+              <button
+                type="button"
+                className={`inbox-filter-btn ${inboxFilter === 'archived' ? 'active' : ''}`}
+                onClick={() => setInboxFilter('archived')}
+              >
+                Archived
+              </button>
+            </div>
+            <div className="messages-view student-messages-inner">
+              <div className="conversations-list">
+                {conversationsLoading ? (
+                  <div className="messages-loading">
+                    <Loader2 size={18} className="animate-spin" />
+                    Loading conversations...
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <div className="messages-empty">No messages yet. Recruiters can contact you from your profile.</div>
+                ) : (
+                  conversations.map((c) => {
+                    const latest = latestMessages[c.id]
+                    const isUnread = latest && latest.sender_id !== studentId
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''} ${isUnread ? 'has-unread' : ''}`}
+                        onClick={() => setSelectedConversationId(c.id)}
+                      >
+                        {isUnread && <span className="unread-dot" aria-hidden />}
+                        <span className="conversation-avatar" aria-hidden>R</span>
+                        <div className="conversation-row-content">
+                          <span className="conversation-name">Recruiter</span>
+                          {latest && (
+                            <span className="conversation-preview">
+                              {latest.body.slice(0, 40)}
+                              {latest.body.length > 40 ? '…' : ''}
+                            </span>
+                          )}
+                        </div>
+                        {latest && (
+                          <span className="conversation-date">
+                            {new Date(latest.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+              <div className="thread-panel">
+                {!selectedConversationId ? (
+                  <div className="thread-placeholder">
+                    Select a conversation to view messages and reply.
+                  </div>
+                ) : (
+                  <>
+                    <div className="thread-header">
+                      <button
+                        type="button"
+                        className="thread-back"
+                        onClick={() => setSelectedConversationId(null)}
+                        aria-label="Back to list"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <div className="thread-header-info">
+                        <span className="thread-title">Recruiter</span>
+                        <span className="thread-subtitle">Recruiter</span>
+                      </div>
+                    </div>
+                    <div className="thread-messages">
+                      {threadError ? (
+                        <div className="messages-error" role="alert">
+                          <AlertCircle size={18} />
+                          {threadError}
+                          <button
+                            type="button"
+                            className="messages-retry"
+                            onClick={() => {
+                              setThreadError(null)
+                              if (!selectedConversationId) return
+                              setThreadLoading(true)
+                              getMessages(selectedConversationId)
+                                .then(setThreadMessages)
+                                .catch((err) => setThreadError(err instanceof Error ? err.message : 'Failed to load messages'))
+                                .finally(() => setThreadLoading(false))
+                            }}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : threadLoading ? (
+                        <div className="messages-loading">
+                          <Loader2 size={18} className="animate-spin" />
+                          Loading messages...
+                        </div>
+                      ) : (
+                        threadMessages.map((m) => (
+                          <div
+                            key={m.id}
+                            className={`thread-message ${m.sender_id === studentId ? 'sent' : 'received'}`}
+                          >
+                            <p className="thread-message-body">{m.body}</p>
+                            <span className="thread-message-time">
+                              {new Date(m.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {sendError && (
+                      <div className="messages-send-error" role="alert">
+                        <AlertCircle size={16} />
+                        {sendError}
+                      </div>
+                    )}
+                    <form
+                      className="thread-compose"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }}
+                    >
+                      <div className="thread-compose-icons">
+                        <button type="button" className="thread-compose-icon" aria-label="Format" disabled>
+                          <Type size={18} />
+                        </button>
+                        <button type="button" className="thread-compose-icon" aria-label="Attach" disabled>
+                          <Paperclip size={18} />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        className="thread-input"
+                        placeholder="Type a message"
+                        value={messageDraft}
+                        onChange={(e) => setMessageDraft(e.target.value)}
+                        aria-label="Message"
+                      />
+                      <button type="submit" className="thread-send" aria-label="Send">
+                        <Send size={18} />
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {mismatchConfirmJob && (
