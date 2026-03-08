@@ -1,19 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
-import { MAJORS, GRADUATION_YEARS, ALL_SKILLS } from '../types/student'
+import { MAJORS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
 import { supabase } from '../lib/supabase'
+import universities from '../data/universities.json'
 
 interface StudentProfile {
   firstName: string
   lastName: string
+  school: string
   major: string
   graduationYear: string
   gpa: string
   skills: string[]
+  workAuthorization?: string
   isComplete?: boolean
   updatedAt?: string
   latestReprPath?: string
+  resumePath?: string
 }
 
 interface UploadedFile {
@@ -84,6 +88,7 @@ type StandardizedTranscript = {
 const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
+  school: '',
   major: '',
   graduationYear: '',
   gpa: '',
@@ -103,13 +108,63 @@ export default function StudentPage() {
   const setJobId = useState<string | null>(null)[1]
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
+  const [transcriptStats, setTranscriptStats] = useState<any>(null)
+  const [transcriptAnalysis, setTranscriptAnalysis] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
+  // Resume state
+  const [uploadedResume, setUploadedResume] = useState<UploadedFile | null>(null)
+  const [resumeUploading, setResumeUploading] = useState(false)
+  const [resumeError, setResumeError] = useState<string | null>(null)
+
+  // School autocomplete state
+  const [schoolInput, setSchoolInput] = useState('')
+  const [showSchoolDropdown, setShowSchoolDropdown] = useState(false)
+  const [filteredSchools, setFilteredSchools] = useState<string[]>([])
+  const schoolInputRef = useRef<HTMLInputElement>(null)
+  const schoolDropdownRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     fetchProfile()
+  }, [])
+
+  // Initialize school input when profile loads
+  useEffect(() => {
+    if (profile.school) {
+      setSchoolInput(profile.school)
+    }
+  }, [profile.school])
+
+  // Filter schools based on input
+  useEffect(() => {
+    if (schoolInput.trim()) {
+      const filtered = universities.filter((school) =>
+        school.toLowerCase().includes(schoolInput.toLowerCase())
+      )
+      setFilteredSchools(filtered.slice(0, 10)) // Show max 10 results
+    } else {
+      setFilteredSchools([])
+    }
+  }, [schoolInput])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        schoolDropdownRef.current &&
+        !schoolDropdownRef.current.contains(event.target as Node) &&
+        schoolInputRef.current &&
+        !schoolInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSchoolDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const fetchProfile = async () => {
@@ -126,20 +181,63 @@ export default function StudentPage() {
         setProfile({
           firstName: data.first_name ?? '',
           lastName: data.last_name ?? '',
+          school: data.school ?? '',
           major: data.major ?? '',
           graduationYear: data.graduation_year ?? '',
           gpa: data.gpa ? String(data.gpa) : '',
           skills: data.skills ?? [],
+          workAuthorization: data.work_authorization ?? '',
           isComplete: data.is_complete ?? false,
           updatedAt: data.updated_at,
           latestReprPath: data.latest_repr_path,
+          resumePath: data.resume_path,
         })
         if (data.latest_repr_path) {
-          fetchTranscript(token)
+          fetchTranscriptDetail(token)
+        }
+        if (data.resume_path) {
+          setUploadedResume({
+            name: data.resume_path.split('/').pop() || 'resume',
+            size: 0,
+            type: data.resume_path.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            preview: null,
+          })
         }
       }
     } catch (err) {
       console.error('Failed to fetch profile:', err)
+    }
+  }
+
+  const fetchTranscriptDetail = async (token: string) => {
+    try {
+      const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (detailRes.ok) {
+        const detail = await detailRes.json()
+        // Use data from the detail table
+        if (detail.transcript_raw) {
+          setTranscriptJson(detail.transcript_raw)
+        }
+        if (detail.transcript_stats) {
+          setTranscriptStats(detail.transcript_stats)
+        }
+        if (detail.transcript_analysis) {
+          setTranscriptAnalysis(detail.transcript_analysis)
+        }
+        
+        if (!detail.transcript_raw) {
+          // Fallback to old method if detail table not yet fully populated
+          fetchTranscript(token)
+        }
+      } else {
+        // Fallback to old method
+        fetchTranscript(token)
+      }
+    } catch (err) {
+      console.error('Failed to fetch transcript detail:', err)
+      fetchTranscript(token)
     }
   }
 
@@ -182,11 +280,11 @@ export default function StudentPage() {
       throw new Error('You must be logged in to parse a transcript.')
     }
 
-    // 1) Upload PDF → POST /parse (multipart form field name: "file")
+    // 1) Upload PDF → POST /transcript/parse (multipart form field name: "file")
     const form = new FormData()
     form.append('file', file)
 
-    const parseRes = await fetch(`${API_BASE}/parse`, {
+    const parseRes = await fetch(`${API_BASE}/transcript/parse`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -206,7 +304,7 @@ export default function StudentPage() {
     while (true) {
       await new Promise((r) => setTimeout(r, 1500))
 
-      const statusRes = await fetch(`${API_BASE}/parse/${parseBody.job_id}`, {
+      const statusRes = await fetch(`${API_BASE}/transcript/parse/${parseBody.job_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -226,19 +324,32 @@ export default function StudentPage() {
     }
 
     // 3) Fetch transcript JSON
-    const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
+    const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    if (!transcriptRes.ok) {
-      throw new Error(await transcriptRes.text())
-    }
+    if (detailRes.ok) {
+      const detail = await detailRes.json()
+      if (detail.transcript_raw) setTranscriptJson(detail.transcript_raw)
+      if (detail.transcript_stats) setTranscriptStats(detail.transcript_stats)
+      if (detail.transcript_analysis) setTranscriptAnalysis(detail.transcript_analysis)
+      setParseStatus('done')
+    } else {
+      // Fallback
+      const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-    // backend currently returns JSONResponse(content=<string>), so handle both string and object
-    const raw = await transcriptRes.json()
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
-    setTranscriptJson(parsed)
-    setParseStatus('done')
+      if (!transcriptRes.ok) {
+        throw new Error(await transcriptRes.text())
+      }
+
+      // backend currently returns JSONResponse(content=<string>), so handle both string and object
+      const raw = await transcriptRes.json()
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+      setTranscriptJson(parsed)
+      setParseStatus('done')
+    }
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
@@ -304,12 +415,68 @@ export default function StudentPage() {
     setParseError(null)
   }
 
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const fileName = file.name.toLowerCase()
+    if (!fileName.endsWith('.pdf') && !fileName.endsWith('.docx')) {
+      setResumeError('Only PDF and DOCX files are supported')
+      return
+    }
+
+    setUploadedResume({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      preview: null,
+    })
+    setResumeError(null)
+
+    // Upload immediately
+    setResumeUploading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) throw new Error('You must be logged in to upload a resume.')
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch(`${API_BASE}/upload_resume`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+
+      const data = await res.json()
+      setProfile((prev) => ({ ...prev, resumePath: data.resume_path }))
+    } catch (err) {
+      setResumeError(err instanceof Error ? err.message : 'Failed to upload resume')
+      setUploadedResume(null)
+    } finally {
+      setResumeUploading(false)
+    }
+  }
+
+  const removeResume = () => {
+    setUploadedResume(null)
+    setResumeError(null)
+  }
+
   const handleSave = async () => {
     setValidationErrors([])
     const errors: string[] = []
 
     if (!profile.firstName) errors.push('First name is required')
     if (!profile.lastName) errors.push('Last name is required')
+    if (!profile.school) errors.push('School is required')
     if (!profile.major) errors.push('Major is required')
     if (!profile.graduationYear) errors.push('Graduation year is required')
     if (!profile.gpa) errors.push('GPA is required')
@@ -335,10 +502,12 @@ export default function StudentPage() {
         body: JSON.stringify({
           first_name: profile.firstName,
           last_name: profile.lastName,
+          school: profile.school,
           major: profile.major,
           graduation_year: profile.graduationYear,
           gpa: parseFloat(profile.gpa),
           skills: profile.skills,
+          work_authorization: profile.workAuthorization || null,
         }),
       })
 
@@ -355,9 +524,11 @@ export default function StudentPage() {
       localStorage.setItem('studentProfile', JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
+        school: profile.school,
         major: profile.major,
         graduationYear: profile.graduationYear,
         gpa: profile.gpa,
+        workAuthorization: profile.workAuthorization || '',
       }))
       setTimeout(() => {
         navigate('/student/dashboard')
@@ -434,6 +605,67 @@ export default function StudentPage() {
             </div>
           </div>
 
+          <div className="form-group" style={{ position: 'relative' }}>
+            <label>School</label>
+            <input
+              ref={schoolInputRef}
+              type="text"
+              value={schoolInput}
+              onChange={(e) => {
+                setSchoolInput(e.target.value)
+                setShowSchoolDropdown(true)
+              }}
+              onFocus={() => setShowSchoolDropdown(true)}
+              className="input"
+              placeholder="Start typing your school name..."
+              autoComplete="off"
+            />
+            {showSchoolDropdown && filteredSchools.length > 0 && (
+              <div
+                ref={schoolDropdownRef}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  marginTop: '4px',
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  zIndex: 1000,
+                }}
+              >
+                {filteredSchools.map((school) => (
+                  <div
+                    key={school}
+                    onClick={() => {
+                      setSchoolInput(school)
+                      updateProfile('school', school)
+                      setShowSchoolDropdown(false)
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #f1f5f9',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f8fafc'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white'
+                    }}
+                  >
+                    {school}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label>Major</label>
@@ -467,18 +699,38 @@ export default function StudentPage() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label>GPA</label>
-            <input
-              type="number"
-              min="0"
-              max="4"
-              step="0.01"
-              value={profile.gpa}
-              onChange={(e) => updateProfile('gpa', e.target.value)}
-              className="input input-small"
-              placeholder="3.50"
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label>GPA</label>
+              <input
+                type="number"
+                min="0"
+                max="4"
+                step="0.01"
+                value={profile.gpa}
+                onChange={(e) => updateProfile('gpa', e.target.value)}
+                className="input input-small"
+                placeholder="3.50"
+              />
+            </div>
+            <div className="form-group">
+              <label>Work Authorization</label>
+              <select
+                value={profile.workAuthorization ?? ''}
+                onChange={(e) => updateProfile('workAuthorization', e.target.value)}
+                className="select"
+              >
+                <option value="">Select (optional)</option>
+                {WORK_AUTH_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                Required by some jobs. Add this to see accurate match checks.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -626,12 +878,74 @@ export default function StudentPage() {
           )}
 
           {/* Nicely formatted transcript view */}
+          {transcriptStats && (
+            <div style={{ marginTop: 24, marginBottom: 24 }}>
+              <h3 className="section-title" style={{ marginBottom: 16 }}>Academic Performance</h3>
+              <div className="form-row" style={{ gap: 16 }}>
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, display: 'block' }}>Universal Percentile</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b' }}>
+                      {transcriptStats.universal_scores?.weighted_percentile ?? '—'}
+                    </span>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>%</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4, marginBottom: 0 }}>Across all courses</p>
+                </div>
+                
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#f0f9ff', padding: 16, borderRadius: 12, border: '1px solid #bae6fd' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0369a1', marginBottom: 8, display: 'block' }}>Major Percentile</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0c4a6e' }}>
+                      {transcriptStats.major_scores?.weighted_percentile ?? '—'}
+                    </span>
+                    <span style={{ color: '#0369a1', fontWeight: 500 }}>%</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#0369a1', marginTop: 4, marginBottom: 0 }}>
+                    {transcriptStats.major_scores?.heuristic_note?.split("'")[1] ?? 'Major'} courses
+                  </p>
+                </div>
+
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#fdf2f8', padding: 16, borderRadius: 12, border: '1px solid #fbcfe8' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9d174d', marginBottom: 8, display: 'block' }}>Weighted GPA</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#831843' }}>
+                      {transcriptStats.universal_scores?.weighted_gpa?.toFixed(3) ?? '—'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#9d174d', marginTop: 4, marginBottom: 0 }}>Official transcript GPA</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {transcript && (
             <div style={{ marginTop: 16 }}>
               <div className="form-section" style={{ padding: 0, border: 'none' }}>
-                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Parse</h3>
+                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Details</h3>
+                
+                {transcriptAnalysis && (
+                  <div style={{ marginBottom: 24, backgroundColor: '#fdfaff', padding: 20, borderRadius: 12, border: '1px solid #e9d5ff' }}>
+                    <h4 style={{ color: '#6b21a8', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Qualitative Analysis</h4>
+                    <p style={{ color: '#581c87', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+                      {transcriptAnalysis.topic_rating?.program_performance}
+                    </p>
+                    
+                    {transcriptAnalysis.categories && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 16 }}>
+                        {Object.entries(transcriptAnalysis.categories).map(([key, cat]: [string, any]) => (
+                          <div key={key} style={{ backgroundColor: 'white', padding: 10, borderRadius: 8, border: '1px solid #f3e8ff' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#7e22ce', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#6b21a8' }}>{cat.score}/10</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <p className="section-description" style={{ marginTop: 0 }}>
-                  Schema v{transcript.schema_version} • Extracted {new Date(transcript.extracted_at).toLocaleString()}
+                  Schema v{transcript.schema_version} • {transcript.extracted_at ? `Extracted ${new Date(transcript.extracted_at).toLocaleString()}` : 'Standardized Transcript'}
                 </p>
 
                 {/* Summary cards */}
@@ -765,6 +1079,129 @@ export default function StudentPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </section>
+
+        {/* Resume Upload Section */}
+        <section className="form-section">
+          <h2 className="section-title">Resume</h2>
+          <p className="section-description">
+            Upload your resume (PDF or DOCX format)
+          </p>
+
+          {profile.resumePath && !uploadedResume && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              backgroundColor: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #bcf0da',
+              marginBottom: 12
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={18} color="#16a34a" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: '#16a34a' }}>
+                  Resume on file
+                </span>
+              </div>
+              <Check size={18} color="#16a34a" />
+            </div>
+          )}
+
+          {!uploadedResume ? (
+            <label 
+              className="upload-area"
+              style={{
+                border: '2px dashed #ccc',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 20px',
+                borderRadius: '8px',
+                gap: '8px'
+              }}
+            >
+              <Upload size={32} color="#666" />
+              <span style={{ fontWeight: 500 }}>
+                Click to upload resume
+              </span>
+              <small style={{ color: '#666' }}>PDF or DOCX (max 10MB)</small>
+              <input
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleResumeUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+          ) : (
+            <div className="uploaded-file" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '16px',
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <div className="file-info" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: 8, 
+                  backgroundColor: '#fff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <FileText size={24} color="#4a90e2" />
+                </div>
+                <div>
+                  <p className="file-name" style={{ margin: 0, fontWeight: 500, color: '#1e293b' }}>{uploadedResume.name}</p>
+                  {uploadedResume.size > 0 && (
+                    <p className="file-size" style={{ margin: 0, fontSize: '0.85em', color: '#64748b' }}>{formatFileSize(uploadedResume.size)}</p>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {!resumeUploading && <Check size={20} color="#10b981" />}
+                {resumeUploading && <Loader2 className="animate-spin" size={20} color="#4a90e2" />}
+                <button 
+                  onClick={removeResume} 
+                  className="remove-file-btn"
+                  style={{
+                    padding: 8,
+                    borderRadius: '50%',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {resumeError && (
+            <p className="section-description" style={{ color: 'crimson', marginTop: 8 }}>
+              {resumeError}
+            </p>
+          )}
+
+          {resumeUploading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, color: '#4a90e2' }}>
+              <Loader2 className="animate-spin" size={20} />
+              <p className="section-description" style={{ margin: 0 }}>
+                Uploading resume...
+              </p>
             </div>
           )}
         </section>

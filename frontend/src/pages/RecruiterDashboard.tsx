@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Users, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
 import StudentList from '../components/StudentList'
+import PostJobModal from '../components/PostJobModal'
 import { supabase } from '../lib/supabase'
 import {
   getMyConversations,
@@ -15,16 +17,51 @@ import {
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
+const POST_JOB_OPEN_KEY = 'postJobModalOpen'
+
+type CompanyMembershipRow = {
+  company_id: string
+  status: 'pending' | 'approved' | 'rejected'
+  companies: { id: string; name: string } | null
+}
+
+type CompanyJobRow = {
+  id: string
+  title: string
+  location: string
+  type: string
+  created_at: string
+  is_active: boolean
+  preferred_majors: string[] | null
+  preferred_grad_years: string[] | null
+  min_gpa: number | null
+  required_work_authorization: string | null
+}
+
+type ApplicantRow = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  major: string | null
+  graduation_year: string | null
+  gpa: number | null
+  skills: string[] | null
+  latest_repr_path: string | null
+  work_authorization: string | null
+  resume_path: string | null
+}
+
 const initialFilters: Filters = {
   search: '',
-  minGpa: 0,
+  minGpa: 0.1,
   maxGpa: 4,
   major: '',
   graduationYear: '',
   skills: [],
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 function filterStudents(students: Student[], filters: Filters): Student[] {
   return students.filter((student) => {
@@ -59,9 +96,63 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
   })
 }
 
+function mapApplicantToStudent(row: ApplicantRow): Student {
+  return {
+    id: row.id,
+    firstName: row.first_name || 'Unknown',
+    lastName: row.last_name || 'Student',
+    email: row.email || '',
+    gpa: row.gpa ?? 0,
+    major: row.major || 'Undeclared',
+    graduationYear: parseInt(row.graduation_year || '0') || 0,
+    skills: row.skills || [],
+    transcriptUploaded: !!row.latest_repr_path,
+    transcript: row.latest_repr_path ? 'supabase' : null,
+    resumeUploaded: !!row.resume_path,
+    resumePath: row.resume_path ?? undefined,
+    workAuthorization: row.work_authorization ?? null,
+  }
+}
+
+function mergeWithMockStudents(dbStudents: Student[]): Student[] {
+  const byId = new Map<string, Student>()
+  for (const student of dbStudents) {
+    byId.set(student.id, student)
+  }
+  for (const mockStudent of mockStudents) {
+    if (!byId.has(mockStudent.id)) {
+      byId.set(mockStudent.id, mockStudent)
+    }
+  }
+  return Array.from(byId.values())
+}
+
+function isStudentQualified(student: Student, job: CompanyJobRow | null): boolean {
+  if (!job) return true
+
+  if (job.preferred_majors && job.preferred_majors.length > 0) {
+    if (!job.preferred_majors.includes(student.major)) return false
+  }
+
+  if (job.preferred_grad_years && job.preferred_grad_years.length > 0) {
+    if (!job.preferred_grad_years.includes(String(student.graduationYear))) return false
+  }
+
+  if (job.min_gpa != null) {
+    if (student.gpa < job.min_gpa) return false
+  }
+
+  if (job.required_work_authorization) {
+    if (!student.workAuthorization || student.workAuthorization !== job.required_work_authorization) {
+      return false
+    }
+  }
+
+  return true
+}
+
 export default function RecruiterDashboard() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [complete, setComplete] = useState<Array<any> | null>(null)
   const [filters, setFilters] = useState<Filters>(initialFilters)
   const [openConversationId, setOpenConversationId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'directory' | 'messages'>('directory')
@@ -78,6 +169,22 @@ export default function RecruiterDashboard() {
   const [sendError, setSendError] = useState<string | null>(null)
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
 
+  const [showPostJob, setShowPostJob] = useState(
+    () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
+  )
+  const [jobPostedBanner, setJobPostedBanner] = useState(false)
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState<string | null>(null)
+  const [companyJobs, setCompanyJobs] = useState<CompanyJobRow[]>([])
+  const [directoryStudents, setDirectoryStudents] = useState<Student[]>([])
+  const [appliedStudentIds, setAppliedStudentIds] = useState<Set<string>>(new Set())
+  const [applicationDetailsMap, setApplicationDetailsMap] = useState<Map<string, { work_authorization: string | null; message_to_recruiter: string | null }>>(new Map())
+  const [selectedJobId, setSelectedJobId] = useState<string>('')
+  const [showAppliedOnly, setShowAppliedOnly] = useState(false)
+  const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
+  const [companyJobsLoading, setCompanyJobsLoading] = useState(true)
+  const [companyJobsError, setCompanyJobsError] = useState('')
+
   // When openConversationId is set (from StudentCard or URL), switch to Messages and select it
   useEffect(() => {
     const fromUrl = searchParams.get('openConversation')
@@ -91,37 +198,136 @@ export default function RecruiterDashboard() {
   }, [openConversationId, searchParams, setSearchParams])
 
   useEffect(() => {
-    async function load() {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-      if (!token) {
-        throw new Error('You must be logged in to access transcripts.')
-      }
-      if (session?.user?.id) setRecruiterId(session.user.id)
+    async function loadCompanyAndStudents() {
+      setCompanyJobsLoading(true)
+      setCompanyJobsError('')
 
-      const users = await fetch(`${API_BASE}/get_users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        const userId = session?.user?.id
+        if (!userId) {
+          setCompanyJobsError('You must be signed in.')
+          setCompanyJobsLoading(false)
+          return
+        }
+        setRecruiterId(userId)
 
-      if (!users.ok) {
-        throw new Error(await users.text())
-      }
+        const { data: membership, error: membershipError } = await supabase
+          .from('company_memberships')
+          .select('company_id, status, companies(id, name)')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .limit(1)
+          .maybeSingle()
 
-      const allUsers = await users.json()
-      const allStudents = allUsers.filter((user: any) => user.type === 'student')
-      const studentsWithApplicants = await Promise.all(
-        allStudents.map(async (student: any) => {
-          const applicantRes = await fetch(`${API_BASE}/get_specific_profile/${student.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          const applicant = applicantRes.ok ? await applicantRes.json() : null
-          return { ...student, applicant }
+        if (membershipError) throw membershipError
+
+        const resolvedMembership = membership as CompanyMembershipRow | null
+        const resolvedCompanyId = resolvedMembership?.company_id ?? null
+        const resolvedCompanyName = resolvedMembership?.companies?.name ?? null
+
+        setCompanyId(resolvedCompanyId)
+        setCompanyName(resolvedCompanyName)
+
+        if (!resolvedCompanyId) {
+          setCompanyJobs([])
+          setDirectoryStudents([])
+          setCompanyJobsError('No approved company is linked to this recruiter account yet.')
+          setCompanyJobsLoading(false)
+          return
+        }
+
+        const { data: jobs, error: jobsError } = await supabase
+          .from('jobs')
+          .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
+          .eq('company_id', resolvedCompanyId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+
+        if (jobsError) throw jobsError
+
+        const companyJobsRows = (jobs || []) as CompanyJobRow[]
+        setCompanyJobs(companyJobsRows)
+        setSelectedJobId((prev) => {
+          if (prev && companyJobsRows.some(job => job.id === prev)) return prev
+          return companyJobsRows[0]?.id || ''
         })
-      )
-      setComplete(studentsWithApplicants);
+
+        const { data: applicants, error: applicantsError } = await supabase
+          .from('applicants')
+          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
+
+        if (applicantsError) throw applicantsError
+
+        const { data: analyses, error: analysesError } = await supabase
+          .from('applicants_detail')
+          .select('id, transcript_stats, transcript_analysis')
+
+        if (analysesError) throw analysesError
+
+        const mappedStudents = ((applicants || []) as ApplicantRow[]).map(mapApplicantToStudent)
+
+        const analysesMap = new Map((analyses || []).map(a => [a.id, a]))
+        const studentsWithAnalyses = mappedStudents.map(student => {
+          const analysis = analysesMap.get(student.id)
+          if (!analysis) return student
+          return {
+            ...student,
+            transcript_stats: analysis.transcript_stats ?? null,
+            transcript_analysis: analysis.transcript_analysis ?? null,
+          }
+        })
+
+        setDirectoryStudents(mergeWithMockStudents(studentsWithAnalyses))
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to load company data.'
+        setCompanyJobsError(message)
+      } finally {
+        setCompanyJobsLoading(false)
+      }
     }
-    load();
-  }, []);
+
+    loadCompanyAndStudents()
+  }, [jobPostedBanner])
+
+  useEffect(() => {
+    async function loadApplicationsForSelectedJob() {
+      if (!selectedJobId) {
+        setAppliedStudentIds(new Set())
+        setApplicationDetailsMap(new Map())
+        setShowAppliedOnly(false)
+        setShowQualifiedOnly(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('student_id, work_authorization, message_to_recruiter')
+        .eq('job_id', selectedJobId)
+
+      if (error) {
+        console.error('Failed to load applications:', error)
+        setAppliedStudentIds(new Set())
+        setApplicationDetailsMap(new Map())
+        return
+      }
+
+      const rows = data || []
+      setAppliedStudentIds(new Set(rows.map(row => row.student_id as string)))
+      const detailsMap = new Map<string, { work_authorization: string | null; message_to_recruiter: string | null }>()
+      for (const row of rows) {
+        detailsMap.set(row.student_id as string, {
+          work_authorization: row.work_authorization ?? null,
+          message_to_recruiter: row.message_to_recruiter ?? null,
+        })
+      }
+      setApplicationDetailsMap(detailsMap)
+    }
+
+    loadApplicationsForSelectedJob()
+  }, [selectedJobId])
 
   // Load conversations and previews when in Messages view
   useEffect(() => {
@@ -228,41 +434,42 @@ export default function RecruiterDashboard() {
   const selectedStudentName = selectedConversation
     ? studentNames[selectedConversation.student_id] ?? 'Student'
     : ''
-  const loadedStudents = []
-  if (complete != null) {
-    const allStudents = complete
-    for (const student of allStudents) {
-      const applicant = student.applicant
-      if (!applicant) continue
-      const newStudent = {
-        id: student.id,
-        firstName: applicant.first_name ?? '',
-        lastName: applicant.last_name ?? '',
-        email: applicant.email ?? '',
-        gpa: applicant.gpa ?? -1,
-        major: applicant.major ?? '',
-        graduationYear: applicant.graduation_year ?? 0,
-        skills: applicant.skills ?? [],
-        transcriptUploaded: !!applicant.latest_repr_path,
-        transcript: null,
-      }
-      loadedStudents.push(newStudent)
-    }
-  }
-  const mockStudentsIDs = []
-  for (const student of mockStudents) {
-    mockStudentsIDs.push(student.id)
-  }
-  for (const student of loadedStudents) {
-    if (!mockStudentsIDs.includes(student.id)) {
-      mockStudents.push(student)
-    }
-  }
-  const filteredStudents = useMemo(
-    () => filterStudents(mockStudents, filters),
-    [filters, complete]
+
+  const selectedJob = useMemo(
+    () => companyJobs.find(job => job.id === selectedJobId) ?? null,
+    [companyJobs, selectedJobId]
   )
-  if (!complete) return <div>Loading...</div>
+
+  const filteredStudents = useMemo(() => {
+    let students = filterStudents(directoryStudents, filters)
+
+    if (showAppliedOnly && selectedJobId) {
+      students = students.filter(student => appliedStudentIds.has(student.id))
+    }
+
+    if (showQualifiedOnly) {
+      students = students.filter(student => isStudentQualified(student, selectedJob))
+    }
+
+    return students
+  }, [directoryStudents, filters, showAppliedOnly, showQualifiedOnly, selectedJobId, appliedStudentIds, selectedJob])
+
+  const handleJobSuccess = () => {
+    setJobPostedBanner(true)
+    setTimeout(() => setJobPostedBanner(false), 4000)
+  }
+
+  const openPostJob = () => {
+    sessionStorage.setItem(POST_JOB_OPEN_KEY, 'true')
+    setShowPostJob(true)
+  }
+
+  const closePostJob = () => {
+    sessionStorage.removeItem(POST_JOB_OPEN_KEY)
+    setShowPostJob(false)
+  }
+
+  const hasSelectedJob = !!selectedJobId
 
   return (
     <div className="dashboard">
@@ -289,16 +496,108 @@ export default function RecruiterDashboard() {
             </button>
           </div>
           {viewMode === 'directory' && (
-            <p className="dashboard-subtitle">
-              Showing {filteredStudents.length} of {mockStudents.length} students
-            </p>
+            <>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <p className="dashboard-subtitle">
+                    Showing {filteredStudents.length} of {directoryStudents.length} students
+                  </p>
+                  <p className="dashboard-subtitle">Company: {companyName ?? 'Not linked'}</p>
+                </div>
+                <button className="post-job-btn" onClick={openPostJob}>
+                  <Plus size={16} />
+                  Post a Job
+                </button>
+              </div>
+              {jobPostedBanner && (
+                <div className="success-banner" style={{ marginTop: '0.5rem' }}>
+                  <CheckCircle size={18} />
+                  Job posted successfully!
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {viewMode === 'directory' && (
           <>
+            <div className="form-section" style={{ marginBottom: '1rem' }}>
+              <h3 className="section-title" style={{ marginBottom: '0.5rem' }}>
+                My Company Live Jobs
+              </h3>
+              {companyJobsLoading ? (
+                <p className="section-description">Loading jobs...</p>
+              ) : companyJobsError ? (
+                <p className="section-description" style={{ color: '#b91c1c' }}>
+                  {companyJobsError}
+                </p>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: '#fff',
+                    }}
+                  >
+                    <p className="section-description" style={{ margin: 0 }}>
+                      {companyJobs.length} live {companyJobs.length === 1 ? 'job' : 'jobs'} posted for{' '}
+                      {companyName}.
+                    </p>
+                    <Link to="/recruiter/jobs" className="post-job-btn" style={{ textDecoration: 'none' }}>
+                      View all
+                    </Link>
+                  </div>
+
+                  <div className="form-row" style={{ marginTop: '1rem' }}>
+                    <div className="form-group">
+                      <label className="filter-label">Adapt directory to job</label>
+                      <select
+                        className="select"
+                        value={selectedJobId}
+                        onChange={(e) => setSelectedJobId(e.target.value)}
+                      >
+                        <option value="">
+                          {companyJobs.length === 0 ? 'No live jobs available' : 'No job selected'}
+                        </option>
+                        {companyJobs.map((job) => (
+                          <option key={job.id} value={job.id}>
+                            {job.title} ({job.type})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
+                      <button
+                        className={`match-filter-btn${showAppliedOnly ? ' active' : ''}`}
+                        onClick={() => setShowAppliedOnly(!showAppliedOnly)}
+                        disabled={!hasSelectedJob}
+                      >
+                        Applied
+                      </button>
+                      <button
+                        className={`match-filter-btn${showQualifiedOnly ? ' active' : ''}`}
+                        onClick={() => setShowQualifiedOnly(!showQualifiedOnly)}
+                        disabled={!hasSelectedJob}
+                      >
+                        Qualified
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             <StudentList
               students={filteredStudents}
+              appliedStudentIds={appliedStudentIds}
+              applicationDetailsMap={applicationDetailsMap}
+              hasSelectedJob={hasSelectedJob}
               isRecruiter
               onOpenConversation={setOpenConversationId}
             />
@@ -475,6 +774,15 @@ export default function RecruiterDashboard() {
           </div>
         )}
       </main>
+
+      {showPostJob && (
+        <PostJobModal
+          onClose={closePostJob}
+          onSuccess={handleJobSuccess}
+          companyId={companyId}
+          companyName={companyName}
+        />
+      )}
     </div>
   )
 }

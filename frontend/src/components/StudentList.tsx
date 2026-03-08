@@ -2,13 +2,30 @@ import { Users } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentCard from './StudentCard'
 
-interface StudentListProps {
-  students: Student[]
-  isRecruiter?: boolean
-  onOpenConversation?: (conversationId: string) => void
+export interface ApplicationDetails {
+  work_authorization: string | null
+  message_to_recruiter: string | null
 }
 
-export default function StudentList({ students, isRecruiter, onOpenConversation }: StudentListProps) {
+interface StudentListProps {
+  students: Student[]
+  /** Recruiter view: show Message button and open conversation on click */
+  isRecruiter?: boolean
+  onOpenConversation?: (conversationId: string) => void
+  /** When set, show applied badge and application details per student */
+  appliedStudentIds?: Set<string>
+  applicationDetailsMap?: Map<string, ApplicationDetails>
+  hasSelectedJob?: boolean
+}
+
+export default function StudentList({
+  students,
+  isRecruiter,
+  onOpenConversation,
+  appliedStudentIds = new Set(),
+  applicationDetailsMap = new Map(),
+  hasSelectedJob = false,
+}: StudentListProps) {
   if (students.length === 0) {
     return (
       <div className="empty-state">
@@ -27,6 +44,8 @@ export default function StudentList({ students, isRecruiter, onOpenConversation 
           student={student}
           isRecruiter={isRecruiter}
           onOpenConversation={onOpenConversation}
+          hasApplied={hasSelectedJob && appliedStudentIds.has(student.id)}
+          applicationDetails={applicationDetailsMap.get(student.id)}
         />
       ))}
     </div>

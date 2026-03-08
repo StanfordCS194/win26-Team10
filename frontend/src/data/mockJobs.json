@@ -10,8 +10,11 @@
     "posted": "2 days ago",
     "description": "Join our team to build scalable systems and work on products used by billions of people worldwide.",
     "skills": ["Python", "Java", "Distributed Systems"],
-    "requirements": ["Currently pursuing BS/MS in Computer Science", "Strong coding skills", "Experience with data structures and algorithms"],
-    "benefits": ["Free meals", "Housing stipend", "Mentorship program"]
+    "requirements": ["Currently pursuing BS/MS in Computer Science or related field", "Strong coding skills in Python or Java", "Experience with data structures and algorithms"],
+    "benefits": ["Free meals", "Housing stipend", "Mentorship program"],
+    "preferred_majors": ["Computer Science", "Electrical Engineering"],
+    "preferred_grad_years": ["2026", "2027"],
+    "min_gpa": 3.5
   },
   {
     "id": "2",
@@ -19,13 +22,16 @@
     "company": "Stripe",
     "location": "San Francisco, CA",
     "type": "Full-time",
-    "salary": "$150k - $200k",
+    "salary": "$150k–$200k",
     "salaryMin": 150000,
     "posted": "1 week ago",
     "description": "Build beautiful, performant interfaces for the future of online payments.",
     "skills": ["React", "TypeScript", "CSS"],
     "requirements": ["3+ years of frontend experience", "Strong understanding of web fundamentals", "Experience with design systems"],
-    "benefits": ["Competitive equity", "Remote-friendly", "Learning & development budget"]
+    "benefits": ["Competitive equity", "Remote-friendly", "Learning & development budget"],
+    "preferred_majors": ["Computer Science", "Mathematics"],
+    "preferred_grad_years": ["2025", "2026"],
+    "min_gpa": 3.2
   },
   {
     "id": "3",
@@ -39,7 +45,10 @@
     "description": "Apply ML techniques to solve problems at massive scale across Facebook, Instagram, and WhatsApp.",
     "skills": ["Python", "Machine Learning", "SQL"],
     "requirements": ["Pursuing degree in CS, Statistics, or related field", "Experience with ML frameworks", "Strong analytical skills"],
-    "benefits": ["Relocation assistance", "Wellness programs", "Team events"]
+    "benefits": ["Relocation assistance", "Wellness programs", "Team events"],
+    "preferred_majors": ["Computer Science", "Data Science", "Mathematics"],
+    "preferred_grad_years": ["2026", "2027"],
+    "min_gpa": 3.3
   },
   {
     "id": "4",
@@ -47,13 +56,16 @@
     "company": "Airbnb",
     "location": "Remote",
     "type": "Full-time",
-    "salary": "$140k - $180k",
+    "salary": "$140k–$180k",
     "salaryMin": 140000,
     "posted": "5 days ago",
     "description": "Design and implement services that power the global travel platform serving millions of guests.",
-    "skills": ["Go", "Kubernetes", "PostgreSQL"],
+    "skills": ["Go", "Kubernetes", "SQL"],
     "requirements": ["5+ years backend experience", "Experience with microservices", "Strong system design skills"],
-    "benefits": ["Travel credits", "Flexible PTO", "Home office setup"]
+    "benefits": ["Travel credits", "Flexible PTO", "Home office setup"],
+    "preferred_majors": ["Computer Science", "Electrical Engineering"],
+    "preferred_grad_years": ["2025"],
+    "min_gpa": null
   },
   {
     "id": "5",
@@ -65,9 +77,12 @@
     "salaryMin": 7500,
     "posted": "1 day ago",
     "description": "Drive product strategy and work with engineering teams to ship features used by enterprises worldwide.",
-    "skills": ["Product Strategy", "Data Analysis", "Communication"],
-    "requirements": ["Pursuing MBA or related degree", "Strong communication skills", "Technical background preferred"],
-    "benefits": ["Housing provided", "Networking events", "Full-time conversion opportunity"]
+    "skills": ["Data Analysis", "Python"],
+    "requirements": ["Pursuing degree in any field", "Strong communication skills", "Technical background preferred"],
+    "benefits": ["Housing provided", "Networking events", "Full-time conversion opportunity"],
+    "preferred_majors": ["Computer Science", "Business Administration", "Economics"],
+    "preferred_grad_years": ["2026", "2027"],
+    "min_gpa": 3.0
   },
   {
     "id": "6",
@@ -75,12 +90,15 @@
     "company": "OpenAI",
     "location": "San Francisco, CA",
     "type": "Full-time",
-    "salary": "$200k - $350k",
+    "salary": "$200k–$350k",
     "salaryMin": 200000,
     "posted": "4 days ago",
     "description": "Work on cutting-edge AI research and build systems that push the boundaries of machine learning.",
-    "skills": ["Python", "PyTorch", "Deep Learning"],
-    "requirements": ["PhD or equivalent experience", "Publications in top ML venues", "Strong engineering skills"],
-    "benefits": ["Compute credits", "Research freedom", "Top-tier compensation"]
+    "skills": ["Python", "PyTorch", "Machine Learning"],
+    "requirements": ["PhD or equivalent experience in ML/AI", "Publications in top ML venues preferred", "Strong engineering skills"],
+    "benefits": ["Compute credits", "Research freedom", "Top-tier compensation"],
+    "preferred_majors": ["Computer Science", "Mathematics", "Physics"],
+    "preferred_grad_years": ["2025", "2026"],
+    "min_gpa": 3.7
   }
 ]

@@ -4,6 +4,7 @@ Supabase database helpers for job queue and user operations.
 
 import os
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -57,21 +58,26 @@ async def get_all_users() -> Optional[list[dict]]:
     return None
 
 
-async def update_user_latest_repr(user_id: str, storage_path: str) -> dict:
+async def update_user_latest_repr(user_id: str, storage_path: str, report_path: Optional[str] = None) -> dict:
     """
-    Update an applicant's latest_repr_path.
+    Update an applicant's latest_repr_path and latest_report_path.
 
     Args:
         user_id: The user UUID
         storage_path: Path to the transcript.json in storage
+        report_path: Optional path to the analysis_summary.json in storage
 
     Returns:
         The updated applicant record
     """
     client = get_client()
+    update_data = {"latest_repr_path": storage_path}
+    if report_path:
+        update_data["latest_report_path"] = report_path
+
     result = (
         client.table("applicants")
-        .update({"latest_repr_path": storage_path})
+        .update(update_data)
         .eq("id", user_id)
         .execute()
     )
@@ -99,6 +105,57 @@ async def update_applicant(user_id: str, data: dict) -> dict:
         .execute()
     )
     return result.data[0] if result.data else {}
+
+
+async def get_applicant_detail(user_id: str) -> Optional[dict]:
+    """
+    Get an applicant's detailed data (transcript/resume raw and analysis).
+    """
+    client = get_client()
+    result = client.table("applicants_detail").select("*").eq("id", user_id).execute()
+    return result.data[0] if result.data else None
+
+
+async def upsert_applicant_detail(user_id: str, data: dict) -> dict:
+    """
+    Upsert an applicant's detailed data.
+    """
+    client = get_client()
+    # Ensure ID is in the data for upsert
+    data["id"] = user_id
+    
+    # Check if record exists first to decide whether to insert or update
+    # This is a workaround for some Supabase client versions/configurations
+    # that might struggle with RLS on upsert if the record doesn't exist yet.
+    result = client.table("applicants_detail").upsert(data).execute()
+    
+    if not result.data:
+        # Fallback: try direct insert if upsert didn't return data
+        try:
+            result = client.table("applicants_detail").insert(data).execute()
+        except Exception:
+            # If insert fails (e.g. already exists), try update
+            result = client.table("applicants_detail").update(data).eq("id", user_id).execute()
+            
+    return result.data[0] if result.data else {}
+
+
+async def get_school_id_by_name(school_name: str) -> Optional[str]:
+    """
+    Look up a school's UUID by its name.
+    
+    Args:
+        school_name: The name of the school
+        
+    Returns:
+        The school UUID or None if not found
+    """
+    client = get_client()
+    result = client.table("schools").select("id").eq("name", school_name).execute()
+    
+    if result.data:
+        return result.data[0]["id"]
+    return None
 
 
 async def get_user_type(user_id: str) -> Optional[str]:
@@ -210,11 +267,13 @@ async def complete_job(job_id: str, _result_data: Optional[dict] = None) -> dict
     
     update_data = {
         "status": "succeeded",
-        "finished_at": "now()",
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "locked_at": None,
+        "locked_by": None,
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
-    return result.data[0]
+    return result.data[0] if result.data else {}
 
 
 async def fail_job(job_id: str, error: str) -> dict:
@@ -233,11 +292,13 @@ async def fail_job(job_id: str, error: str) -> dict:
     update_data = {
         "status": "failed",
         "error": error,
-        "finished_at": "now()",
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "locked_at": None,
+        "locked_by": None,
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
-    return result.data[0]
+    return result.data[0] if result.data else {}
 
 
 # Storage helpers

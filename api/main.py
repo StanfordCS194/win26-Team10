@@ -4,6 +4,7 @@ FastAPI application for the parse job queue API.
 
 import uuid
 import json
+from datetime import datetime
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -22,6 +23,9 @@ from api.supabase import (
     update_applicant,
     update_user_latest_repr,
     upload_bytes,
+    get_school_id_by_name,
+    get_applicant_detail,
+    upsert_applicant_detail,
 )
 
 app = FastAPI(
@@ -76,12 +80,17 @@ class ApplicantProfile(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[str] = None
+    school: Optional[str] = None
+    school_id: Optional[str] = None
     major: Optional[str] = None
     graduation_year: Optional[str] = None
     gpa: Optional[float] = None
     skills: Optional[list[str]] = None
+    work_authorization: Optional[str] = None
     updated_at: Optional[str] = None
     latest_repr_path: Optional[str] = None
+    resume_path: Optional[str] = None
+    latest_report_path: Optional[str] = None
     is_complete: Optional[bool] = None
 
 
@@ -96,7 +105,7 @@ async def health_check():
     return {"status": "healthy", "service": "api"}
 
 
-@app.post("/parse", status_code=202, response_model=ParseJobResponse)
+@app.post("/transcript/parse", status_code=202, response_model=ParseJobResponse)
 async def create_parse_job(
     file: UploadFile = File(...),
     user: dict = Depends(get_current_user),
@@ -141,12 +150,19 @@ async def create_parse_job(
     # The actual transcript.json path will be updated by the worker after processing
     db_user = await get_user(user_id)
     if db_user and db_user.get("type") == "student":
-        await update_user_latest_repr(user_id, f"{storage_path}/transcript.json")
+        await update_user_latest_repr(
+            user_id, 
+            f"{storage_path}/transcript.json",
+            f"{storage_path}/analysis_summary.json"
+        )
     
     # Also update applicant record if it exists
     applicant = await get_applicant(user_id)
     if applicant:
-        await update_applicant(user_id, {"latest_repr_path": f"{storage_path}/transcript.json"})
+        await update_applicant(user_id, {
+            "latest_repr_path": f"{storage_path}/transcript.json",
+            "latest_report_path": f"{storage_path}/analysis_summary.json"
+        })
 
     return ParseJobResponse(
         job_id=str(job["id"]),
@@ -155,7 +171,7 @@ async def create_parse_job(
     )
 
 
-@app.get("/parse/{job_id}", response_model=JobStatusResponse)
+@app.get("/transcript/parse/{job_id}", response_model=JobStatusResponse)
 async def get_parse_job_status(
     job_id: str,
     user: dict = Depends(get_current_user),
@@ -224,6 +240,33 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             detail=f"Transcript file not found: {e}",
         )
 
+
+@app.get("/transcript/detail")
+async def get_my_transcript_detail(user: dict = Depends(get_current_user)):
+    """
+    Get the current user's detailed transcript data from applicants_detail table.
+    """
+    detail = await get_applicant_detail(user["id"])
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
+
+@app.get("/transcript/detail/{user_id}")
+async def get_user_transcript_detail(user_id: str, user: dict = Depends(get_current_user)):
+    """
+    Get a specific user's detailed transcript data.
+    Only available for recruiters.
+    """
+    if user.get("type") != "recruiter":
+        raise HTTPException(status_code=403, detail="Only recruiters can access other users' details")
+    
+    detail = await get_applicant_detail(user_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
+
 @app.get("/get_users")
 async def get_users():
     """
@@ -243,7 +286,7 @@ async def get_specific_transcript(user_id: str):
     Only available for users with type='recruiter'.
     """
     # Get user record
-    db_user = await get_user(user_id)
+    db_user = await get_applicant(user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -263,6 +306,44 @@ async def get_specific_transcript(user_id: str):
         raise HTTPException(
             status_code=404,
             detail=f"Transcript file not found: {e}",
+        )
+
+@app.get("/get_resume/{user_id}")
+async def get_resume(user_id: str):
+    """
+    Get a specific user's resume file.
+    
+    Returns the resume PDF or DOCX file.
+    Only available for recruiters.
+    """
+    # Get applicant profile
+    applicant = await get_applicant(user_id)
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    # Check if user has a resume
+    resume_path = applicant.get("resume_path")
+    if not resume_path:
+        raise HTTPException(status_code=404, detail="No resume found")
+    
+    try:
+        # Download and return the resume
+        content = get_file_bytes(resume_path)
+        
+        # Determine content type based on file extension
+        content_type = "application/pdf" if resume_path.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        
+        return Response(
+            content=content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"inline; filename=resume_{user_id}.{resume_path.split('.')[-1]}"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Resume file not found: {e}",
         )
 
 @app.get("/profile", response_model=ApplicantProfile)
@@ -294,6 +375,12 @@ async def update_profile(
     # Convert Pydantic model to dict, excluding None values
     update_data = profile.model_dump(exclude_unset=True)
     
+    # Look up school_id if school name is provided
+    if "school" in update_data and update_data["school"]:
+        school_id = await get_school_id_by_name(update_data["school"])
+        if school_id:
+            update_data["school_id"] = school_id
+    
     # Calculate is_complete
     # Required fields: first_name, last_name, email, major, graduation_year, gpa, skills
     # We also need a transcript (latest_repr_path) to be truly complete
@@ -310,8 +397,8 @@ async def update_profile(
     merged = {**existing, **update_data}
     
     required_fields = [
-        "first_name", "last_name", "email", "major", 
-        "graduation_year", "gpa", "skills", "latest_repr_path"
+        "first_name", "last_name", "email", "school", "major", 
+        "graduation_year", "gpa", "skills", "latest_repr_path", "latest_report_path"
     ]
     
     is_complete = all(merged.get(f) for f in required_fields)
@@ -323,3 +410,44 @@ async def update_profile(
     
     updated = await update_applicant(user_id, update_data)
     return updated
+
+@app.post("/upload_resume")
+async def upload_resume(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Upload a resume file for the current user."""
+    user_id = user["id"]
+    
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+    
+    filename_lower = file.filename.lower()
+    if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx')):
+        raise HTTPException(
+            status_code=400, 
+            detail="Only PDF and DOCX files are supported"
+        )
+    
+    # Determine content type
+    content_type = "application/pdf" if filename_lower.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    
+    # Read file content
+    content = await file.read()
+    
+    # Upload to storage: {user_id}/resumes/{timestamp}.{ext}
+    ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
+    timestamp = int(datetime.now().timestamp())
+    storage_path = f"{user_id}/resumes/{timestamp}.{ext}"
+    
+    upload_bytes(
+        content=content,
+        dest_path=storage_path,
+        content_type=content_type,
+    )
+    
+    # Update applicant profile with resume path
+    await update_applicant(user_id, {"resume_path": storage_path})
+    
+    return {"resume_path": storage_path, "message": "Resume uploaded successfully"}

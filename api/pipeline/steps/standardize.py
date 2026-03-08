@@ -144,13 +144,28 @@ class StandardizeStep(ParseStep):
 
     def __init__(
         self,
-        model: str = "openai/gpt-oss-120b",
+        model: str | None = None,
         api_key: str | None = None,
     ):
         super().__init__()
-        self.model = model
+        self.model = model or os.getenv("MODEL_ID") or "openai/gpt-oss-120b"
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.timeout_seconds = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "180"))
+        self.save_debug = os.getenv("SAVE_LLM_DEBUG", "1").lower() in {"1", "true", "yes"}
+
+    def should_skip(self, artifacts: ParseArtifacts) -> bool:
+        """Skip if transcript already exists in output directory."""
+        output_path = artifacts.input.output_dir / "transcript.json"
+        if output_path.exists():
+            try:
+                if not artifacts.transcript:
+                    artifacts.transcript = json.loads(output_path.read_text(encoding="utf-8"))
+                self.logger.info(f"Using existing transcript from {output_path}")
+                return True
+            except Exception as e:
+                self.logger.warning(f"Failed to load existing transcript: {e}")
+        return False
 
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         """
@@ -200,14 +215,18 @@ Output the extracted data as a JSON object following the schema exactly."""
             ],
             "temperature": 0.1,
         }
+        max_output_tokens = os.getenv("OPENROUTER_MAX_OUTPUT_TOKENS")
+        if max_output_tokens:
+            request_payload["max_tokens"] = int(max_output_tokens)
 
         # Save request for debugging
-        request_path = standardize_dir / "request.json"
-        request_path.write_text(
-            json.dumps(request_payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        self.logger.info("Request saved to %s", request_path)
+        if self.save_debug:
+            request_path = standardize_dir / "request.json"
+            request_path.write_text(
+                json.dumps(request_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            self.logger.info("Request saved to %s", request_path)
 
         # Call OpenRouter API
         self.logger.info("Calling OpenRouter API with model %s", self.model)
@@ -219,25 +238,46 @@ Output the extracted data as a JSON object following the schema exactly."""
                 "Content-Type": "application/json",
             },
             json=request_payload,
-            timeout=180.0,
+            timeout=self.timeout_seconds,
         )
 
         response.raise_for_status()
+        self.logger.info(
+            "OpenRouter response received: status=%s bytes=%d",
+            response.status_code,
+            len(response.content),
+        )
         self.logger.info("Parsing API response...")
         result = response.json()
 
         # Save response for debugging
-        response_path = standardize_dir / "response.json"
-        response_path.write_text(
-            json.dumps(result, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        self.logger.info("Response saved to %s", response_path)
+        if self.save_debug:
+            response_path = standardize_dir / "response.json"
+            response_path.write_text(response.text, encoding="utf-8")
+            self.logger.info("Response saved to %s", response_path)
 
         # Extract content from response
         self.logger.info("Extracting content from response...")
-        content = result["choices"][0]["message"]["content"]
+        try:
+            content = result["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as e:
+            self.logger.error("Unexpected OpenRouter response shape: %s", e)
+            raw_path = standardize_dir / "response_shape_error.txt"
+            raw_path.write_text(response.text[:20000], encoding="utf-8")
+            raise ValueError(
+                "OpenRouter response did not include choices[0].message.content"
+            ) from e
         self.logger.info("Got %d chars of content", len(content))
+
+        # Clean markdown code blocks if present
+        if content.strip().startswith("```"):
+            self.logger.info("Cleaning markdown code blocks from response...")
+            lines = content.strip().splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            content = "\n".join(lines).strip()
 
         # Parse JSON response
         self.logger.info("Parsing JSON...")
@@ -265,4 +305,5 @@ Output the extracted data as a JSON object following the schema exactly."""
 
         self.logger.info("Transcript standardized and saved to %s", output_path)
 
+        # TODO: Add school-specific analysis here (currently defaults to Stanford in AnalyzeStep)
         return artifacts

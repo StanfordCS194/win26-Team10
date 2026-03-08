@@ -1,9 +1,12 @@
-import { Mail, GraduationCap, FileCheck, FileX, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
+import { Mail, GraduationCap, FileCheck, FileText, CheckCircle, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import { Student } from '../types/student'
 import StudentTranscriptCard from './StudentTranscriptCard'
-import { createRoot } from 'react-dom/client';
+import { createRoot } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
 import { getOrCreateConversation } from '../lib/messaging'
+import { createResumeViewer } from './ResumeViewer'
+import type { ApplicationDetails } from './StudentList'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
@@ -13,6 +16,8 @@ interface StudentCardProps {
   isRecruiter?: boolean
   /** Called after conversation is created or opened; pass conversation id to open Messages view */
   onOpenConversation?: (conversationId: string) => void
+  hasApplied?: boolean
+  applicationDetails?: ApplicationDetails | null
 }
 
 function getGpaClass(gpa: number): string {
@@ -21,7 +26,10 @@ function getGpaClass(gpa: number): string {
   return 'gpa-low'
 }
 
-export default function StudentCard({ student, isRecruiter, onOpenConversation }: StudentCardProps) {
+export default function StudentCard({ student, isRecruiter, onOpenConversation, hasApplied, applicationDetails }: StudentCardProps) {
+  const [expanded, setExpanded] = useState(false)
+  const showApplicationDetails = hasApplied && applicationDetails
+
   const handleMessage = async () => {
     if (!onOpenConversation) return
     const { data: { session } } = await supabase.auth.getSession()
@@ -35,7 +43,12 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation }
   }
 
   return (
-    <div className="student-card">
+    <div className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
+      {hasApplied && (
+        <div className="student-card-applied-badge" title="Applied to selected job">
+          <CheckCircle size={20} />
+        </div>
+      )}
       {/* Header */}
       <div className="card-header">
         <div>
@@ -59,7 +72,11 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation }
           {student.major}
         </span>
         <span className="divider">|</span>
-        <span>Class of {student.graduationYear}</span>
+        {student.graduationYear !== 0 ? (
+          <span>Class of {student.graduationYear}</span>
+        ) : (
+          <span>Unknown Graduation Year</span>
+        )}
       </div>
 
       {/* Skills */}
@@ -71,8 +88,47 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation }
         ))}
       </div>
 
-      {/* Transcript Status */}
-      <div className="card-footer">
+      {showApplicationDetails && (
+        <>
+          <button
+            type="button"
+            className="student-card-expand-btn"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? (
+              <>
+                Hide application details <ChevronUp size={16} />
+              </>
+            ) : (
+              <>
+                View application details <ChevronDown size={16} />
+              </>
+            )}
+          </button>
+          {expanded && applicationDetails && (
+            <div className="student-card-application-details">
+              {applicationDetails.work_authorization && (
+                <div className="application-detail-row">
+                  <strong>Work Authorization:</strong>
+                  <span>{applicationDetails.work_authorization}</span>
+                </div>
+              )}
+              {applicationDetails.message_to_recruiter && (
+                <div className="application-detail-row">
+                  <strong>Message to Recruiter:</strong>
+                  <p className="application-message">{applicationDetails.message_to_recruiter}</p>
+                </div>
+              )}
+              {!applicationDetails.work_authorization && !applicationDetails.message_to_recruiter && (
+                <p className="application-detail-empty">No additional details provided</p>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Transcript & Resume Status + Message */}
+      <div className="card-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {isRecruiter && onOpenConversation && (
           <button
             type="button"
@@ -84,7 +140,7 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation }
             Message
           </button>
         )}
-        {student.transcriptUploaded ? (
+        {student.transcriptUploaded && (
           <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
@@ -137,11 +193,43 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation }
             <FileCheck size={16} />
             Transcript uploaded
           </div>
-        ) : (
-          <span className="transcript-status missing">
-            <FileX size={16} />
-            No transcript
-          </span>
+        )}
+
+        {/* Resume Status */}
+        {student.resumeUploaded && (
+          <div className="transcript-status uploaded" onClick={async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            const token = session?.access_token
+            if (!token) {
+              alert('You must be logged in to view resumes.')
+              return
+            }
+
+            try {
+              const resumeRes = await fetch(`${API_BASE}/get_resume/${student.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+
+              if (!resumeRes.ok) {
+                throw new Error(await resumeRes.text())
+              }
+
+              // Get the blob and create a URL
+              const blob = await resumeRes.blob()
+              const url = window.URL.createObjectURL(blob)
+
+              // Create and show popup
+              const popup = createResumeViewer(url, () => {
+                window.URL.revokeObjectURL(url)
+              })
+              document.body.appendChild(popup)
+            } catch (err) {
+              alert('Failed to load resume: ' + (err instanceof Error ? err.message : String(err)))
+            }
+          }}>
+            <FileText size={16} />
+            Resume uploaded
+          </div>
         )}
       </div>
     </div>
