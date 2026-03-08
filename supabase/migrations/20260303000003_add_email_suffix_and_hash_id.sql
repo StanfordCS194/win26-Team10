@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION generate_uuid_from_text(text_input TEXT)
 RETURNS UUID AS $$
 BEGIN
     -- Use MD5 hash of the input text to generate a deterministic UUID
-    RETURN uuid_generate_v5(
+    RETURN extensions.uuid_generate_v5(
         '6ba7b810-9dad-11d1-80b4-00c04fd430c8'::uuid, -- DNS namespace UUID
         text_input
     );

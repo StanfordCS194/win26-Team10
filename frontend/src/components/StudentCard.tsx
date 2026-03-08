@@ -128,12 +128,37 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
             popup.appendChild(popupContainer)
             if (student.transcript != null){
               const root = createRoot(popupContainer);
-              if (typeof(student.transcript) === 'string') {
-                const { data: { session } } = await supabase.auth.getSession()
-                const token = session?.access_token
-                if (!token) {
-                  throw new Error('You must be logged in to access transcripts.')
+              const { data: { session } } = await supabase.auth.getSession()
+              const token = session?.access_token
+              if (!token) {
+                throw new Error('You must be logged in to access transcripts.')
+              }
+              let skillScores: Record<string, { score: number; justification?: string }> | null = null
+              try {
+                const detailRes = await fetch(`${API_BASE}/transcript/detail/${student.id}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                if (detailRes.ok) {
+                  const detail = await detailRes.json()
+                  const cats = detail?.transcript_analysis?.categories
+                  if (cats && typeof cats === 'object') {
+                    skillScores = {}
+                    for (const [k, v] of Object.entries(cats)) {
+                      const val = v as { score?: number; justification?: string }
+                      if (v && typeof v === 'object' && 'score' in v && typeof val.score === 'number') {
+                        skillScores[k] = {
+                          score: val.score,
+                          justification: typeof val.justification === 'string' ? val.justification : undefined
+                        }
+                      }
+                    }
+                    if (Object.keys(skillScores).length === 0) skillScores = null
+                  }
                 }
+              } catch (_) {
+                /* ignore - radar chart will be hidden */
+              }
+              if (typeof(student.transcript) === 'string') {
                 const transcriptRes = await fetch(`${API_BASE}/get_specific_transcript/${student.id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 })
@@ -155,9 +180,9 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
                   units_earned: rawTranscript.career_totals.undergraduate.units_earned,
                   units_toward_degree: rawTranscript.career_totals.undergraduate.units_toward_degree
                 }
-                root.render(<StudentTranscriptCard transcript={transcript} student={student}/>);
+                root.render(<StudentTranscriptCard transcript={transcript} student={student} skillScores={skillScores} />);
               } else {
-                root.render(<StudentTranscriptCard transcript={student.transcript} student={student}/>);
+                root.render(<StudentTranscriptCard transcript={student.transcript} student={student} skillScores={skillScores} />);
               }
             }
             popup.style.display = 'flex'
