@@ -10,6 +10,8 @@ export interface Student {
   transcriptUploaded: boolean
   transcript: SmallTranscript | null | string
   workAuthorization?: string | null
+  transcript_stats?: JSON | null
+  transcript_analysis?: JSON | null
 }
 
 export const WORK_AUTH_OPTIONS = [

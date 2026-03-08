@@ -1,9 +1,22 @@
 import { SmallTranscript, Student } from '../types/student'
+//import stanfordRatings from '../data/stanford_ratings.json'
 
 interface StudentTranscriptCardProps {
     transcript: SmallTranscript
     student: Student
 }
+
+/*type TranscriptCourse = {
+  department: string
+  number: string
+  component?: string | null
+  title?: string | null
+  instructors?: string[] | null
+  units_attempted?: number | null
+  units_earned?: number | null
+  grade?: string | null
+  grade_points?: number | null
+}*/
 
 const percentageToColor = (percentage: number) => {
   const minColor = { r: 255, g: 0, b: 0 };
@@ -19,6 +32,22 @@ const percentageToColor = (percentage: number) => {
 
   return colorHex;
 };
+
+/*const calculateCourseDifficulty = (courses: Array<TranscriptCourse>) => {
+    let totalUnits = 0;
+    let totalDifficulty = 0;
+
+    for (const course of courses) {
+        const courseCode = course.department + course.number;
+        const rating = (stanfordRatings as Record<string, number>)[courseCode];
+        if (rating !== undefined) {
+            totalDifficulty += rating;
+            totalUnits += course.units_earned || 0;
+        }
+    }
+
+    return totalUnits > 0 ? totalDifficulty / totalUnits : 5;
+}*/
 
 export default function StudentTranscriptCard({ transcript, student }: StudentTranscriptCardProps) {
     return (
