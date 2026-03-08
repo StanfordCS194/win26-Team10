@@ -1,8 +1,17 @@
 import { SmallTranscript, Student } from '../types/student'
 
+const SKILL_LABELS: Record<string, string> = {
+  technical_domain_skill: 'Technical',
+  problem_solving: 'Problem Solving',
+  communication: 'Communication',
+  execution: 'Execution',
+  collaboration: 'Collaboration',
+}
+
 interface StudentTranscriptCardProps {
     transcript: SmallTranscript
     student: Student
+    skillScores?: Record<string, { score: number }> | null
 }
 
 const percentageToColor = (percentage: number) => {
@@ -20,9 +29,79 @@ const percentageToColor = (percentage: number) => {
   return colorHex;
 };
 
-export default function StudentTranscriptCard({ transcript, student }: StudentTranscriptCardProps) {
+function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
+  if (data.length < 3) return null
+  const size = 200
+  const cx = size / 2
+  const cy = size / 2
+  const maxRadius = size / 2 - 24
+  const angleStep = (2 * Math.PI) / data.length
+  const axes = data.map((_, i) => {
+    const a = -Math.PI / 2 + i * angleStep
+    return { x: cx + maxRadius * Math.cos(a), y: cy + maxRadius * Math.sin(a), label: SKILL_LABELS[data[i].key] ?? data[i].key.replace(/_/g, ' ') }
+  })
+  const points = data.map((d, i) => {
+    const r = (d.score / 10) * maxRadius
+    const a = -Math.PI / 2 + i * angleStep
+    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
+  }).join(' ')
+  const gridLevels = [2, 4, 6, 8, 10]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>Skill Scores (1–10)</h4>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+        {gridLevels.map((level, idx) => {
+          const r = (level / 10) * maxRadius
+          const pts = data.map((_, i) => {
+            const a = -Math.PI / 2 + i * angleStep
+            return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
+          }).join(' ')
+          return (
+            <polygon
+              key={idx}
+              points={pts}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth={0.5}
+            />
+          )
+        })}
+        {axes.map((ax, i) => (
+          <line key={i} x1={cx} y1={cy} x2={ax.x} y2={ax.y} stroke="#e5e7eb" strokeWidth={0.5} />
+        ))}
+        <polygon
+          points={points}
+          fill="rgba(99, 102, 241, 0.3)"
+          stroke="#6366f1"
+          strokeWidth={1.5}
+        />
+        {axes.map((ax, i) => (
+          <text
+            key={i}
+            x={cx + (maxRadius + 10) * ((ax.x - cx) / maxRadius)}
+            y={cy + (maxRadius + 10) * ((ax.y - cy) / maxRadius)}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={9}
+            fill="#4b5563"
+          >
+            {ax.label}
+          </text>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+export default function StudentTranscriptCard({ transcript, student, skillScores }: StudentTranscriptCardProps) {
+    const radarData = skillScores
+      ? (['technical_domain_skill', 'problem_solving', 'communication', 'execution', 'collaboration'] as const)
+          .filter((k) => skillScores[k] != null)
+          .map((k) => ({ key: k, score: skillScores[k]!.score }))
+      : []
     return (
-        <div className="student-transcript-card">
+        <div className="student-transcript-card" style={{ display: 'flex', flexDirection: 'column', maxHeight: '70vh' }}>
+            <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
             <h3 className="section-title">Condensed Transcript</h3>
             <div className="info-box">
                 Full Name: {transcript.fullName}
@@ -98,6 +177,12 @@ export default function StudentTranscriptCard({ transcript, student }: StudentTr
                     )}
                 </div>
             </div>
+            </div>
+            {radarData.length >= 3 && (
+                <div style={{ flexShrink: 0, paddingTop: '1rem', borderTop: '1px solid #e5e7eb', marginTop: '0.5rem' }}>
+                    <RadarChart data={radarData} />
+                </div>
+            )}
         </div>
     )
 }

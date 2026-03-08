@@ -1,6 +1,17 @@
 -- Migration to add school_aliases table and trigger for normalization
 -- This allows mapping multiple school name variations to a single canonical school record.
 
+-- 0. Ensure generate_uuid_from_text uses schema-qualified uuid_generate_v5 (Supabase extensions schema)
+CREATE OR REPLACE FUNCTION generate_uuid_from_text(text_input TEXT)
+RETURNS UUID AS $$
+BEGIN
+    RETURN extensions.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8'::uuid,
+        text_input
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- 1. Create the school_aliases table
 CREATE TABLE IF NOT EXISTS public.school_aliases (
     alias TEXT PRIMARY KEY,
