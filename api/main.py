@@ -256,7 +256,8 @@ async def get_user_transcript_detail(user_id: str, user: dict = Depends(get_curr
     Get a specific user's detailed transcript data.
     Only available for recruiters.
     """
-    if user.get("type") != "recruiter":
+    db_user = await get_user(user["id"])
+    if not db_user or db_user.get("type") != "recruiter":
         raise HTTPException(status_code=403, detail="Only recruiters can access other users' details")
     
     detail = await get_applicant_detail(user_id)

@@ -31,10 +31,12 @@ const percentageToColor = (percentage: number) => {
 
 function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
   if (data.length < 3) return null
-  const size = 200
-  const cx = size / 2
-  const cy = size / 2
-  const maxRadius = size / 2 - 24
+  const size = 520
+  const padding = 70
+  const cx = padding + (size - 2 * padding) / 2
+  const cy = padding + (size - 2 * padding) / 2
+  const maxRadius = (size - 2 * padding) / 2 - 12
+  const labelOffset = 28
   const angleStep = (2 * Math.PI) / data.length
   const axes = data.map((_, i) => {
     const a = -Math.PI / 2 + i * angleStep
@@ -46,10 +48,11 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
     return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
   }).join(' ')
   const gridLevels = [2, 4, 6, 8, 10]
+  const viewSize = size + padding * 2
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>Skill Scores (1–10)</h4>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
+      <h2 style={{ width: '100%', textAlign: 'left', margin: '0 0 4px 0' }}>Skill Scores</h2>
+      <svg width={viewSize} height={viewSize} viewBox={`0 0 ${viewSize} ${viewSize}`} style={{ flexShrink: 0 }}>
         {gridLevels.map((level, idx) => {
           const r = (level / 10) * maxRadius
           const pts = data.map((_, i) => {
@@ -71,19 +74,20 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
         ))}
         <polygon
           points={points}
-          fill="rgba(99, 102, 241, 0.3)"
-          stroke="#6366f1"
-          strokeWidth={1.5}
+          fill="rgba(55, 48, 163, 0.4)"
+          stroke="#3730a3"
+          strokeWidth={2}
         />
         {axes.map((ax, i) => (
           <text
             key={i}
-            x={cx + (maxRadius + 10) * ((ax.x - cx) / maxRadius)}
-            y={cy + (maxRadius + 10) * ((ax.y - cy) / maxRadius)}
+            x={cx + (maxRadius + labelOffset) * ((ax.x - cx) / maxRadius)}
+            y={cy + (maxRadius + labelOffset) * ((ax.y - cy) / maxRadius)}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize={9}
-            fill="#4b5563"
+            fontSize={12}
+            fill="#1f2937"
+            fontWeight={500}
           >
             {ax.label}
           </text>
@@ -177,12 +181,18 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                     )}
                 </div>
             </div>
-            </div>
-            {radarData.length >= 3 && (
-                <div style={{ flexShrink: 0, paddingTop: '1rem', borderTop: '1px solid #e5e7eb', marginTop: '0.5rem' }}>
+            <div className="info-box">
+                {radarData.length >= 3 ? (
                     <RadarChart data={radarData} />
-                </div>
-            )}
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#6b7280', fontSize: '0.9rem' }}>
+                        <h2>Skill Scores</h2>
+                        <p style={{ margin: 0 }}>Skill scores not yet available</p>
+                        <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>Transcript analysis may still be processing</p>
+                    </div>
+                )}
+            </div>
+            </div>
         </div>
     )
 }
