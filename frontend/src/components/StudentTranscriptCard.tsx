@@ -9,6 +9,14 @@ const SKILL_LABELS: Record<string, string> = {
   collaboration: 'Collaboration',
 }
 
+const SKILL_DEFINITIONS: Record<string, string> = {
+  technical_domain_skill: 'How strong they are at the core hard skills for the role (based on relevant coursework).',
+  problem_solving: 'Ability to analyze, learn quickly, and handle ambiguity (often reflected in difficult math/CS/engineering courses).',
+  communication: 'Written, verbal, clarity, stakeholder management (reflected in humanities, writing, or project-based courses).',
+  execution: 'Reliability, speed, follow-through, attention to detail (reflected in labs, large projects, and consistent performance).',
+  collaboration: 'Teamwork, empathy, feedback, cross-functional work (reflected in group projects or specific collaborative courses).',
+}
+
 interface StudentTranscriptCardProps {
     transcript: SmallTranscript
     student: Student
@@ -152,8 +160,11 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
             left: tooltipPos.x,
             top: tooltipPos.y,
             transform: 'translate(-50%, -100%) translateY(-12px)',
-            maxWidth: 280,
-            padding: '10px 12px',
+            minWidth: 280,
+            maxWidth: 420,
+            maxHeight: 320,
+            overflowY: 'auto',
+            padding: '12px 14px',
             background: '#1f2937',
             color: '#f9fafb',
             fontSize: '0.8rem',
@@ -164,10 +175,15 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
             pointerEvents: 'none'
           }}
         >
-          <strong style={{ display: 'block', marginBottom: 4, color: '#e5e7eb' }}>
+          <strong style={{ display: 'block', marginBottom: 6, color: '#e5e7eb', fontSize: '0.9rem' }}>
             {SKILL_LABELS[data[hoveredIndex].key] ?? data[hoveredIndex].key.replace(/_/g, ' ')} ({data[hoveredIndex].score}/10)
           </strong>
-          {data[hoveredIndex].justification}
+          <p style={{ margin: '0 0 8px 0', fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic' }}>
+            {SKILL_DEFINITIONS[data[hoveredIndex].key] ?? ''}
+          </p>
+          <p style={{ margin: 0 }}>
+            {data[hoveredIndex].justification}
+          </p>
         </div>
       )}
     </div>
