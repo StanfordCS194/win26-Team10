@@ -24,6 +24,7 @@ from api.pipeline.steps import (
     StandardizeStep,
     TranscriptStatisticsStep,
     TranscriptAnalysisStep,
+    ResumeParseStep,
 )
 from api.pipeline.types import ParseArtifacts, ParseInput
 
@@ -111,6 +112,7 @@ __all__ = [
     "TextExtractStep",
     "TranscriptStatisticsStep",
     "TranscriptAnalysisStep",
+    "ResumeParseStep",
     "ParseInput",
     "ParseArtifacts",
     "default_steps",

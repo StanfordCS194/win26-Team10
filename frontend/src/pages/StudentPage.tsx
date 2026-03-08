@@ -420,8 +420,8 @@ export default function StudentPage() {
     if (!file) return
 
     const fileName = file.name.toLowerCase()
-    if (!fileName.endsWith('.pdf') && !fileName.endsWith('.docx')) {
-      setResumeError('Only PDF and DOCX files are supported')
+    if (!fileName.endsWith('.pdf')) {
+      setResumeError('Only PDF files are supported')
       return
     }
 
@@ -433,7 +433,7 @@ export default function StudentPage() {
     })
     setResumeError(null)
 
-    // Upload immediately
+    // Upload and parse asynchronously
     setResumeUploading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -443,7 +443,7 @@ export default function StudentPage() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch(`${API_BASE}/upload_resume`, {
+      const res = await fetch(`${API_BASE}/resume/parse`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -455,8 +455,26 @@ export default function StudentPage() {
         throw new Error(await res.text())
       }
 
-      const data = await res.json()
-      setProfile((prev) => ({ ...prev, resumePath: data.resume_path }))
+      const parseBody = (await res.json()) as ParseJobResponse
+      setProfile((prev) => ({ ...prev, resumePath: `${parseBody.storage_path}/source.pdf` }))
+
+      while (true) {
+        await new Promise((r) => setTimeout(r, 1500))
+        const statusRes = await fetch(`${API_BASE}/resume/parse/${parseBody.job_id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!statusRes.ok) {
+          throw new Error(await statusRes.text())
+        }
+
+        const statusBody = (await statusRes.json()) as JobStatusResponse
+        if (statusBody.status === 'failed') {
+          throw new Error(statusBody.error ?? 'Resume parse failed')
+        }
+        if (statusBody.status === 'succeeded') {
+          break
+        }
+      }
     } catch (err) {
       setResumeError(err instanceof Error ? err.message : 'Failed to upload resume')
       setUploadedResume(null)
@@ -1087,7 +1105,7 @@ export default function StudentPage() {
         <section className="form-section">
           <h2 className="section-title">Resume</h2>
           <p className="section-description">
-            Upload your resume (PDF or DOCX format)
+            Upload your resume (PDF format)
           </p>
 
           {profile.resumePath && !uploadedResume && (
@@ -1130,10 +1148,10 @@ export default function StudentPage() {
               <span style={{ fontWeight: 500 }}>
                 Click to upload resume
               </span>
-              <small style={{ color: '#666' }}>PDF or DOCX (max 10MB)</small>
+              <small style={{ color: '#666' }}>PDF (max 10MB)</small>
               <input
                 type="file"
-                accept=".pdf,.docx"
+                accept=".pdf"
                 onChange={handleResumeUpload}
                 style={{ display: 'none' }}
               />

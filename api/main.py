@@ -144,6 +144,7 @@ async def create_parse_job(
     job = await create_job(
         user_id=user_id,
         storage_path=storage_path,
+        job_type="transcript",
     )
 
     # Update user's latest_repr_path if they are a student
@@ -163,6 +164,46 @@ async def create_parse_job(
             "latest_repr_path": f"{storage_path}/transcript.json",
             "latest_report_path": f"{storage_path}/analysis_summary.json"
         })
+
+    return ParseJobResponse(
+        job_id=str(job["id"]),
+        status=job["status"],
+        storage_path=storage_path,
+    )
+
+
+@app.post("/resume/parse", status_code=202, response_model=ParseJobResponse)
+async def create_resume_parse_job(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """
+    Create a new resume parse job by uploading a PDF.
+    """
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    job_id = str(uuid.uuid4())
+    user_id = user["id"]
+    storage_path = f"{user_id}/{job_id}"
+    content = await file.read()
+
+    upload_bytes(
+        content=content,
+        dest_path=f"{storage_path}/source.pdf",
+        content_type="application/pdf",
+    )
+
+    job = await create_job(
+        user_id=user_id,
+        storage_path=storage_path,
+        job_type="resume",
+    )
+
+    # Track latest uploaded resume path immediately.
+    applicant = await get_applicant(user_id)
+    if applicant:
+        await update_applicant(user_id, {"resume_path": f"{storage_path}/source.pdf"})
 
     return ParseJobResponse(
         job_id=str(job["id"]),
@@ -191,8 +232,37 @@ async def get_parse_job_status(
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    if job.get("job_type", "transcript") != "transcript":
+        raise HTTPException(status_code=404, detail="Transcript parse job not found")
 
     # Verify ownership
+    if job.get("user_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return JobStatusResponse(
+        job_id=str(job["id"]),
+        status=job["status"],
+        storage_path=job.get("storage_path"),
+        error=job.get("error"),
+        created_at=job.get("created_at"),
+        started_at=job.get("started_at"),
+        finished_at=job.get("finished_at"),
+    )
+
+
+@app.get("/resume/parse/{job_id}", response_model=JobStatusResponse)
+async def get_resume_parse_job_status(
+    job_id: str,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Get the status of a resume parse job.
+    """
+    job = await get_job_status(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.get("job_type") != "resume":
+        raise HTTPException(status_code=404, detail="Resume parse job not found")
     if job.get("user_id") != user["id"]:
         raise HTTPException(status_code=403, detail="Access denied")
 
@@ -424,20 +494,20 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="No filename provided")
     
     filename_lower = file.filename.lower()
-    if not (filename_lower.endswith('.pdf') or filename_lower.endswith('.docx')):
+    if not filename_lower.endswith('.pdf'):
         raise HTTPException(
             status_code=400, 
-            detail="Only PDF and DOCX files are supported"
+            detail="Only PDF files are supported"
         )
     
     # Determine content type
-    content_type = "application/pdf" if filename_lower.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    content_type = "application/pdf"
     
     # Read file content
     content = await file.read()
     
     # Upload to storage: {user_id}/resumes/{timestamp}.{ext}
-    ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
+    ext = "pdf"
     timestamp = int(datetime.now().timestamp())
     storage_path = f"{user_id}/resumes/{timestamp}.{ext}"
     
