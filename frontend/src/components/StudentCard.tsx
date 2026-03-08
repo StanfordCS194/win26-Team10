@@ -127,7 +127,7 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
               if (!token) {
                 throw new Error('You must be logged in to access transcripts.')
               }
-              let skillScores: Record<string, { score: number }> | null = null
+              let skillScores: Record<string, { score: number; justification?: string }> | null = null
               try {
                 const detailRes = await fetch(`${API_BASE}/transcript/detail/${student.id}`, {
                   headers: { Authorization: `Bearer ${token}` },
@@ -138,8 +138,12 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
                   if (cats && typeof cats === 'object') {
                     skillScores = {}
                     for (const [k, v] of Object.entries(cats)) {
-                      if (v && typeof v === 'object' && 'score' in v && typeof (v as { score: number }).score === 'number') {
-                        skillScores[k] = { score: (v as { score: number }).score }
+                      const val = v as { score?: number; justification?: string }
+                      if (v && typeof v === 'object' && 'score' in v && typeof val.score === 'number') {
+                        skillScores[k] = {
+                          score: val.score,
+                          justification: typeof val.justification === 'string' ? val.justification : undefined
+                        }
                       }
                     }
                     if (Object.keys(skillScores).length === 0) skillScores = null

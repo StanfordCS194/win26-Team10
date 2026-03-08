@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { SmallTranscript, Student } from '../types/student'
 
 const SKILL_LABELS: Record<string, string> = {
@@ -11,7 +12,7 @@ const SKILL_LABELS: Record<string, string> = {
 interface StudentTranscriptCardProps {
     transcript: SmallTranscript
     student: Student
-    skillScores?: Record<string, { score: number }> | null
+    skillScores?: Record<string, { score: number; justification?: string }> | null
 }
 
 const percentageToColor = (percentage: number) => {
@@ -29,7 +30,9 @@ const percentageToColor = (percentage: number) => {
   return colorHex;
 };
 
-function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
+function RadarChart({ data }: { data: Array<{ key: string; score: number; justification?: string }> }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   if (data.length < 3) return null
   const size = 520
   const padding = 70
@@ -40,7 +43,13 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
   const angleStep = (2 * Math.PI) / data.length
   const axes = data.map((_, i) => {
     const a = -Math.PI / 2 + i * angleStep
-    return { x: cx + maxRadius * Math.cos(a), y: cy + maxRadius * Math.sin(a), label: SKILL_LABELS[data[i].key] ?? data[i].key.replace(/_/g, ' ') }
+    return {
+      x: cx + maxRadius * Math.cos(a),
+      y: cy + maxRadius * Math.sin(a),
+      label: SKILL_LABELS[data[i].key] ?? data[i].key.replace(/_/g, ' '),
+      tx: cx + (maxRadius + labelOffset) * Math.cos(a),
+      ty: cy + (maxRadius + labelOffset) * Math.sin(a)
+    }
   })
   const points = data.map((d, i) => {
     const r = (d.score / 10) * maxRadius
@@ -49,8 +58,9 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
   }).join(' ')
   const gridLevels = [2, 4, 6, 8, 10]
   const viewSize = size + padding * 2
+  const hoverRadius = 24
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%', position: 'relative' }}>
       <h2 style={{ width: '100%', textAlign: 'left', margin: '0 0 4px 0' }}>Skill Scores</h2>
       <svg width={viewSize} height={viewSize} viewBox={`0 0 ${viewSize} ${viewSize}`} style={{ flexShrink: 0 }}>
         {gridLevels.map((level, idx) => {
@@ -79,20 +89,87 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number }> }) {
           strokeWidth={2}
         />
         {axes.map((ax, i) => (
-          <text
+          <g
             key={i}
-            x={cx + (maxRadius + labelOffset) * ((ax.x - cx) / maxRadius)}
-            y={cy + (maxRadius + labelOffset) * ((ax.y - cy) / maxRadius)}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize={12}
-            fill="#1f2937"
-            fontWeight={500}
+            style={{ cursor: data[i].justification ? 'pointer' : 'default' }}
+            onMouseEnter={(e) => {
+              if (data[i].justification) {
+                setHoveredIndex(i)
+                const svg = (e.target as SVGElement).ownerSVGElement
+                const rect = svg?.getBoundingClientRect()
+                if (rect && svg) {
+                  const scaleX = rect.width / viewSize
+                  const scaleY = rect.height / viewSize
+                  setTooltipPos({
+                    x: rect.left + ax.tx * scaleX,
+                    y: rect.top + ax.ty * scaleY
+                  })
+                }
+              }
+            }}
+            onMouseLeave={() => setHoveredIndex(null)}
+            onMouseMove={(e) => {
+              if (hoveredIndex === i && data[i].justification) {
+                const svg = (e.target as SVGElement).ownerSVGElement
+                const rect = svg?.getBoundingClientRect()
+                if (rect && svg) {
+                  const scaleX = rect.width / viewSize
+                  const scaleY = rect.height / viewSize
+                  setTooltipPos({
+                    x: rect.left + ax.tx * scaleX,
+                    y: rect.top + ax.ty * scaleY
+                  })
+                }
+              }
+            }}
           >
-            {ax.label}
-          </text>
+            <circle
+              cx={ax.tx}
+              cy={ax.ty}
+              r={hoverRadius}
+              fill="transparent"
+            />
+            <text
+              x={ax.tx}
+              y={ax.ty}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={12}
+              fill={hoveredIndex === i ? '#3730a3' : '#1f2937'}
+              fontWeight={hoveredIndex === i ? 600 : 500}
+              pointerEvents="none"
+            >
+              {ax.label}
+            </text>
+          </g>
         ))}
       </svg>
+      {hoveredIndex !== null && data[hoveredIndex].justification && (
+        <div
+          role="tooltip"
+          style={{
+            position: 'fixed',
+            left: tooltipPos.x,
+            top: tooltipPos.y,
+            transform: 'translate(-50%, -100%) translateY(-12px)',
+            maxWidth: 280,
+            padding: '10px 12px',
+            background: '#1f2937',
+            color: '#f9fafb',
+            fontSize: '0.8rem',
+            lineHeight: 1.5,
+            borderRadius: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            zIndex: 9999,
+            pointerEvents: 'none'
+          }}
+        >
+          <strong style={{ display: 'block', marginBottom: 4, color: '#e5e7eb' }}>
+            {SKILL_LABELS[data[hoveredIndex].key] ?? data[hoveredIndex].key.replace(/_/g, ' ')} ({data[hoveredIndex].score}/10)
+          </strong>
+          {data[hoveredIndex].justification}
+        </div>
+      )}
     </div>
   )
 }
@@ -101,7 +178,7 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
     const radarData = skillScores
       ? (['technical_domain_skill', 'problem_solving', 'communication', 'execution', 'collaboration'] as const)
           .filter((k) => skillScores[k] != null)
-          .map((k) => ({ key: k, score: skillScores[k]!.score }))
+          .map((k) => ({ key: k, score: skillScores[k]!.score, justification: skillScores[k]!.justification }))
       : []
     return (
         <div className="student-transcript-card" style={{ display: 'flex', flexDirection: 'column', maxHeight: '70vh' }}>
