@@ -45,6 +45,20 @@ python -m api.parse
 supabase start
 ```
 
+## Railway Deployment (Required for Async Jobs)
+
+You need two Railway services from the same repo image:
+
+1. API service
+- `SERVICE_TYPE=api`
+- Expose `PORT` (Railway sets this automatically)
+
+2. Parse worker service
+- `SERVICE_TYPE=worker-parse`
+- No public port needed
+
+If only the API service is running, `/transcript/parse` will enqueue jobs but nothing will dequeue them.
+
 ## Environment
 
 Add to `api/.env`:
