@@ -82,6 +82,8 @@ class TranscriptAnalysisStep(ParseStep):
         self.model = model or os.getenv("MODEL_ID") or "openai/gpt-oss-120b"
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.timeout_seconds = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "180"))
+        self.save_debug = os.getenv("SAVE_LLM_DEBUG", "1").lower() in {"1", "true", "yes"}
 
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         """
@@ -120,11 +122,12 @@ Output the qualitative analysis as a JSON object following the schema exactly.""
         }
 
         # Save request for debugging
-        request_path = analysis_dir / "request.json"
-        request_path.write_text(
-            json.dumps(request_payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        if self.save_debug:
+            request_path = analysis_dir / "request.json"
+            request_path.write_text(
+                json.dumps(request_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
 
         # Call OpenRouter API
         self.logger.info("Calling OpenRouter API for qualitative analysis...")
@@ -135,18 +138,21 @@ Output the qualitative analysis as a JSON object following the schema exactly.""
                 "Content-Type": "application/json",
             },
             json=request_payload,
-            timeout=180.0,
+            timeout=self.timeout_seconds,
         )
 
         response.raise_for_status()
+        self.logger.info(
+            "OpenRouter response received: status=%s bytes=%d",
+            response.status_code,
+            len(response.content),
+        )
         result = response.json()
 
         # Save response for debugging
-        response_path = analysis_dir / "response.json"
-        response_path.write_text(
-            json.dumps(result, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        if self.save_debug:
+            response_path = analysis_dir / "response.json"
+            response_path.write_text(response.text, encoding="utf-8")
 
         # Extract content from response
         content = result["choices"][0]["message"]["content"]

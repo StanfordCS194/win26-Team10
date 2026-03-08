@@ -268,10 +268,12 @@ async def complete_job(job_id: str, _result_data: Optional[dict] = None) -> dict
     update_data = {
         "status": "succeeded",
         "finished_at": datetime.now(timezone.utc).isoformat(),
+        "locked_at": None,
+        "locked_by": None,
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
-    return result.data[0]
+    return result.data[0] if result.data else {}
 
 
 async def fail_job(job_id: str, error: str) -> dict:
@@ -291,10 +293,12 @@ async def fail_job(job_id: str, error: str) -> dict:
         "status": "failed",
         "error": error,
         "finished_at": datetime.now(timezone.utc).isoformat(),
+        "locked_at": None,
+        "locked_by": None,
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
-    return result.data[0]
+    return result.data[0] if result.data else {}
 
 
 # Storage helpers
