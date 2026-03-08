@@ -4,6 +4,7 @@ FastAPI application for the parse job queue API.
 
 import uuid
 import json
+from datetime import datetime
 from typing import Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -88,6 +89,7 @@ class ApplicantProfile(BaseModel):
     work_authorization: Optional[str] = None
     updated_at: Optional[str] = None
     latest_repr_path: Optional[str] = None
+    resume_path: Optional[str] = None
     latest_report_path: Optional[str] = None
     is_complete: Optional[bool] = None
 
@@ -306,6 +308,44 @@ async def get_specific_transcript(user_id: str):
             detail=f"Transcript file not found: {e}",
         )
 
+@app.get("/get_resume/{user_id}")
+async def get_resume(user_id: str):
+    """
+    Get a specific user's resume file.
+    
+    Returns the resume PDF or DOCX file.
+    Only available for recruiters.
+    """
+    # Get applicant profile
+    applicant = await get_applicant(user_id)
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    
+    # Check if user has a resume
+    resume_path = applicant.get("resume_path")
+    if not resume_path:
+        raise HTTPException(status_code=404, detail="No resume found")
+    
+    try:
+        # Download and return the resume
+        content = get_file_bytes(resume_path)
+        
+        # Determine content type based on file extension
+        content_type = "application/pdf" if resume_path.endswith('.pdf') else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        
+        return Response(
+            content=content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"inline; filename=resume_{user_id}.{resume_path.split('.')[-1]}"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Resume file not found: {e}",
+        )
+
 @app.get("/profile", response_model=ApplicantProfile)
 async def get_profile(user: dict = Depends(get_current_user)):
     """Get the current user's applicant profile."""
@@ -396,9 +436,10 @@ async def upload_resume(
     # Read file content
     content = await file.read()
     
-    # Upload to storage: {user_id}/resume.{ext}
+    # Upload to storage: {user_id}/resumes/{timestamp}.{ext}
     ext = "pdf" if filename_lower.endswith('.pdf') else "docx"
-    storage_path = f"{user_id}/resume.{ext}"
+    timestamp = int(datetime.now().timestamp())
+    storage_path = f"{user_id}/resumes/{timestamp}.{ext}"
     
     upload_bytes(
         content=content,
@@ -410,4 +451,3 @@ async def upload_resume(
     await update_applicant(user_id, {"resume_path": storage_path})
     
     return {"resume_path": storage_path, "message": "Resume uploaded successfully"}
-
