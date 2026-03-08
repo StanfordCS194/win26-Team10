@@ -56,7 +56,11 @@ export default function StudentCard({ student, hasApplied, applicationDetails }:
           {student.major}
         </span>
         <span className="divider">|</span>
-        <span>Class of {student.graduationYear}</span>
+        {student.graduationYear !== 0 ? (
+          <span>Class of {student.graduationYear}</span>
+        ) : (
+          <span>Unknown Graduation Year</span>
+        )}
       </div>
 
       {/* Skills */}

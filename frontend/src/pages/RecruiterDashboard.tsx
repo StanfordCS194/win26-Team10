@@ -47,7 +47,7 @@ type ApplicantRow = {
 
 const initialFilters: Filters = {
   search: '',
-  minGpa: 0,
+  minGpa: 0.1,
   maxGpa: 4,
   major: '',
   graduationYear: '',
@@ -294,8 +294,26 @@ export default function RecruiterDashboard() {
 
         if (applicantsError) throw applicantsError
 
+        const { data: analyses, error: analysesError } = await supabase
+          .from('applicants_detail')
+          .select('id, transcript_stats, transcript_analysis')
+
+        if (analysesError) throw analysesError
+
         const mappedStudents = ((applicants || []) as ApplicantRow[]).map(mapApplicantToStudent)
-        setDirectoryStudents(mergeWithMockStudents(mappedStudents))
+
+        const analysesMap = new Map((analyses || []).map(a => [a.id, a]))
+        const studentsWithAnalyses = mappedStudents.map(student => {
+          const analysis = analysesMap.get(student.id)
+          if (!analysis) return student
+          return {
+            ...student,
+            transcript_stats: analysis.transcript_stats ?? null,
+            transcript_analysis: analysis.transcript_analysis ?? null,
+          }
+        })
+
+        setDirectoryStudents(mergeWithMockStudents(studentsWithAnalyses))
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to load company data.'
         setCompanyJobsError(message)

@@ -12,6 +12,8 @@ export interface Student {
   resumeUploaded: boolean
   resumePath?: string
   workAuthorization?: string | null
+  transcript_stats?: any | null
+  transcript_analysis?: any | null
 }
 
 export const WORK_AUTH_OPTIONS = [
