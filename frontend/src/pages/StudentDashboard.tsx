@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip, AlertTriangle } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { Briefcase, Building2, DollarSign, CheckCircle, ChevronDown, MapPin, Search, X, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
 import { useApplyModal } from '../contexts/ApplyModalContext'
@@ -185,7 +185,6 @@ export default function StudentDashboard() {
   const [appliedJobsList, setAppliedJobsList] = useState<Job[]>([])
   const [mismatchConfirmJob, setMismatchConfirmJob] = useState<Job | null>(null)
   const { openApplyModal: openApplyModalCtx } = useApplyModal()
-  const navigate = useNavigate()
   const location = useLocation()
 
   // When route is /student/inbox, show Inbox tab by default
@@ -454,92 +453,6 @@ export default function StudentDashboard() {
   return (
     <div className="student-dashboard">
       <div className="student-dashboard-container">
-        <div className="dashboard-top-section">
-          <div className="profile-card">
-            {profileComplete ? (
-              <>
-                <div className="profile-avatar">
-                  <User size={32} />
-                </div>
-                <div className="profile-info">
-                  <h2 className="profile-name">
-                    {profile.firstName} {profile.lastName}
-                  </h2>
-                  <div className="profile-details">
-                    <span className="profile-detail">
-                      <GraduationCap size={16} />
-                      {profile.major}
-                    </span>
-                    {profile.graduationYear && (
-                      <span className="profile-detail">
-                        <Clock size={16} />
-                        Class of {profile.graduationYear}
-                      </span>
-                    )}
-                    {profile.gpa && (
-                      <span className="profile-detail">GPA: {profile.gpa}</span>
-                    )}
-                  </div>
-                  <p className="profile-email">{email}</p>
-                </div>
-                <button
-                  className="edit-profile-btn"
-                  onClick={() => navigate('/student/profile')}
-                >
-                  Edit Profile
-                </button>
-              </>
-            ) : (
-              <div className="profile-incomplete">
-                <div className="incomplete-icon">
-                  <User size={32} />
-                </div>
-                <div className="incomplete-content">
-                  <h3>Complete Your Profile</h3>
-                  <p>Add your information to be visible to recruiters and apply for jobs.</p>
-                </div>
-                <button
-                  className="complete-setup-btn"
-                  onClick={() => navigate('/student/profile')}
-                >
-                  Complete Setup
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tab bar: Open Positions | Inbox */}
-        <div className="dashboard-header dashboard-header-with-tabs student-dashboard-tabs">
-          <div className="dashboard-tabs">
-            <button
-              type="button"
-              className={`dashboard-tab ${viewMode === 'jobs' ? 'active' : ''}`}
-              onClick={() => setViewMode('jobs')}
-            >
-              <Briefcase size={18} />
-              Open Positions
-            </button>
-            <button
-              type="button"
-              className={`dashboard-tab ${viewMode === 'inbox' ? 'active' : ''}`}
-              onClick={() => setViewMode('inbox')}
-            >
-              <MessageSquare size={18} />
-              Inbox
-              {conversations.length > 0 && (
-                <span className="messages-badge">{conversations.length}</span>
-              )}
-            </button>
-          </div>
-          {viewMode === 'jobs' && (
-            <span className="dashboard-subtitle student-dashboard-subtitle">
-              {filteredJobs.length} of {jobs.length} jobs
-            </span>
-          )}
-        </div>
-
         {viewMode === 'jobs' && (
           <div className="jobs-section">
           <div className="jobs-header">
