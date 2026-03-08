@@ -1,14 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Menu, X, Sparkles } from 'lucide-react'
+import { LogOut, Menu, X, Sparkles, User } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+
+function getInitials(email: string | undefined): string {
+  if (!email) return 'U'
+  const part = email.split('@')[0] || ''
+  const segments = part.split(/[._-]/).filter(Boolean)
+  if (segments.length >= 2) {
+    return (segments[0][0] + segments[segments.length - 1][0]).toUpperCase().slice(0, 2)
+  }
+  return part.slice(0, 2).toUpperCase() || 'U'
+}
 
 export default function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
   const [signedIn, setSignedIn] = useState(false)
+  const [userType, setUserType] = useState<'student' | 'recruiter' | null>(null)
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,11 +32,42 @@ export default function Navigation() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSignedIn(!!session?.user)
+      setUserEmail(session?.user?.email ?? undefined)
+      if (session?.user?.id) {
+        supabase
+          .from('users')
+          .select('type')
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            const t = data?.type
+            if (t === 'student' || t === 'recruiter') setUserType(t)
+            else setUserType(null)
+          })
+      } else {
+        setUserType(null)
+      }
     })
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSignedIn(!!session?.user)
+      setUserEmail(session?.user?.email ?? undefined)
+      if (session?.user?.id) {
+        supabase
+          .from('users')
+          .select('type')
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            const t = data?.type
+            if (t === 'student' || t === 'recruiter') setUserType(t)
+            else setUserType(null)
+          })
+      } else {
+        setUserType(null)
+      }
     })
 
     return () => {
@@ -31,10 +76,25 @@ export default function Navigation() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
+
   async function handleLogout() {
+    setDropdownOpen(false)
+    setIsMenuOpen(false)
     await supabase.auth.signOut()
     navigate('/')
   }
+
+  const profilePath = userType === 'recruiter' ? '/recruiter/profile' : userType === 'student' ? '/student/profile' : '/'
 
   const isAuthPage = ['/login', '/signup-student', '/signup-recruiter'].includes(location.pathname)
 
@@ -48,17 +108,37 @@ export default function Navigation() {
           <span>TalentMatch</span>
         </Link>
 
-        {/* Desktop Links */}
+        {/* Desktop: avatar dropdown or auth links */}
         <div className="nav-links-new">
           {signedIn ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="nav-btn-logout"
-            >
-              <LogOut size={18} />
-              <span>Log out</span>
-            </button>
+            <div className="nav-user-menu" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen((o) => !o)}
+                className="nav-avatar-btn"
+                aria-expanded={dropdownOpen}
+                aria-haspopup="true"
+                aria-label="Profile and account menu"
+              >
+                <span className="nav-avatar-initials">{getInitials(userEmail)}</span>
+              </button>
+              {dropdownOpen && (
+                <div className="nav-avatar-dropdown">
+                  <Link
+                    to={profilePath}
+                    className="nav-dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <User size={16} />
+                    <span>Profile</span>
+                  </Link>
+                  <button type="button" className="nav-dropdown-item" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="nav-auth-group">
               <Link to="/login" className="nav-link-new">Log in</Link>
@@ -68,7 +148,7 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button 
+        <button
           className="mobile-menu-toggle"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
@@ -81,10 +161,20 @@ export default function Navigation() {
       {isMenuOpen && (
         <div className="mobile-menu">
           {signedIn ? (
-            <button onClick={handleLogout} className="mobile-menu-link">
-              <LogOut size={18} />
-              Log out
-            </button>
+            <>
+              <Link
+                to={profilePath}
+                onClick={() => setIsMenuOpen(false)}
+                className="mobile-menu-link"
+              >
+                <User size={18} />
+                Profile
+              </Link>
+              <button onClick={handleLogout} className="mobile-menu-link">
+                <LogOut size={18} />
+                Logout
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login" onClick={() => setIsMenuOpen(false)} className="mobile-menu-link">Log in</Link>
