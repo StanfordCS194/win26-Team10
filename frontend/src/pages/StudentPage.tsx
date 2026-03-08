@@ -108,6 +108,8 @@ export default function StudentPage() {
   const setJobId = useState<string | null>(null)[1]
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
+  const [transcriptStats, setTranscriptStats] = useState<any>(null)
+  const [transcriptAnalysis, setTranscriptAnalysis] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -191,7 +193,7 @@ export default function StudentPage() {
           resumePath: data.resume_path,
         })
         if (data.latest_repr_path) {
-          fetchTranscript(token)
+          fetchTranscriptDetail(token)
         }
         if (data.resume_path) {
           setUploadedResume({
@@ -204,6 +206,38 @@ export default function StudentPage() {
       }
     } catch (err) {
       console.error('Failed to fetch profile:', err)
+    }
+  }
+
+  const fetchTranscriptDetail = async (token: string) => {
+    try {
+      const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (detailRes.ok) {
+        const detail = await detailRes.json()
+        // Use data from the detail table
+        if (detail.transcript_raw) {
+          setTranscriptJson(detail.transcript_raw)
+        }
+        if (detail.transcript_stats) {
+          setTranscriptStats(detail.transcript_stats)
+        }
+        if (detail.transcript_analysis) {
+          setTranscriptAnalysis(detail.transcript_analysis)
+        }
+        
+        if (!detail.transcript_raw) {
+          // Fallback to old method if detail table not yet fully populated
+          fetchTranscript(token)
+        }
+      } else {
+        // Fallback to old method
+        fetchTranscript(token)
+      }
+    } catch (err) {
+      console.error('Failed to fetch transcript detail:', err)
+      fetchTranscript(token)
     }
   }
 
@@ -246,11 +280,11 @@ export default function StudentPage() {
       throw new Error('You must be logged in to parse a transcript.')
     }
 
-    // 1) Upload PDF → POST /parse (multipart form field name: "file")
+    // 1) Upload PDF → POST /transcript/parse (multipart form field name: "file")
     const form = new FormData()
     form.append('file', file)
 
-    const parseRes = await fetch(`${API_BASE}/parse`, {
+    const parseRes = await fetch(`${API_BASE}/transcript/parse`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -270,7 +304,7 @@ export default function StudentPage() {
     while (true) {
       await new Promise((r) => setTimeout(r, 1500))
 
-      const statusRes = await fetch(`${API_BASE}/parse/${parseBody.job_id}`, {
+      const statusRes = await fetch(`${API_BASE}/transcript/parse/${parseBody.job_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -290,19 +324,32 @@ export default function StudentPage() {
     }
 
     // 3) Fetch transcript JSON
-    const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
+    const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    if (!transcriptRes.ok) {
-      throw new Error(await transcriptRes.text())
-    }
+    if (detailRes.ok) {
+      const detail = await detailRes.json()
+      if (detail.transcript_raw) setTranscriptJson(detail.transcript_raw)
+      if (detail.transcript_stats) setTranscriptStats(detail.transcript_stats)
+      if (detail.transcript_analysis) setTranscriptAnalysis(detail.transcript_analysis)
+      setParseStatus('done')
+    } else {
+      // Fallback
+      const transcriptRes = await fetch(`${API_BASE}/get_latest_transcript`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-    // backend currently returns JSONResponse(content=<string>), so handle both string and object
-    const raw = await transcriptRes.json()
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
-    setTranscriptJson(parsed)
-    setParseStatus('done')
+      if (!transcriptRes.ok) {
+        throw new Error(await transcriptRes.text())
+      }
+
+      // backend currently returns JSONResponse(content=<string>), so handle both string and object
+      const raw = await transcriptRes.json()
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+      setTranscriptJson(parsed)
+      setParseStatus('done')
+    }
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
@@ -831,12 +878,74 @@ export default function StudentPage() {
           )}
 
           {/* Nicely formatted transcript view */}
+          {transcriptStats && (
+            <div style={{ marginTop: 24, marginBottom: 24 }}>
+              <h3 className="section-title" style={{ marginBottom: 16 }}>Academic Performance</h3>
+              <div className="form-row" style={{ gap: 16 }}>
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, display: 'block' }}>Universal Percentile</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b' }}>
+                      {transcriptStats.universal_scores?.weighted_percentile ?? '—'}
+                    </span>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>%</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4, marginBottom: 0 }}>Across all courses</p>
+                </div>
+                
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#f0f9ff', padding: 16, borderRadius: 12, border: '1px solid #bae6fd' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0369a1', marginBottom: 8, display: 'block' }}>Major Percentile</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0c4a6e' }}>
+                      {transcriptStats.major_scores?.weighted_percentile ?? '—'}
+                    </span>
+                    <span style={{ color: '#0369a1', fontWeight: 500 }}>%</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#0369a1', marginTop: 4, marginBottom: 0 }}>
+                    {transcriptStats.major_scores?.heuristic_note?.split("'")[1] ?? 'Major'} courses
+                  </p>
+                </div>
+
+                <div className="form-group" style={{ flex: 1, backgroundColor: '#fdf2f8', padding: 16, borderRadius: 12, border: '1px solid #fbcfe8' }}>
+                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9d174d', marginBottom: 8, display: 'block' }}>Weighted GPA</label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#831843' }}>
+                      {transcriptStats.universal_scores?.weighted_gpa?.toFixed(3) ?? '—'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#9d174d', marginTop: 4, marginBottom: 0 }}>Official transcript GPA</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {transcript && (
             <div style={{ marginTop: 16 }}>
               <div className="form-section" style={{ padding: 0, border: 'none' }}>
-                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Parse</h3>
+                <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Details</h3>
+                
+                {transcriptAnalysis && (
+                  <div style={{ marginBottom: 24, backgroundColor: '#fdfaff', padding: 20, borderRadius: 12, border: '1px solid #e9d5ff' }}>
+                    <h4 style={{ color: '#6b21a8', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Qualitative Analysis</h4>
+                    <p style={{ color: '#581c87', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+                      {transcriptAnalysis.topic_rating?.program_performance}
+                    </p>
+                    
+                    {transcriptAnalysis.categories && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 16 }}>
+                        {Object.entries(transcriptAnalysis.categories).map(([key, cat]: [string, any]) => (
+                          <div key={key} style={{ backgroundColor: 'white', padding: 10, borderRadius: 8, border: '1px solid #f3e8ff' }}>
+                            <div style={{ fontSize: '0.7rem', color: '#7e22ce', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#6b21a8' }}>{cat.score}/10</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <p className="section-description" style={{ marginTop: 0 }}>
-                  Schema v{transcript.schema_version} • Extracted {new Date(transcript.extracted_at).toLocaleString()}
+                  Schema v{transcript.schema_version} • {transcript.extracted_at ? `Extracted ${new Date(transcript.extracted_at).toLocaleString()}` : 'Standardized Transcript'}
                 </p>
 
                 {/* Summary cards */}

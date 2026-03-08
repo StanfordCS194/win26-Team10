@@ -40,15 +40,16 @@ from api.pipeline import (
     ReductoStep,
     TextExtractStep,
     StandardizeStep,
-    AnalyzeStep,
+    TranscriptStatisticsStep,
+    TranscriptAnalysisStep,
     ParseInput,
     ParseArtifacts,
     default_output_dir,
 )
 
 
-def run_analyze_step(args) -> int:
-    """Run only the Analyze step on existing transcript.json."""
+async def run_analyze_step(args) -> int:
+    """Run only the post-standardize steps (Statistics + Analysis) on existing transcript.json."""
     if not args.job_id:
         print("Error: --job-id is required for analyze step", file=sys.stderr)
         return 1
@@ -82,13 +83,21 @@ def run_analyze_step(args) -> int:
             transcript=transcript,
         )
         
-        # Run analyze step
-        step = AnalyzeStep()
-        artifacts = step.run(artifacts)
+        # Run statistics step
+        print("Running TranscriptStatisticsStep...")
+        stats_step = TranscriptStatisticsStep()
+        artifacts = stats_step.run(artifacts)
         
-        print("\n=== Analyze Step Complete ===")
+        # Run analyze step
+        print("Running TranscriptAnalysisStep...")
+        analysis_step = TranscriptAnalysisStep()
+        artifacts = analysis_step.run(artifacts)
+        
+        print("\n=== Post-Standardize Analysis Complete ===")
         print(f"Job ID: {args.job_id}")
-        print(f"Output: {artifacts.outputs.get('analyzed_transcript')}")
+        print(f"Statistics Output: {artifacts.outputs.get('statistics_summary')}")
+        print(f"Analysis Output: {artifacts.outputs.get('analysis_report')}")
+
         return 0
         
     except Exception as e:
@@ -309,7 +318,7 @@ Examples:
     elif args.step == "standardize":
         return run_standardize_step(args)
     elif args.step == "analyze":
-        return run_analyze_step(args)
+        return asyncio.run(run_analyze_step(args))
     else:  # pipeline
         return run_full_pipeline(args)
 

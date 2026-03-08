@@ -24,6 +24,8 @@ from api.supabase import (
     update_user_latest_repr,
     upload_bytes,
     get_school_id_by_name,
+    get_applicant_detail,
+    upsert_applicant_detail,
 )
 
 app = FastAPI(
@@ -103,7 +105,7 @@ async def health_check():
     return {"status": "healthy", "service": "api"}
 
 
-@app.post("/parse", status_code=202, response_model=ParseJobResponse)
+@app.post("/transcript/parse", status_code=202, response_model=ParseJobResponse)
 async def create_parse_job(
     file: UploadFile = File(...),
     user: dict = Depends(get_current_user),
@@ -169,7 +171,7 @@ async def create_parse_job(
     )
 
 
-@app.get("/parse/{job_id}", response_model=JobStatusResponse)
+@app.get("/transcript/parse/{job_id}", response_model=JobStatusResponse)
 async def get_parse_job_status(
     job_id: str,
     user: dict = Depends(get_current_user),
@@ -237,6 +239,33 @@ async def get_latest_transcript(user: dict = Depends(get_current_user)):
             status_code=404,
             detail=f"Transcript file not found: {e}",
         )
+
+
+@app.get("/transcript/detail")
+async def get_my_transcript_detail(user: dict = Depends(get_current_user)):
+    """
+    Get the current user's detailed transcript data from applicants_detail table.
+    """
+    detail = await get_applicant_detail(user["id"])
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
+
+@app.get("/transcript/detail/{user_id}")
+async def get_user_transcript_detail(user_id: str, user: dict = Depends(get_current_user)):
+    """
+    Get a specific user's detailed transcript data.
+    Only available for recruiters.
+    """
+    if user.get("type") != "recruiter":
+        raise HTTPException(status_code=403, detail="Only recruiters can access other users' details")
+    
+    detail = await get_applicant_detail(user_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Transcript detail not found")
+    return detail
+
 
 @app.get("/get_users")
 async def get_users():

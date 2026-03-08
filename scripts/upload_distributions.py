@@ -1,14 +1,24 @@
 import json
-import os
 import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
 
 # Add the parent directory to sys.path so we can import from api
-sys.path.append(str(Path(__file__).parent.parent.parent))
+sys.path.append(str(Path(__file__).parent.parent))
 
 from api.supabase import get_client
+
+"""
+Example usage:
+
+    # Upload Stanford grade distributions
+    python scripts/upload_distributions.py analysis/out/stanford_grades.json
+
+    # Upload UT Austin grade distributions
+    python scripts/upload_distributions.py analysis/out/ut_austin_grades.json
+"""
+
 
 def upload_distributions(json_path: str):
     """
@@ -72,7 +82,7 @@ def upload_distributions(json_path: str):
 
 if __name__ == "__main__":
     # Default to the stanford_grades.json in analysis/
-    default_path = Path(__file__).parent.parent.parent / "analysis" / "stanford_grades.json"
+    default_path = Path(__file__).parent.parent / "analysis" / "out" / "stanford_grades.json"
     
     json_file = sys.argv[1] if len(sys.argv) > 1 else str(default_path)
     upload_distributions(json_file)

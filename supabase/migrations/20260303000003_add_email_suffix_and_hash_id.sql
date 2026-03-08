@@ -45,9 +45,28 @@ BEGIN
     FOR school_record IN SELECT id, name FROM schools LOOP
         new_id := generate_uuid_from_text(school_record.name);
         
-        -- Update the school's ID
-        UPDATE schools 
-        SET id = new_id 
-        WHERE id = school_record.id;
+        -- If the ID is already correct, skip
+        IF new_id = school_record.id THEN
+            CONTINUE;
+        END IF;
+
+        -- Update the school's ID first
+        -- We use a temporary ID to avoid collision if new_id already exists as an old ID
+        -- but here we just update the school ID. 
+        -- The FK constraint is the issue. We need to update them in the correct order.
+        
+        -- 1. Create the new school record with the new ID but same data
+        INSERT INTO schools (id, name, location, email_suffix)
+        SELECT new_id, name, location, email_suffix 
+        FROM schools 
+        WHERE id = school_record.id
+        ON CONFLICT (id) DO NOTHING;
+
+        -- 2. Update references in other tables to point to the new ID
+        UPDATE grade_distributions SET school_id = new_id WHERE school_id = school_record.id;
+        UPDATE applicants SET school_id = new_id WHERE school_id = school_record.id;
+        
+        -- 3. Delete the old school record
+        DELETE FROM schools WHERE id = school_record.id;
     END LOOP;
 END $$;
