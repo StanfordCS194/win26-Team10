@@ -128,20 +128,10 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
       )}
 
       {/* Transcript & Resume Status + Message */}
-      <div className="card-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {isRecruiter && onOpenConversation && (
-          <button
-            type="button"
-            className="student-card-message-btn"
-            onClick={handleMessage}
-            aria-label={`Message ${student.firstName} ${student.lastName}`}
-          >
-            <MessageCircle size={16} />
-            Message
-          </button>
-        )}
-        {student.transcriptUploaded && (
-          <div className="transcript-status uploaded" onClick={async () => {
+      <div className="card-footer">
+        <div className="card-footer-docs">
+          {student.transcriptUploaded && (
+            <div className="transcript-status uploaded" onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
             const popupBackground = document.createElement('div')
@@ -230,6 +220,18 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
             <FileText size={16} />
             Resume uploaded
           </div>
+        )}
+        </div>
+        {isRecruiter && onOpenConversation && (
+          <button
+            type="button"
+            className="student-card-message-btn"
+            onClick={handleMessage}
+            aria-label={`Message ${student.firstName} ${student.lastName}`}
+          >
+            <MessageCircle size={16} />
+            Message
+          </button>
         )}
       </div>
     </div>

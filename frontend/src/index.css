@@ -963,6 +963,13 @@ body {
   flex-wrap: wrap;
 }
 
+.card-footer-docs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .student-card-message-btn {
   display: inline-flex;
   align-items: center;
@@ -975,6 +982,7 @@ body {
   border: 1px solid #bfdbfe;
   border-radius: 0.5rem;
   cursor: pointer;
+  margin-left: auto;
 }
 
 .student-card-message-btn:hover {
