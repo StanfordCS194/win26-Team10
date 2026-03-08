@@ -66,11 +66,12 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
   }).join(' ')
   const gridLevels = [2, 4, 6, 8, 10]
   const viewSize = size + padding * 2
+  const viewHeight = 535
   const hoverRadius = 24
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%', position: 'relative' }}>
-      <h2 style={{ width: '100%', textAlign: 'left', margin: '0 0 4px 0' }}>Skill Scores</h2>
-      <svg width={viewSize} height={viewSize} viewBox={`0 0 ${viewSize} ${viewSize}`} style={{ flexShrink: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', position: 'relative' }}>
+      <h2 style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
+      <svg width={viewSize} height={viewHeight} viewBox={`0 0 ${viewSize} ${viewHeight}`} style={{ flexShrink: 0 }} preserveAspectRatio="xMidYMid meet">
         {gridLevels.map((level, idx) => {
           const r = (level / 10) * maxRadius
           const pts = data.map((_, i) => {
@@ -274,7 +275,7 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                     )}
                 </div>
             </div>
-            <div className="info-box">
+            <div className="info-box" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0 }}>
                 {radarData.length >= 3 ? (
                     <RadarChart data={radarData} />
                 ) : (
