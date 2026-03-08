@@ -31,25 +31,44 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
         return
       }
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('type')
-        .eq('id', u.id)
-        .maybeSingle()
+      const maxAttempts = 5
+      const delayMs = 400
 
-      if (cancelled) return
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (cancelled) return
 
-      if (error) {
-        console.error('Failed to load user type:', error)
-        setUserType(null)
-        userTypeRef.current = null
-      } else {
-        const t = data?.type
-        const resolvedType = t === 'student' || t === 'recruiter' ? t : null
-        setUserType(resolvedType)
-        userTypeRef.current = resolvedType
+        const { data, error } = await supabase
+          .from('users')
+          .select('type')
+          .eq('id', u.id)
+          .maybeSingle()
+
+        if (cancelled) return
+
+        if (error) {
+          console.error('Failed to load user type:', error)
+          if (attempt === maxAttempts - 1) {
+            setUserType(null)
+            userTypeRef.current = null
+          }
+        } else {
+          const t = data?.type
+          const resolvedType = t === 'student' || t === 'recruiter' ? t : null
+          if (resolvedType) {
+            setUserType(resolvedType)
+            userTypeRef.current = resolvedType
+            setLoading(false)
+            return
+          }
+        }
+
+        if (attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, delayMs))
+        }
       }
 
+      setUserType(null)
+      userTypeRef.current = null
       setLoading(false)
     }
 

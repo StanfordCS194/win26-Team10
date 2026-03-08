@@ -38,40 +38,50 @@ export default function RecruiterLayout() {
       return
     }
     let cancelled = false
-    ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      const uid = session?.user?.id
-      if (!uid) {
-        if (!cancelled) setPreview(null)
-        return
-      }
-      const { data: membership } = await supabase
-        .from('company_memberships')
-        .select('company_id, companies(id, name)')
-        .eq('user_id', uid)
-        .eq('status', 'approved')
-        .limit(1)
-        .maybeSingle()
-      const m = membership as CompanyMembershipRow | null
-      const companyName = m?.companies?.name ?? null
+    function fetchPreview() {
+      ;(async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        const uid = session?.user?.id
+        if (!uid) {
+          if (!cancelled) setPreview(null)
+          return
+        }
+        const { data: membership } = await supabase
+          .from('company_memberships')
+          .select('company_id, companies(id, name)')
+          .eq('user_id', uid)
+          .eq('status', 'approved')
+          .limit(1)
+          .maybeSingle()
+        const m = membership as CompanyMembershipRow | null
+        const companyName = m?.companies?.name ?? null
 
-      const { data: profile } = await supabase
-        .from('recruiter_profiles')
-        .select('user_id, full_name, job_title, location, profile_photo_path, specializations')
-        .eq('user_id', uid)
-        .maybeSingle()
-      const p = profile as RecruiterProfileRow | null
-      if (cancelled) return
-      setPreview({
-        fullName: p?.full_name ?? '',
-        jobTitle: p?.job_title ?? '',
-        companyName,
-        location: p?.location ?? '',
-        profilePhotoPath: p?.profile_photo_path ?? null,
-        specializations: Array.isArray(p?.specializations) ? p.specializations : [],
-      })
-    })()
-    return () => { cancelled = true }
+        const { data: profile } = await supabase
+          .from('recruiter_profiles')
+          .select('user_id, full_name, job_title, location, profile_photo_path, specializations')
+          .eq('user_id', uid)
+          .maybeSingle()
+        const p = profile as RecruiterProfileRow | null
+        if (cancelled) return
+        setPreview({
+          fullName: p?.full_name ?? '',
+          jobTitle: p?.job_title ?? '',
+          companyName,
+          location: p?.location ?? '',
+          profilePhotoPath: p?.profile_photo_path ?? null,
+          specializations: Array.isArray(p?.specializations) ? p.specializations : [],
+        })
+      })()
+    }
+    fetchPreview()
+    const onSaved = () => {
+      if (!cancelled && isProfilePage) fetchPreview()
+    }
+    window.addEventListener('recruiter-profile-saved', onSaved)
+    return () => {
+      cancelled = true
+      window.removeEventListener('recruiter-profile-saved', onSaved)
+    }
   }, [isProfilePage])
 
   const photoUrl = preview?.profilePhotoPath

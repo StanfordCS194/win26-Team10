@@ -40,34 +40,50 @@ export default function Navigation() {
     }
     window.addEventListener('scroll', handleScroll)
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSignedIn(!!session?.user)
-      setUserEmail(session?.user?.email ?? undefined)
-      if (session?.user?.id) {
-        supabase
+    async function loadUserMeta(session: { user: { id: string; email?: string } } | null) {
+      if (!session?.user?.id) {
+        setUserType(null)
+        setUserDisplayName(null)
+        return
+      }
+      const maxAttempts = 5
+      const delayMs = 400
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const { data } = await supabase
           .from('users')
           .select('type')
           .eq('id', session.user.id)
           .maybeSingle()
-          .then(({ data }) => {
-            const t = data?.type
-            if (t === 'student' || t === 'recruiter') setUserType(t)
-            else setUserType(null)
-            if (t === 'recruiter') {
-              supabase
-                .from('recruiter_profiles')
-                .select('full_name')
-                .eq('user_id', session!.user!.id)
-                .maybeSingle()
-                .then(({ data: profile }) => setUserDisplayName(profile?.full_name ?? null))
-            } else {
-              setUserDisplayName(null)
-            }
-          })
-      } else {
+        const t = data?.type
+        if (t === 'student' || t === 'recruiter') {
+          setUserType(t)
+          if (t === 'recruiter') {
+            const { data: profile } = await supabase
+              .from('recruiter_profiles')
+              .select('full_name')
+              .eq('user_id', session.user.id)
+              .maybeSingle()
+            setUserDisplayName(profile?.full_name ?? null)
+          } else {
+            setUserDisplayName(null)
+          }
+          return
+        }
+        if (attempt < maxAttempts - 1) await new Promise((r) => setTimeout(r, delayMs))
+      }
+      setUserType(null)
+      setUserDisplayName(null)
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSignedIn(!!session?.user)
+      setUserEmail(session?.user?.email ?? undefined)
+      if (!session?.user?.id) {
         setUserType(null)
         setUserDisplayName(null)
+        return
       }
+      loadUserMeta(session)
     })
 
     const {
@@ -75,31 +91,12 @@ export default function Navigation() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSignedIn(!!session?.user)
       setUserEmail(session?.user?.email ?? undefined)
-      if (session?.user?.id) {
-        supabase
-          .from('users')
-          .select('type')
-          .eq('id', session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            const t = data?.type
-            if (t === 'student' || t === 'recruiter') setUserType(t)
-            else setUserType(null)
-            if (t === 'recruiter') {
-              supabase
-                .from('recruiter_profiles')
-                .select('full_name')
-                .eq('user_id', session!.user!.id)
-                .maybeSingle()
-                .then(({ data: profile }) => setUserDisplayName(profile?.full_name ?? null))
-            } else {
-              setUserDisplayName(null)
-            }
-          })
-      } else {
+      if (!session?.user?.id) {
         setUserType(null)
         setUserDisplayName(null)
+        return
       }
+      loadUserMeta(session)
     })
 
     return () => {

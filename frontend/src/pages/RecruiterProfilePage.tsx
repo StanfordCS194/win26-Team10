@@ -167,6 +167,7 @@ export default function RecruiterProfilePage() {
         .from('recruiter_profiles')
         .upsert({ user_id: userId, profile_photo_path: path }, { onConflict: 'user_id' })
       if (updateError) throw updateError
+      window.dispatchEvent(new CustomEvent('recruiter-profile-saved'))
     } catch (err: unknown) {
       const msg =
         (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
@@ -196,6 +197,7 @@ export default function RecruiterProfilePage() {
         { onConflict: 'user_id' }
       )
       if (error) throw error
+      window.dispatchEvent(new CustomEvent('recruiter-profile-saved'))
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Failed to save profile.')
     } finally {
