@@ -4,6 +4,7 @@ Supabase database helpers for job queue and user operations.
 
 import os
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -266,7 +267,7 @@ async def complete_job(job_id: str, _result_data: Optional[dict] = None) -> dict
     
     update_data = {
         "status": "succeeded",
-        "finished_at": "now()",
+        "finished_at": datetime.now(timezone.utc).isoformat(),
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
@@ -289,7 +290,7 @@ async def fail_job(job_id: str, error: str) -> dict:
     update_data = {
         "status": "failed",
         "error": error,
-        "finished_at": "now()",
+        "finished_at": datetime.now(timezone.utc).isoformat(),
     }
     
     result = client.table("parse_jobs").update(update_data).eq("id", job_id).execute()
