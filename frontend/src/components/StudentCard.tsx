@@ -157,6 +157,9 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
                 })
                 if (detailRes.ok) {
                   const detail = await detailRes.json()
+                  student.transcript_analysis = detail?.transcript_analysis
+                  student.transcript_stats = detail?.transcript_stats
+                  student.transcript_raw = detail?.transcript_raw
                   const cats = detail?.transcript_analysis?.categories
                   if (cats && typeof cats === 'object') {
                     skillScores = {}
@@ -175,30 +178,24 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
               } catch (_) {
                 /* ignore - radar chart will be hidden */
               }
-              if (typeof(student.transcript) === 'string') {
-                const transcriptRes = await fetch(`${API_BASE}/get_specific_transcript/${student.id}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                })
-                if (!transcriptRes.ok) {
-                  throw new Error(await transcriptRes.text())
-                }
-                const rawTranscript = await transcriptRes.json()
+
+              if (student.transcript_raw) {
                 const programs = []
-                for (const program of rawTranscript.programs) {
+                for (const program of student.transcript_raw.programs) {
                   programs.push(program.degree + ' ' + program.name)
                 }
                 const transcript = {
-                  id: rawTranscript.student.student_id,
-                  fullName: rawTranscript.student.name,
-                  institution: rawTranscript.institution.name,
+                  id: student.transcript_raw.student.student_id,
+                  fullName: student.transcript_raw.student.name,
+                  institution: student.transcript_raw.institution.name,
                   programs: programs,
-                  gpa: rawTranscript.career_totals.undergraduate.gpa,
-                  units_attempted: rawTranscript.career_totals.undergraduate.units_attempted,
-                  units_earned: rawTranscript.career_totals.undergraduate.units_earned,
-                  units_toward_degree: rawTranscript.career_totals.undergraduate.units_toward_degree
+                  gpa: student.transcript_raw.career_totals.undergraduate.gpa,
+                  units_attempted: student.transcript_raw.career_totals.undergraduate.units_attempted,
+                  units_earned: student.transcript_raw.career_totals.undergraduate.units_earned,
+                  units_toward_degree: student.transcript_raw.career_totals.undergraduate.units_toward_degree
                 }
                 root.render(<StudentTranscriptCard transcript={transcript} student={student} skillScores={skillScores} />);
-              } else {
+              } else if (typeof(student.transcript) === 'object') {
                 root.render(<StudentTranscriptCard transcript={student.transcript} student={student} skillScores={skillScores} />);
               }
             }
