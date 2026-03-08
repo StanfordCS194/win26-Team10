@@ -64,6 +64,7 @@ function App() {
               }
             >
               <Route index element={<Suspense fallback={<div>Loading...</div>}><RecruiterDashboard /></Suspense>} />
+              <Route path="inbox" element={<Suspense fallback={<div>Loading...</div>}><RecruiterDashboard /></Suspense>} />
               <Route path="jobs" element={<RecruiterJobsPage />} />
               <Route path="profile" element={<RecruiterProfilePage />} />
             </Route>

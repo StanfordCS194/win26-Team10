@@ -13,12 +13,22 @@ function getInitials(email: string | undefined): string {
   return part.slice(0, 2).toUpperCase() || 'U'
 }
 
+function getInitialsFromName(fullName: string | null | undefined): string | null {
+  if (!fullName || !fullName.trim()) return null
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2)
+  }
+  return parts[0].slice(0, 2).toUpperCase() || null
+}
+
 export default function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
   const [signedIn, setSignedIn] = useState(false)
   const [userType, setUserType] = useState<'student' | 'recruiter' | null>(null)
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined)
+  const [userDisplayName, setUserDisplayName] = useState<string | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -43,9 +53,20 @@ export default function Navigation() {
             const t = data?.type
             if (t === 'student' || t === 'recruiter') setUserType(t)
             else setUserType(null)
+            if (t === 'recruiter') {
+              supabase
+                .from('recruiter_profiles')
+                .select('full_name')
+                .eq('user_id', session!.user!.id)
+                .maybeSingle()
+                .then(({ data: profile }) => setUserDisplayName(profile?.full_name ?? null))
+            } else {
+              setUserDisplayName(null)
+            }
           })
       } else {
         setUserType(null)
+        setUserDisplayName(null)
       }
     })
 
@@ -64,9 +85,20 @@ export default function Navigation() {
             const t = data?.type
             if (t === 'student' || t === 'recruiter') setUserType(t)
             else setUserType(null)
+            if (t === 'recruiter') {
+              supabase
+                .from('recruiter_profiles')
+                .select('full_name')
+                .eq('user_id', session!.user!.id)
+                .maybeSingle()
+                .then(({ data: profile }) => setUserDisplayName(profile?.full_name ?? null))
+            } else {
+              setUserDisplayName(null)
+            }
           })
       } else {
         setUserType(null)
+        setUserDisplayName(null)
       }
     })
 
@@ -120,7 +152,7 @@ export default function Navigation() {
                 aria-haspopup="true"
                 aria-label="Profile and account menu"
               >
-                <span className="nav-avatar-initials">{getInitials(userEmail)}</span>
+                <span className="nav-avatar-initials">{getInitialsFromName(userDisplayName) ?? getInitials(userEmail)}</span>
               </button>
               {dropdownOpen && (
                 <div className="nav-avatar-dropdown">

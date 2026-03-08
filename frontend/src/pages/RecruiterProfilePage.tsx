@@ -1,26 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { X } from 'lucide-react'
 
-const SPECIALIZATION_OPTIONS = [
-  'Engineering',
-  'Product',
-  'Design',
-  'Data Science',
-  'Marketing',
-  'Sales',
-  'Operations',
-  'Finance',
-  'HR',
-  'Other',
-]
+const BUCKET = 'recruiter-photos'
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024 // 10MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png']
 
 type RecruiterProfileRow = {
   user_id: string
   full_name: string | null
   job_title: string | null
   location: string | null
-  bio: string | null
-  linkedin_url: string | null
   profile_photo_path: string | null
   specializations: string[] | null
 }
@@ -42,9 +32,12 @@ export default function RecruiterProfilePage() {
   const [fullName, setFullName] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [location, setLocation] = useState('')
-  const [bio, setBio] = useState('')
-  const [linkedinUrl, setLinkedinUrl] = useState('')
   const [specializations, setSpecializations] = useState<string[]>([])
+  const [specInput, setSpecInput] = useState('')
+  const [profilePhotoPath, setProfilePhotoPath] = useState<string | null>(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Loading & errors
   const [profileLoading, setProfileLoading] = useState(true)
@@ -93,7 +86,7 @@ export default function RecruiterProfilePage() {
 
         const { data: profile, error: profileErr } = await supabase
           .from('recruiter_profiles')
-          .select('user_id, full_name, job_title, location, bio, linkedin_url, profile_photo_path, specializations')
+          .select('user_id, full_name, job_title, location, profile_photo_path, specializations')
           .eq('user_id', uid)
           .maybeSingle()
 
@@ -103,12 +96,19 @@ export default function RecruiterProfilePage() {
           setFullName(p.full_name ?? '')
           setJobTitle(p.job_title ?? '')
           setLocation(p.location ?? '')
-          setBio(p.bio ?? '')
-          setLinkedinUrl(p.linkedin_url ?? '')
           setSpecializations(Array.isArray(p.specializations) ? p.specializations : [])
+          setProfilePhotoPath(p.profile_photo_path ?? null)
         }
-      } catch (e) {
-        if (!cancelled) setProfileError(e instanceof Error ? e.message : 'Failed to load profile.')
+      } catch (e: unknown) {
+        if (!cancelled) {
+          const message =
+            (e && typeof e === 'object' && 'message' in e && typeof (e as { message: unknown }).message === 'string')
+              ? (e as { message: string }).message
+              : e instanceof Error
+                ? e.message
+                : 'Failed to load profile.'
+          setProfileError(message)
+        }
       } finally {
         if (!cancelled) setProfileLoading(false)
       }
@@ -117,10 +117,65 @@ export default function RecruiterProfilePage() {
     return () => { cancelled = true }
   }, [])
 
-  const toggleSpecialization = (s: string) => {
-    setSpecializations((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
-    )
+  const addSpecialization = () => {
+    const v = specInput.trim()
+    if (!v || specializations.includes(v)) return
+    setSpecializations((prev) => [...prev, v])
+    setSpecInput('')
+  }
+
+  const removeSpecialization = (s: string) => {
+    setSpecializations((prev) => prev.filter((x) => x !== s))
+  }
+
+  const handleSpecKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addSpecialization()
+    }
+  }
+
+  function getPhotoUrl(): string | null {
+    if (!profilePhotoPath || !userId) return null
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(profilePhotoPath)
+    return data.publicUrl
+  }
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !userId) return
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setPhotoError('Please choose a JPG or PNG image.')
+      return
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError(`Image must be ${MAX_PHOTO_BYTES / (1024 * 1024)}MB or smaller.`)
+      return
+    }
+    setPhotoError(null)
+    setPhotoUploading(true)
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const path = `${userId}/avatar.${ext}`
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      setProfilePhotoPath(path)
+      const { error: updateError } = await supabase
+        .from('recruiter_profiles')
+        .upsert({ user_id: userId, profile_photo_path: path }, { onConflict: 'user_id' })
+      if (updateError) throw updateError
+    } catch (err: unknown) {
+      const msg =
+        (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string')
+          ? (err as { message: string }).message
+          : 'Failed to upload photo.'
+      setPhotoError(msg)
+    } finally {
+      setPhotoUploading(false)
+    }
   }
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -135,9 +190,7 @@ export default function RecruiterProfilePage() {
           full_name: fullName || null,
           job_title: jobTitle || null,
           location: location || null,
-          bio: bio || null,
-          linkedin_url: linkedinUrl || null,
-          profile_photo_path: null,
+          profile_photo_path: profilePhotoPath || null,
           specializations: specializations.length ? specializations : [],
         },
         { onConflict: 'user_id' }
@@ -188,42 +241,66 @@ export default function RecruiterProfilePage() {
     return (
       <div className="recruiter-profile-page">
         <p className="recruiter-profile-error">{profileError}</p>
+        {profileError.includes('recruiter_profiles') && (
+          <p className="recruiter-profile-muted" style={{ marginTop: '0.5rem' }}>
+            If you use Supabase migrations, run the migration that creates the recruiter_profiles table (e.g. 20260309000001_add_recruiter_profiles.sql).
+          </p>
+        )}
       </div>
     )
   }
 
   return (
     <div className="recruiter-profile-page">
-      <h1 className="recruiter-profile-title">Profile & Settings</h1>
-      <div className="recruiter-profile-tabs">
-        <button
-          type="button"
-          className={`recruiter-profile-tab ${tab === 'profile' ? 'active' : ''}`}
-          onClick={() => setTab('profile')}
-        >
-          Profile
-        </button>
-        <button
-          type="button"
-          className={`recruiter-profile-tab ${tab === 'settings' ? 'active' : ''}`}
-          onClick={() => setTab('settings')}
-        >
-          Settings
-        </button>
-      </div>
+      <div className="recruiter-profile-main">
+        <h1 className="recruiter-profile-title">Profile & Settings</h1>
+        <div className="recruiter-profile-tabs">
+          <button
+            type="button"
+            className={`recruiter-profile-tab ${tab === 'profile' ? 'active' : ''}`}
+            onClick={() => setTab('profile')}
+          >
+            Profile
+          </button>
+          <button
+            type="button"
+            className={`recruiter-profile-tab ${tab === 'settings' ? 'active' : ''}`}
+            onClick={() => setTab('settings')}
+          >
+            Settings
+          </button>
+        </div>
 
       {tab === 'profile' && (
         <div className="recruiter-profile-content">
           <form onSubmit={handleSaveProfile} className="recruiter-profile-form">
             <div className="recruiter-profile-photo-row">
               <div className="recruiter-profile-photo-placeholder">
-                <span>Photo</span>
+                {getPhotoUrl() ? (
+                  <img src={getPhotoUrl()!} alt="" className="recruiter-profile-photo-img" />
+                ) : (
+                  <span>Photo</span>
+                )}
               </div>
               <div>
-                <button type="button" className="recruiter-profile-upload-btn" disabled>
-                  Upload photo
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  className="recruiter-profile-file-input"
+                  onChange={handlePhotoChange}
+                  aria-label="Upload profile photo"
+                />
+                <button
+                  type="button"
+                  className="recruiter-profile-upload-btn"
+                  disabled={photoUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoUploading ? 'Uploading…' : 'Upload photo'}
                 </button>
-                <p className="recruiter-profile-photo-hint">JPG or PNG, max 2MB</p>
+                {photoError && <p className="recruiter-profile-error">{photoError}</p>}
+                <p className="recruiter-profile-photo-hint">JPG/JPEG or PNG, max 10MB</p>
               </div>
             </div>
 
@@ -269,37 +346,33 @@ export default function RecruiterProfilePage() {
               />
             </div>
             <div className="recruiter-profile-field">
-              <label htmlFor="profile-bio">Bio</label>
-              <textarea
-                id="profile-bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="A short bio"
-                rows={3}
-              />
-            </div>
-            <div className="recruiter-profile-field">
-              <label htmlFor="profile-linkedin">LinkedIn URL</label>
-              <input
-                id="profile-linkedin"
-                type="url"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-                placeholder="https://linkedin.com/in/..."
-              />
-            </div>
-            <div className="recruiter-profile-field">
               <label>Specializations</label>
+              <div className="recruiter-profile-spec-input-wrap">
+                <input
+                  type="text"
+                  value={specInput}
+                  onChange={(e) => setSpecInput(e.target.value)}
+                  onKeyDown={handleSpecKeyDown}
+                  placeholder="Type and press Enter to add"
+                  className="recruiter-profile-spec-input"
+                />
+                <button type="button" className="recruiter-profile-spec-add-btn" onClick={addSpecialization}>
+                  Add
+                </button>
+              </div>
               <div className="recruiter-profile-specializations">
-                {SPECIALIZATION_OPTIONS.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`recruiter-profile-spec-tag ${specializations.includes(s) ? 'active' : ''}`}
-                    onClick={() => toggleSpecialization(s)}
-                  >
+                {specializations.map((s) => (
+                  <span key={s} className="recruiter-profile-spec-tag">
                     {s}
-                  </button>
+                    <button
+                      type="button"
+                      className="recruiter-profile-spec-remove"
+                      onClick={() => removeSpecialization(s)}
+                      aria-label={`Remove ${s}`}
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
                 ))}
               </div>
             </div>
@@ -367,6 +440,7 @@ export default function RecruiterProfilePage() {
           </section>
         </div>
       )}
+      </div>
     </div>
   )
 }
