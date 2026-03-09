@@ -16,6 +16,8 @@ interface StudentCardProps {
   isRecruiter?: boolean
   /** Called after conversation is created or opened; pass conversation id to open Messages view */
   onOpenConversation?: (conversationId: string) => void
+  /** Selected job title (used for application message context) */
+  selectedJobTitle?: string
   hasApplied?: boolean
   applicationDetails?: ApplicationDetails | null
 }
@@ -26,7 +28,14 @@ function getGpaClass(gpa: number): string {
   return 'gpa-low'
 }
 
-export default function StudentCard({ student, isRecruiter, onOpenConversation, hasApplied, applicationDetails }: StudentCardProps) {
+export default function StudentCard({
+  student,
+  isRecruiter,
+  onOpenConversation,
+  selectedJobTitle,
+  hasApplied,
+  applicationDetails,
+}: StudentCardProps) {
   const [expanded, setExpanded] = useState(false)
   const showApplicationDetails = hasApplied && applicationDetails
 
@@ -41,6 +50,9 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
       console.error('Failed to open conversation:', err)
     }
   }
+
+  const canDeepLinkApplicationMessage =
+    !!(isRecruiter && onOpenConversation && selectedJobTitle && applicationDetails?.message_to_recruiter?.trim())
 
   return (
     <div className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
@@ -116,7 +128,17 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
               {applicationDetails.message_to_recruiter && (
                 <div className="application-detail-row">
                   <strong>Message to Recruiter:</strong>
-                  <p className="application-message">{applicationDetails.message_to_recruiter}</p>
+                  {canDeepLinkApplicationMessage ? (
+                    <button
+                      type="button"
+                      className="application-message-link"
+                      onClick={handleMessage}
+                    >
+                      Message provided
+                    </button>
+                  ) : (
+                    <p className="application-message">{applicationDetails.message_to_recruiter}</p>
+                  )}
                 </div>
               )}
               {!applicationDetails.work_authorization && !applicationDetails.message_to_recruiter && (

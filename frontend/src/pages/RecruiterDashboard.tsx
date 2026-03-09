@@ -17,7 +17,7 @@ import {
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
 import type { ChatAttachment } from '../lib/chatMessage'
-import { encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
+import { encodeApplicationMessage, encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 const POST_JOB_OPEN_KEY = 'postJobModalOpen'
@@ -168,6 +168,7 @@ export default function RecruiterDashboard() {
     for (const c of conversations) {
       const latest = latestMessages[c.id]
       if (!latest) continue
+      // Application messages are inserted by recruiter; they should not count as unread for recruiter anyway.
       if (latest.sender_id === recruiterId) continue
       const lastRead = c.recruiter_last_read_at ? new Date(c.recruiter_last_read_at).getTime() : 0
       const latestAt = latest.created_at ? new Date(latest.created_at).getTime() : 0
@@ -185,7 +186,6 @@ export default function RecruiterDashboard() {
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
-
   const [showPostJob, setShowPostJob] = useState(
     () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
   )
@@ -244,6 +244,53 @@ export default function RecruiterDashboard() {
         )
       })
   }, [selectedConversationId, recruiterId])
+
+  // If the student applied to the selected job with a message, insert it into chat history once.
+  useEffect(() => {
+    if (!selectedConversationId || !recruiterId || !selectedJobId) return
+    const convo = conversations.find((c) => c.id === selectedConversationId)
+    if (!convo) return
+    const detail = applicationDetailsMap.get(convo.student_id)
+    const msg = detail?.message_to_recruiter?.trim()
+    const jobTitle = (companyJobs.find((j) => j.id === selectedJobId)?.title ?? '').trim()
+    if (!msg || !jobTitle) return
+
+    const body = encodeApplicationMessage({
+      job_id: selectedJobId,
+      job_title: jobTitle,
+      message: msg,
+      student_id: convo.student_id,
+    })
+
+    let cancelled = false
+    ;(async () => {
+      const { data: existing, error: checkErr } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('conversation_id', selectedConversationId)
+        .eq('body', body)
+        .limit(1)
+        .maybeSingle()
+
+      if (cancelled) return
+      if (checkErr) {
+        console.error('Failed to check application message', checkErr)
+        return
+      }
+      if (existing) return
+
+      try {
+        const inserted = await sendMessageApi(selectedConversationId, recruiterId, body)
+        setLatestMessages((prev) => ({ ...prev, [selectedConversationId]: inserted }))
+      } catch (err) {
+        console.error('Failed to insert application message into chat', err)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [applicationDetailsMap, companyJobs, conversations, recruiterId, selectedConversationId, selectedJobId])
 
   const handleAttachFileClick = () => {
     const input = document.createElement('input')
@@ -701,6 +748,7 @@ export default function RecruiterDashboard() {
               hasSelectedJob={hasSelectedJob}
               isRecruiter
               onOpenConversation={setOpenConversationId}
+              selectedJobTitle={selectedJob?.title ?? ''}
             />
           </>
         )}
@@ -753,7 +801,9 @@ export default function RecruiterDashboard() {
                         key={c.id}
                         type="button"
                         className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''} ${isUnread ? 'has-unread' : ''}`}
-                        onClick={() => setSelectedConversationId(c.id)}
+                        onClick={() => {
+                          setSelectedConversationId(c.id)
+                        }}
                       >
                         {isUnread && <span className="unread-dot" aria-hidden />}
                         <span className="conversation-avatar" aria-hidden>{initials}</span>
@@ -824,39 +874,50 @@ export default function RecruiterDashboard() {
                           Loading messages...
                         </div>
                       ) : (
-                        threadMessages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`thread-message ${m.sender_id === recruiterId ? 'sent' : 'received'}`}
-                          >
-                            {(() => {
-                              const parsed = parseChatBody(m.body)
-                              return (
-                                <div className="thread-message-body">
-                                  {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
-                                  {parsed.attachments.length > 0 && (
-                                    <div className="thread-attachments">
-                                      {parsed.attachments.map((a) => (
-                                        <button
-                                          key={`${a.storage_path}:${a.filename}`}
-                                          type="button"
-                                          className="thread-attachment-pill"
-                                          onClick={() => openAttachment(a)}
-                                        >
-                                          <Paperclip size={14} />
-                                          <span className="thread-attachment-name">{a.filename}</span>
-                                        </button>
-                                      ))}
+                        threadMessages.map((m) => {
+                          const parsed = parseChatBody(m.body)
+                          const isApplication = !!parsed.application
+                          // Application message is authored by the student; render as received for recruiter.
+                          const isSentByRecruiter = !isApplication && m.sender_id === recruiterId
+                          return (
+                            <div
+                              key={m.id}
+                              className={`thread-message ${isSentByRecruiter ? 'sent' : 'received'}`}
+                            >
+                              <div className="thread-message-body">
+                                {parsed.application && (
+                                  <div className="thread-pinned">
+                                    <div className="thread-pinned-title">
+                                      Message for job {parsed.application.job_title}:
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })()}
-                            <span className="thread-message-time">
-                              {new Date(m.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                        ))
+                                    <div className="thread-pinned-body">
+                                      {parsed.application.message}
+                                    </div>
+                                  </div>
+                                )}
+                                {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
+                                {parsed.attachments.length > 0 && (
+                                  <div className="thread-attachments">
+                                    {parsed.attachments.map((a) => (
+                                      <button
+                                        key={`${a.storage_path}:${a.filename}`}
+                                        type="button"
+                                        className="thread-attachment-pill"
+                                        onClick={() => openAttachment(a)}
+                                      >
+                                        <Paperclip size={14} />
+                                        <span className="thread-attachment-name">{a.filename}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="thread-message-time">
+                                {new Date(m.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          )
+                        })
                       )}
                     </div>
                     {sendError && (

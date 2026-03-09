@@ -211,6 +211,11 @@ export default function StudentDashboard() {
     for (const c of conversations) {
       const latest = latestMessages[c.id]
       if (!latest) continue
+      const parsedLatest = parseChatBody(latest.body)
+      if (parsedLatest.application && parsedLatest.application.student_id === studentId) {
+        // Application message originally authored by this student; don't count as unread.
+        continue
+      }
       if (latest.sender_id === studentId) continue
       const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
       const latestAt = latest.created_at ? new Date(latest.created_at).getTime() : 0
@@ -1160,7 +1165,16 @@ export default function StudentDashboard() {
                     const latest = latestMessages[c.id]
                     const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
                     const latestAt = latest?.created_at ? new Date(latest.created_at).getTime() : 0
-                    const isUnread = !!latest && latest.sender_id !== studentId && latestAt > lastRead
+                    const parsedLatest = latest ? parseChatBody(latest.body) : null
+                    const isUnread =
+                      !!latest &&
+                      latestAt > lastRead &&
+                      !(
+                        parsedLatest?.application &&
+                        studentId &&
+                        parsedLatest.application.student_id === studentId
+                      ) &&
+                      latest.sender_id !== studentId
                     return (
                       <button
                         key={c.id}
@@ -1237,39 +1251,53 @@ export default function StudentDashboard() {
                           Loading messages...
                         </div>
                       ) : (
-                        threadMessages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`thread-message ${m.sender_id === studentId ? 'sent' : 'received'}`}
-                          >
-                            {(() => {
-                              const parsed = parseChatBody(m.body)
-                              return (
-                                <div className="thread-message-body">
-                                  {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
-                                  {parsed.attachments.length > 0 && (
-                                    <div className="thread-attachments">
-                                      {parsed.attachments.map((a) => (
-                                        <button
-                                          key={`${a.storage_path}:${a.filename}`}
-                                          type="button"
-                                          className="thread-attachment-pill"
-                                          onClick={() => openAttachment(a)}
-                                        >
-                                          <Paperclip size={14} />
-                                          <span className="thread-attachment-name">{a.filename}</span>
-                                        </button>
-                                      ))}
+                        threadMessages.map((m) => {
+                          const parsed = parseChatBody(m.body)
+                          const isApplication = !!parsed.application
+                          // Application message is authored by the student; render as sent for that student.
+                          const isSentByStudent =
+                            (isApplication && parsed.application?.student_id === studentId) ||
+                            (!isApplication && m.sender_id === studentId)
+
+                          return (
+                            <div
+                              key={m.id}
+                              className={`thread-message ${isSentByStudent ? 'sent' : 'received'}`}
+                            >
+                              <div className="thread-message-body">
+                                {parsed.application && (
+                                  <div className="thread-pinned">
+                                    <div className="thread-pinned-title">
+                                      Message for job {parsed.application.job_title}:
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })()}
-                            <span className="thread-message-time">
-                              {new Date(m.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                        ))
+                                    <div className="thread-pinned-body">
+                                      {parsed.application.message}
+                                    </div>
+                                  </div>
+                                )}
+                                {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
+                                {parsed.attachments.length > 0 && (
+                                  <div className="thread-attachments">
+                                    {parsed.attachments.map((a) => (
+                                      <button
+                                        key={`${a.storage_path}:${a.filename}`}
+                                        type="button"
+                                        className="thread-attachment-pill"
+                                        onClick={() => openAttachment(a)}
+                                      >
+                                        <Paperclip size={14} />
+                                        <span className="thread-attachment-name">{a.filename}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="thread-message-time">
+                                {new Date(m.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          )
+                        })
                       )}
                     </div>
                     {sendError && (

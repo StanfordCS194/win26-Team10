@@ -12,6 +12,8 @@ interface StudentListProps {
   /** Recruiter view: show Message button and open conversation on click */
   isRecruiter?: boolean
   onOpenConversation?: (conversationId: string) => void
+  /** Job title for application context (optional) */
+  selectedJobTitle?: string
   /** When set, show applied badge and application details per student */
   appliedStudentIds?: Set<string>
   applicationDetailsMap?: Map<string, ApplicationDetails>
@@ -22,6 +24,7 @@ export default function StudentList({
   students,
   isRecruiter,
   onOpenConversation,
+  selectedJobTitle,
   appliedStudentIds = new Set(),
   applicationDetailsMap = new Map(),
   hasSelectedJob = false,
@@ -44,6 +47,7 @@ export default function StudentList({
           student={student}
           isRecruiter={isRecruiter}
           onOpenConversation={onOpenConversation}
+          selectedJobTitle={selectedJobTitle}
           hasApplied={hasSelectedJob && appliedStudentIds.has(student.id)}
           applicationDetails={applicationDetailsMap.get(student.id)}
         />
