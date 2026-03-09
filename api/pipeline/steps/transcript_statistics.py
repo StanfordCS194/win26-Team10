@@ -48,11 +48,18 @@ class TranscriptStatisticsStep(ParseStep):
             return self._school_id
         return None
 
+        # Fallback to direct name match if RPC fails or returns nothing
+        result = self.client.table("schools").select("id").eq("name", self.school_name).execute()
+        if result.data:
+            self._school_id = result.data[0]["id"]
+            return self._school_id
+        return None
+
     def _load_distributions(self, school_id: str):
         """Load all grade distributions for the school into memory."""
-        result = self.client.table("grade_distributions").select("course_code, distribution").eq("school_id", school_id).execute()
+        result = self.client.table("grade_distributions").select("normalized_course_code, distribution").eq("school_id", school_id).execute()
         for row in result.data:
-            self._distributions[row["course_code"]] = row["distribution"]
+            self._distributions[row["normalized_course_code"]] = row["distribution"]
 
     def calculate_percentile(self, grade: str, distribution: Dict[str, float]) -> Optional[float]:
         """
