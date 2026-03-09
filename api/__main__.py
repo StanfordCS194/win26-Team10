@@ -39,7 +39,7 @@ from api.pipeline import (
     run_pipeline,
     ReductoStep,
     TextExtractStep,
-    StandardizeStep,
+    TranscriptStandardizeStep,
     TranscriptStatisticsStep,
     TranscriptAnalysisStep,
     ParseInput,
@@ -211,7 +211,7 @@ def run_standardize_step(args) -> int:
         )
         
         # Run standardize step
-        step = StandardizeStep()
+        step = TranscriptStandardizeStep()
         artifacts = step.run(artifacts)
         
         print("\n=== Standardize Step Complete ===")

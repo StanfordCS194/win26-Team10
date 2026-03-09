@@ -246,6 +246,9 @@ export default function SignupRecruiter() {
               <p>
                 Already have an account? <Link to="/login" className="auth-link">Log in</Link>
               </p>
+              <p>
+                Signing up as a student? <Link to="/signup-student" className="auth-link">Switch to student sign up</Link>
+              </p>
             </div>
           </div>
         </div>

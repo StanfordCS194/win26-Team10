@@ -137,7 +137,7 @@ def extract_text_from_reducto(reducto_result: dict[str, Any]) -> str:
     return "\n\n".join(content_parts)
 
 
-class StandardizeStep(ParseStep):
+class TranscriptStandardizeStep(ParseStep):
     """Use LLM to convert text into standardized transcript JSON."""
 
     name = "standardize"

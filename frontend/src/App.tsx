@@ -30,10 +30,7 @@ function App() {
               path="/student"
               element={
                 <ProtectedRoute allowType="student">
-                  {localStorage.getItem('profileCompleted') === 'true' 
-                    ? <Navigate to="/student/dashboard" replace />
-                    : <StudentPage />
-                  }
+                  <Navigate to="/student/dashboard" replace />
                 </ProtectedRoute>
               }
             />
