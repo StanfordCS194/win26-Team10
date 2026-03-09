@@ -193,6 +193,7 @@ export default function RecruiterDashboard() {
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
   const [showPostJob, setShowPostJob] = useState(
     () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
@@ -613,6 +614,31 @@ export default function RecruiterDashboard() {
     ? studentNames[selectedConversation.student_id] ?? 'Student'
     : ''
 
+  const handleViewProfileFromThread = () => {
+    if (!selectedConversation) return
+    const studentId = selectedConversation.student_id
+    // Ensure the candidate appears in the list.
+    setShowAppliedOnly(false)
+    setShowQualifiedOnly(false)
+    setViewMode('directory')
+    // Let React render the directory, then scroll to the student's card.
+    setTimeout(() => {
+      const el = document.getElementById(`student-${studentId}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.add('student-card-highlight')
+        // Also open the full profile modal, if available.
+        const profileButton = el.querySelector<HTMLButtonElement>('.student-card-view-profile-btn')
+        if (profileButton) {
+          profileButton.click()
+        }
+        setTimeout(() => {
+          el.classList.remove('student-card-highlight')
+        }, 2000)
+      }
+    }, 0)
+  }
+
   const selectedJob = useMemo(
     () => companyJobs.find(job => job.id === selectedJobId) ?? null,
     [companyJobs, selectedJobId]
@@ -878,8 +904,28 @@ export default function RecruiterDashboard() {
                         <ChevronLeft size={20} />
                       </button>
                       <div className="thread-header-info">
-                        <span className="thread-title">{selectedStudentName}</span>
+                        <button
+                          type="button"
+                          className="thread-title-link"
+                          onClick={() => setShowProfileMenu((open) => !open)}
+                        >
+                          {selectedStudentName}
+                        </button>
                         <span className="thread-subtitle">Student</span>
+                        {showProfileMenu && (
+                          <div className="thread-profile-menu">
+                            <button
+                              type="button"
+                              className="thread-profile-menu-item"
+                              onClick={() => {
+                                setShowProfileMenu(false)
+                                handleViewProfileFromThread()
+                              }}
+                            >
+                              View profile
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="thread-messages">
