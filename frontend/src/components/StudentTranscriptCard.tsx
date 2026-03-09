@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { SmallTranscript, Student } from '../types/student'
 import stanfordRatings from '../data/stanford_ratings.json'
+import { MessageCircle, FileText, User } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { createResumeViewer } from './ResumeViewer'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 
 const SKILL_LABELS: Record<string, string> = {
   technical_domain_skill: 'Technical',
@@ -22,6 +27,8 @@ interface StudentTranscriptCardProps {
     transcript: SmallTranscript
     student: Student
     skillScores?: Record<string, { score: number; justification?: string }> | null
+    resumeAnalysis?: any | null
+    onMessage?: () => void
 }
 
 const percentageToColor = (percentage: number) => {
@@ -43,13 +50,16 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   if (data.length < 3) return null
-  const size = 520
-  const padding = 70
-  const cx = padding + (size - 2 * padding) / 2
-  const cy = padding + (size - 2 * padding) / 2
-  const maxRadius = (size - 2 * padding) / 2 - 12
-  const labelOffset = 28
+  
+  // Use a fixed internal coordinate system for the SVG
+  const internalSize = 500
+  const padding = 80
+  const cx = internalSize / 2
+  const cy = internalSize / 2
+  const maxRadius = (internalSize / 2) - padding
+  const labelOffset = 35
   const angleStep = (2 * Math.PI) / data.length
+  
   const axes = data.map((_, i) => {
     const a = -Math.PI / 2 + i * angleStep
     return {
@@ -60,100 +70,109 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
       ty: cy + (maxRadius + labelOffset) * Math.sin(a)
     }
   })
+  
   const points = data.map((d, i) => {
     const r = (d.score / 10) * maxRadius
     const a = -Math.PI / 2 + i * angleStep
-    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
-  }).join(' ')
+    return {
+      x: cx + r * Math.cos(a),
+      y: cy + r * Math.sin(a),
+      score: d.score
+    }
+  })
+  
+  const pointsString = points.map(p => `${p.x},${p.y}`).join(' ')
   const gridLevels = [2, 4, 6, 8, 10]
-  const viewSize = size + padding * 2
-  const viewHeight = 535
-  const hoverRadius = 24
+  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', position: 'relative' }}>
-      <h2 className = "info-box-title" style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
-      <svg width={viewSize} height={viewHeight} viewBox={`0 0 ${viewSize} ${viewHeight}`} style={{ flexShrink: 0 }} preserveAspectRatio="xMidYMid meet">
-        {gridLevels.map((level, idx) => {
-          const r = (level / 10) * maxRadius
-          const pts = data.map((_, i) => {
-            const a = -Math.PI / 2 + i * angleStep
-            return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
-          }).join(' ')
-          return (
-            <polygon
-              key={idx}
-              points={pts}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth={0.5}
-            />
-          )
-        })}
-        {axes.map((ax, i) => (
-          <line key={i} x1={cx} y1={cy} x2={ax.x} y2={ax.y} stroke="#e5e7eb" strokeWidth={0.5} />
-        ))}
-        <polygon
-          points={points}
-          fill="rgba(55, 48, 163, 0.4)"
-          stroke="#3730a3"
-          strokeWidth={2}
-        />
-        {axes.map((ax, i) => (
-          <g
-            key={i}
-            style={{ cursor: data[i].justification ? 'pointer' : 'default' }}
-            onMouseEnter={(e) => {
-              if (data[i].justification) {
-                setHoveredIndex(i)
-                const svg = (e.target as SVGElement).ownerSVGElement
-                const rect = svg?.getBoundingClientRect()
-                if (rect && svg) {
-                  const scaleX = rect.width / viewSize
-                  const scaleY = rect.height / viewSize
-                  setTooltipPos({
-                    x: rect.left + ax.tx * scaleX,
-                    y: rect.top + ax.ty * scaleY
-                  })
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', position: 'relative' }}>
+      <h2 className="info-box-title" style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
+      <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative' }}>
+        <svg 
+          width="100%" 
+          height="100%" 
+          viewBox={`0 0 ${internalSize} ${internalSize}`} 
+          style={{ overflow: 'visible' }}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {gridLevels.map((level, idx) => {
+            const r = (level / 10) * maxRadius
+            const pts = data.map((_, i) => {
+              const a = -Math.PI / 2 + i * angleStep
+              return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
+            }).join(' ')
+            return (
+              <polygon
+                key={idx}
+                points={pts}
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth={1}
+              />
+            )
+          })}
+          {axes.map((ax, i) => (
+            <line key={i} x1={cx} y1={cy} x2={ax.x} y2={ax.y} stroke="#e5e7eb" strokeWidth={1} />
+          ))}
+          <polygon
+            points={pointsString}
+            fill="rgba(55, 48, 163, 0.4)"
+            stroke="#3730a3"
+            strokeWidth={3}
+          />
+          {points.map((p, i) => (
+            <g key={`score-${i}`}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={15}
+                fill="white"
+                stroke="#3730a3"
+                strokeWidth={1.5}
+              />
+              <text
+                x={p.x}
+                y={p.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={12}
+                fontWeight="bold"
+                fill="#3730a3"
+              >
+                {p.score}
+              </text>
+            </g>
+          ))}
+          {axes.map((ax, i) => (
+            <g
+              key={i}
+              style={{ cursor: data[i].justification ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => {
+                if (data[i].justification) {
+                  setHoveredIndex(i)
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top })
                 }
-              }
-            }}
-            onMouseLeave={() => setHoveredIndex(null)}
-            onMouseMove={(e) => {
-              if (hoveredIndex === i && data[i].justification) {
-                const svg = (e.target as SVGElement).ownerSVGElement
-                const rect = svg?.getBoundingClientRect()
-                if (rect && svg) {
-                  const scaleX = rect.width / viewSize
-                  const scaleY = rect.height / viewSize
-                  setTooltipPos({
-                    x: rect.left + ax.tx * scaleX,
-                    y: rect.top + ax.ty * scaleY
-                  })
-                }
-              }
-            }}
-          >
-            <circle
-              cx={ax.tx}
-              cy={ax.ty}
-              r={hoverRadius}
-              fill="transparent"
-            />
-            <text
-              x={ax.tx}
-              y={ax.ty}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize={12}
-              fill={hoveredIndex === i ? '#3730a3' : '#1f2937'}
-              fontWeight={hoveredIndex === i ? 600 : 500}
-              pointerEvents="none"
+              }}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              {ax.label}
-            </text>
-          </g>
-        ))}
-      </svg>
+              <circle cx={ax.tx} cy={ax.ty} r={30} fill="transparent" />
+              <text
+                x={ax.tx}
+                y={ax.ty}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={14}
+                fill={hoveredIndex === i ? '#3730a3' : '#1f2937'}
+                fontWeight={hoveredIndex === i ? 600 : 500}
+                pointerEvents="none"
+              >
+                {ax.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
       {hoveredIndex !== null && data[hoveredIndex].justification && (
         <div
           role="tooltip"
@@ -233,7 +252,7 @@ const calculateAdjustedGPA = (transcript: SmallTranscript, courseDifficulty: num
     return schoolAdjustedGPA
 }
 
-export default function StudentTranscriptCard({ transcript, student, skillScores }: StudentTranscriptCardProps) {
+export default function StudentTranscriptCard({ transcript, student, skillScores, resumeAnalysis, onMessage }: StudentTranscriptCardProps) {
     const predictedMajorStats = getPredictedMajorStats(student)
     const courseDifficulty = calculateCourseDifficulty(student)
     const adjustedGPA = calculateAdjustedGPA(transcript, courseDifficulty)
@@ -245,16 +264,94 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
           .filter((k) => skillScores[k] != null)
           .map((k) => ({ key: k, score: skillScores[k]!.score, justification: skillScores[k]!.justification }))
       : []
+    const highlights = resumeAnalysis?.highlights || []
+    const jobs = resumeAnalysis?.jobs || []
+
+    const handleViewResume = async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) {
+            alert('You must be logged in to view resumes.')
+            return
+        }
+
+        try {
+            const resumeRes = await fetch(`${API_BASE}/get_resume/${student.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+
+            if (!resumeRes.ok) {
+                throw new Error(await resumeRes.text())
+            }
+
+            const blob = await resumeRes.blob()
+            const url = window.URL.createObjectURL(blob)
+
+            const popup = createResumeViewer(url, () => {
+                window.URL.revokeObjectURL(url)
+            })
+            document.body.appendChild(popup)
+        } catch (err) {
+            alert('Failed to load resume: ' + (err instanceof Error ? err.message : String(err)))
+        }
+    }
+
+    const formatNaturalDate = (dateStr: string | null) => {
+        if (!dateStr) return 'Present'
+        try {
+            const [year, month] = dateStr.split('-')
+            if (!month) return year
+            const date = new Date(parseInt(year), parseInt(month) - 1)
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        } catch (e) {
+            return dateStr
+        }
+    }
+
     return (
         <div className="student-transcript-card" style={{ display: 'flex', flexDirection: 'column', maxHeight: '70vh' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                        <User size={28} />
+                    </div>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>{transcript.fullName}</h2>
+                        <p style={{ margin: 0, color: '#6b7280', fontSize: '0.95rem' }}>{transcript.institution}</p>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    {student.resumeUploaded && (
+                        <button 
+                            onClick={handleViewResume}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
+                        >
+                            <FileText size={16} />
+                            View Resume
+                        </button>
+                    )}
+                    {onMessage && (
+                        <button 
+                            onClick={onMessage}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600 }}
+                        >
+                            <MessageCircle size={16} />
+                            Message
+                        </button>
+                    )}
+                </div>
+            </div>
             <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
-            <h3 className="section-title">Condensed Transcript</h3>
-            <div className="info-box">
-                Full Name: {transcript.fullName}
-            </div>
-            <div className="info-box">
-                Institution: {transcript.institution}
-            </div>
+            {highlights.length > 0 && (
+                <div className="info-box highlights-box" style={{ background: '#f0f9ff', borderColor: '#bae6fd' }}>
+                    <h2 className="info-box-title" style={{ color: '#0369a1', borderColor: '#bae6fd' }}>Key Highlights</h2>
+                    <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.25rem', color: '#0c4a6e', fontSize: '0.9rem' }}>
+                        {highlights.map((h: string, i: number) => (
+                            <li key={i} style={{ marginBottom: '0.25rem' }}>{h}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <div className="transcript-grid">
                 <div className="info-box info-box-stats">
                     <h2 className="info-box-title">Major</h2>
@@ -364,8 +461,40 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                     })()}
                 </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-                <div className="info-box info-box-stats" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0, flex: 1 }}>
+            {jobs.length > 0 && (
+                <div className="info-box professional-experience">
+                    <h2 className="info-box-title">Professional Experience</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                        {jobs.map((job: any, i: number) => (
+                            <div key={i} style={{ borderLeft: '2px solid #e5e7eb', paddingLeft: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>{job.role}</h4>
+                                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#4b5563' }}>{job.company}</p>
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                                        {formatNaturalDate(job.start_date)} - {formatNaturalDate(job.end_date)}
+                                    </span>
+                                </div>
+                                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.25rem', fontSize: '0.85rem', color: '#6b7280' }}>
+                                    {job.details?.map((detail: string, j: number) => (
+                                        <li key={j}>{detail}</li>
+                                    ))}
+                                </ul>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.5rem' }}>
+                                    {job.skills_used?.map((skill: string, k: number) => (
+                                        <span key={k} style={{ background: '#f3f4f6', color: '#374151', borderRadius: '4px', padding: '0.125rem 0.375rem', fontSize: '0.7rem' }}>
+                                            {skill}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', marginTop: '1rem' }}>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: '1 1 33.333%', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
                     {radarData.length >= 3 ? (
                         <RadarChart data={radarData} />
                     ) : (
@@ -376,12 +505,12 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                         </div>
                     )}
                 </div>
-                <div className="info-box info-box-stats" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0, flex: 1 }}>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: '1 1 66.666%', minWidth: 0 }}>
                     <h2 className="info-box-title">Transcript Analysis</h2>
                     {programPerformance ? (
-                        <p>{programPerformance}</p>
+                        <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: '#374151', margin: '0.5rem 0 0 0' }}>{programPerformance}</p>
                     ) : (
-                        <p>Transcript analysis not yet available</p>
+                        <p style={{ margin: '0.5rem 0 0 0' }}>Transcript analysis not yet available</p>
                     )}
                 </div>
             </div>

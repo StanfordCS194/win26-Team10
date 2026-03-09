@@ -102,7 +102,7 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
   })
 }
 
-function mapApplicantToStudent(row: ApplicantRow): Student {
+function mapApplicantToStudent(row: any): Student {
   return {
     id: row.id,
     firstName: row.first_name || 'Unknown',
@@ -238,33 +238,30 @@ export default function RecruiterDashboard() {
         setCompanyId(resolvedCompanyId)
         setCompanyName(resolvedCompanyName)
 
-        if (!resolvedCompanyId) {
+        if (resolvedCompanyId) {
+          const { data: jobs, error: jobsError } = await supabase
+            .from('jobs')
+            .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
+            .eq('company_id', resolvedCompanyId)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+
+          if (jobsError) throw jobsError
+
+          const companyJobsRows = (jobs || []) as CompanyJobRow[]
+          setCompanyJobs(companyJobsRows)
+          setSelectedJobId((prev) => {
+            if (prev && companyJobsRows.some(job => job.id === prev)) return prev
+            return companyJobsRows[0]?.id || ''
+          })
+        } else {
           setCompanyJobs([])
-          setDirectoryStudents([])
           setCompanyJobsError('No approved company is linked to this recruiter account yet.')
-          setCompanyJobsLoading(false)
-          return
         }
-
-        const { data: jobs, error: jobsError } = await supabase
-          .from('jobs')
-          .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
-          .eq('company_id', resolvedCompanyId)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-
-        if (jobsError) throw jobsError
-
-        const companyJobsRows = (jobs || []) as CompanyJobRow[]
-        setCompanyJobs(companyJobsRows)
-        setSelectedJobId((prev) => {
-          if (prev && companyJobsRows.some(job => job.id === prev)) return prev
-          return companyJobsRows[0]?.id || ''
-        })
 
         const { data: applicants, error: applicantsError } = await supabase
           .from('applicants')
-          .select('id, first_name, last_name, email, degree, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
+          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
 
         if (applicantsError) throw applicantsError
 

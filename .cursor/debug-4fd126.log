@@ -1,0 +1,5 @@
+{"sessionId":"4fd126","location":"RecruiterDashboard.tsx:209","message":"loadCompanyAndStudents entry","hypothesisId":"A","timestamp":1773038199191}
+{"sessionId":"4fd126","location":"RecruiterDashboard.tsx:222","message":"Auth session check","data":{"userId":"1acbf162-ee43-44fc-97f6-999dd88340b5"},"hypothesisId":"A","timestamp":1773038199201}
+{"sessionId":"4fd126","location":"RecruiterDashboard.tsx:232","message":"Membership query result","data":{"membership":{"company_id":"5d5f1383-68ec-4bc2-aac1-d67d05097d0e","status":"approved","companies":{"id":"5d5f1383-68ec-4bc2-aac1-d67d05097d0e","name":"Meta"}},"membershipError":null},"hypothesisId":"A","timestamp":1773038199382}
+{"sessionId":"4fd126","location":"RecruiterDashboard.tsx:251","message":"Jobs query result","data":{"jobsCount":1,"jobsError":null},"hypothesisId":"B","timestamp":1773038199624}
+{"sessionId":"4fd126","location":"RecruiterDashboard.tsx:273","message":"Applicants query result (post-fix)","data":{"applicantsCount":7,"applicantsError":null},"runId":"post-fix","hypothesisId":"C","timestamp":1773038199685}

@@ -16,6 +16,7 @@ export interface Student {
   transcript_raw?: any | null
   transcript_stats?: any | null
   transcript_analysis?: any | null
+  resume_analysis?: any | null
 }
 
 export const WORK_AUTH_OPTIONS = [
