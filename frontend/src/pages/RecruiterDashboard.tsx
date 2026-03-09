@@ -46,6 +46,7 @@ type ApplicantRow = {
   first_name: string | null
   last_name: string | null
   email: string | null
+  degree: string | null
   major: string | null
   graduation_year: string | null
   gpa: number | null
@@ -59,7 +60,8 @@ const initialFilters: Filters = {
   search: '',
   minGpa: 0.1,
   maxGpa: 4,
-  major: '',
+  majors: [],
+  degrees: [],
   graduationYear: '',
   skills: [],
 }
@@ -79,7 +81,11 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
       return false
     }
 
-    if (filters.major && student.major !== filters.major) {
+    if (filters.majors.length > 0 && !filters.majors.includes(student.major)) {
+      return false
+    }
+
+    if (filters.degrees.length > 0 && !filters.degrees.includes(student.degree || '')) {
       return false
     }
 
@@ -98,13 +104,14 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
   })
 }
 
-function mapApplicantToStudent(row: ApplicantRow): Student {
+function mapApplicantToStudent(row: any): Student {
   return {
     id: row.id,
     firstName: row.first_name || 'Unknown',
     lastName: row.last_name || 'Student',
     email: row.email || '',
     gpa: row.gpa ?? 0,
+    degree: row.degree ?? '',
     major: row.major || 'Undeclared',
     graduationYear: parseInt(row.graduation_year || '0') || 0,
     skills: row.skills || [],
@@ -411,29 +418,26 @@ export default function RecruiterDashboard() {
         setCompanyId(resolvedCompanyId)
         setCompanyName(resolvedCompanyName)
 
-        if (!resolvedCompanyId) {
+        if (resolvedCompanyId) {
+          const { data: jobs, error: jobsError } = await supabase
+            .from('jobs')
+            .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
+            .eq('company_id', resolvedCompanyId)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+
+          if (jobsError) throw jobsError
+
+          const companyJobsRows = (jobs || []) as CompanyJobRow[]
+          setCompanyJobs(companyJobsRows)
+          setSelectedJobId((prev) => {
+            if (prev && companyJobsRows.some(job => job.id === prev)) return prev
+            return companyJobsRows[0]?.id || ''
+          })
+        } else {
           setCompanyJobs([])
-          setDirectoryStudents([])
           setCompanyJobsError('No approved company is linked to this recruiter account yet.')
-          setCompanyJobsLoading(false)
-          return
         }
-
-        const { data: jobs, error: jobsError } = await supabase
-          .from('jobs')
-          .select('id, title, location, type, created_at, is_active, preferred_majors, preferred_grad_years, min_gpa, required_work_authorization')
-          .eq('company_id', resolvedCompanyId)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-
-        if (jobsError) throw jobsError
-
-        const companyJobsRows = (jobs || []) as CompanyJobRow[]
-        setCompanyJobs(companyJobsRows)
-        setSelectedJobId((prev) => {
-          if (prev && companyJobsRows.some(job => job.id === prev)) return prev
-          return companyJobsRows[0]?.id || ''
-        })
 
         const { data: applicants, error: applicantsError } = await supabase
           .from('applicants')

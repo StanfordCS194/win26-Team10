@@ -19,8 +19,6 @@ from typing import Iterable
 from api.pipeline.executor import ParseExecutor
 from api.pipeline.steps import (
     ParseStep,
-    ReductoStep,
-    TextExtractStep,
     TranscriptStandardizeStep,
     TranscriptStatisticsStep,
     TranscriptAnalysisStep,
@@ -39,15 +37,11 @@ def default_steps() -> list[ParseStep]:
     """
     Default pipeline steps.
     
-    1. TextExtractStep: Extract raw text from PDF using PyPDF2
-    2. TranscriptStandardizeStep: Convert text to standardized transcript JSON using LLM
-    3. TranscriptStatisticsStep: Calculate grade percentiles and statistics
-    4. TranscriptAnalysisStep: Qualitative analysis using LLM
-    
-    To use Reducto instead: steps=[ReductoStep(), TranscriptStandardizeStep(), TranscriptStatisticsStep(), TranscriptAnalysisStep()]
+    1. TranscriptStandardizeStep: Convert PDF to standardized transcript JSON using LLM with file attachment
+    2. TranscriptStatisticsStep: Calculate grade percentiles and statistics
+    3. TranscriptAnalysisStep: Qualitative analysis using LLM
     """
     return [
-        TextExtractStep(),
         TranscriptStandardizeStep(),
         TranscriptStatisticsStep(),
         TranscriptAnalysisStep(),
@@ -108,8 +102,6 @@ __all__ = [
     "run_pipeline",
     "ParseExecutor",
     "ParseStep",
-    "ReductoStep",
-    "TextExtractStep",
     "TranscriptStatisticsStep",
     "TranscriptAnalysisStep",
     "ResumeParseStep",

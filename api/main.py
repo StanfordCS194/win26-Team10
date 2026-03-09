@@ -84,6 +84,7 @@ class ApplicantProfile(BaseModel):
     email: Optional[str] = None
     school: Optional[str] = None
     school_id: Optional[str] = None
+    degree: Optional[str] = None
     major: Optional[str] = None
     graduation_year: Optional[str] = None
     gpa: Optional[float] = None

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
-import { MAJORS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
+import { MAJORS, DEGREE_OPTIONS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
 import { supabase } from '../lib/supabase'
 import universities from '../data/universities.json'
 
@@ -9,6 +9,7 @@ interface StudentProfile {
   firstName: string
   lastName: string
   school: string
+  degree: string
   major: string
   graduationYear: string
   gpa: string
@@ -41,6 +42,7 @@ type JobStatusResponse = {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const PROFILE_DRAFT_KEY = 'studentProfileDraft'
 
 // Minimal typing for the standardized transcript (docs/TRANSCRIPT_SCHEMA.md)
 type TranscriptCourse = {
@@ -149,10 +151,30 @@ const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
   school: '',
+  degree: '',
   major: '',
   graduationYear: '',
   gpa: '',
   skills: [],
+}
+
+type EditableProfileFields = Pick<
+  StudentProfile,
+  'firstName' | 'lastName' | 'school' | 'degree' | 'major' | 'graduationYear' | 'gpa' | 'skills' | 'workAuthorization'
+>
+
+function toEditableProfile(profile: StudentProfile): EditableProfileFields {
+  return {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    school: profile.school,
+    degree: profile.degree,
+    major: profile.major,
+    graduationYear: profile.graduationYear,
+    gpa: profile.gpa,
+    skills: profile.skills,
+    workAuthorization: profile.workAuthorization ?? '',
+  }
 }
 
 export default function StudentPage() {
@@ -188,8 +210,63 @@ export default function StudentPage() {
   const [filteredSchools, setFilteredSchools] = useState<string[]>([])
   const schoolInputRef = useRef<HTMLInputElement>(null)
   const schoolDropdownRef = useRef<HTMLDivElement>(null)
+  const hasLocalDraftRef = useRef(false)
+  const validationErrorRef = useRef<HTMLDivElement>(null)
+
+  const getFixedTopOffset = () => {
+    const candidates = document.querySelectorAll<HTMLElement>('.nav-new, header, .navbar')
+    let maxHeight = 0
+
+    candidates.forEach((el) => {
+      const style = window.getComputedStyle(el)
+      const isFixedTop = (style.position === 'fixed' || style.position === 'sticky') && el.getBoundingClientRect().top <= 2
+      if (isFixedTop && el.offsetParent !== null) {
+        maxHeight = Math.max(maxHeight, el.getBoundingClientRect().height)
+      }
+    })
+
+    return maxHeight + 12
+  }
+
+  const scrollProfileToTop = () => {
+    const topOffset = getFixedTopOffset()
+    const errorEl = validationErrorRef.current
+    const profileContainer = document.querySelector('.student-page') as HTMLElement | null
+
+    if (errorEl) {
+      const targetTop = errorEl.getBoundingClientRect().top + window.scrollY - topOffset
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' })
+
+      if (profileContainer && profileContainer.scrollHeight > profileContainer.clientHeight) {
+        const containerTop = profileContainer.getBoundingClientRect().top
+        const errorTop = errorEl.getBoundingClientRect().top
+        const nextContainerTop = profileContainer.scrollTop + (errorTop - containerTop) - topOffset
+        profileContainer.scrollTo({ top: Math.max(0, nextContainerTop), behavior: 'smooth' })
+      }
+      return
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem(PROFILE_DRAFT_KEY)
+      if (savedDraft) {
+        const parsedDraft = JSON.parse(savedDraft) as Partial<EditableProfileFields>
+        hasLocalDraftRef.current = true
+        setProfile((prev) => ({
+          ...prev,
+          ...parsedDraft,
+          skills: Array.isArray(parsedDraft.skills) ? parsedDraft.skills : prev.skills,
+        }))
+        if (parsedDraft.school) {
+          setSchoolInput(parsedDraft.school)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read profile draft:', err)
+    }
     fetchProfile()
   }, [])
 
@@ -274,10 +351,11 @@ export default function StudentPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setProfile({
+        const serverProfile: StudentProfile = {
           firstName: data.first_name ?? '',
           lastName: data.last_name ?? '',
           school: data.school ?? '',
+          degree: data.degree ?? '',
           major: data.major ?? '',
           graduationYear: data.graduation_year ?? '',
           gpa: data.gpa ? String(data.gpa) : '',
@@ -287,6 +365,16 @@ export default function StudentPage() {
           updatedAt: data.updated_at,
           latestReprPath: data.latest_repr_path,
           resumePath: data.resume_path,
+        }
+        setProfile((prev) => {
+          if (!hasLocalDraftRef.current) {
+            return serverProfile
+          }
+          // Keep local unsaved edits after refresh while still updating server-only metadata.
+          return {
+            ...serverProfile,
+            ...toEditableProfile(prev),
+          }
         })
         if (data.latest_repr_path || data.resume_path) {
           fetchTranscriptDetail(token, Boolean(data.latest_repr_path))
@@ -369,7 +457,16 @@ export default function StudentPage() {
   }
 
   const updateProfile = <K extends keyof StudentProfile>(key: K, value: StudentProfile[K]) => {
-    setProfile({ ...profile, [key]: value })
+    setProfile((prev) => {
+      const next = { ...prev, [key]: value }
+      try {
+        localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(toEditableProfile(next)))
+        hasLocalDraftRef.current = true
+      } catch (err) {
+        console.error('Failed to save profile draft:', err)
+      }
+      return next
+    })
     setSaved(false)
   }
 
@@ -636,12 +733,14 @@ export default function StudentPage() {
     if (!profile.lastName) errors.push('Last name is required')
     if (!profile.school) errors.push('School is required')
     if (!profile.major) errors.push('Major is required')
+    if (!profile.degree) errors.push('Degree is required')
     if (!profile.graduationYear) errors.push('Graduation year is required')
     if (!profile.gpa) errors.push('GPA is required')
     if (profile.skills.length === 0) errors.push('At least one skill is required')
 
     if (errors.length > 0) {
       setValidationErrors(errors)
+      requestAnimationFrame(scrollProfileToTop)
       return
     }
 
@@ -661,6 +760,7 @@ export default function StudentPage() {
           first_name: profile.firstName,
           last_name: profile.lastName,
           school: profile.school,
+          degree: profile.degree,
           major: profile.major,
           graduation_year: profile.graduationYear,
           gpa: parseFloat(profile.gpa),
@@ -679,10 +779,13 @@ export default function StudentPage() {
         isComplete: updated.is_complete,
       })
       setSaved(true)
+      localStorage.removeItem(PROFILE_DRAFT_KEY)
+      hasLocalDraftRef.current = false
       localStorage.setItem('studentProfile', JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
         school: profile.school,
+        degree: profile.degree,
         major: profile.major,
         graduationYear: profile.graduationYear,
         gpa: profile.gpa,
@@ -724,7 +827,11 @@ export default function StudentPage() {
         </p>
 
         {validationErrors.length > 0 && (
-          <div className="error-box" style={{ marginBottom: 24, padding: 16, backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 8 }}>
+          <div
+            ref={validationErrorRef}
+            className="error-box"
+            style={{ marginBottom: 24, padding: 16, backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 8 }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', color: '#c53030', marginBottom: 8, fontWeight: 600 }}>
               <AlertCircle size={20} style={{ marginRight: 8 }} />
               Please fix the following errors:
@@ -771,7 +878,9 @@ export default function StudentPage() {
               type="text"
               value={schoolInput}
               onChange={(e) => {
-                setSchoolInput(e.target.value)
+                const value = e.target.value
+                setSchoolInput(value)
+                updateProfile('school', value)
                 setShowSchoolDropdown(true)
               }}
               onFocus={() => setShowSchoolDropdown(true)}
@@ -827,6 +936,21 @@ export default function StudentPage() {
 
           <div className="form-row">
             <div className="form-group">
+              <label>Degree</label>
+              <select
+                value={profile.degree}
+                onChange={(e) => updateProfile('degree', e.target.value)}
+                className="select"
+              >
+                <option value="">Select degree</option>
+                {DEGREE_OPTIONS.map((degree) => (
+                  <option key={degree} value={degree}>
+                    {degree}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label>Major</label>
               <select
                 value={profile.major}
@@ -841,6 +965,9 @@ export default function StudentPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>Graduation Year</label>
               <select
@@ -856,9 +983,6 @@ export default function StudentPage() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>GPA</label>
               <input
@@ -868,10 +992,13 @@ export default function StudentPage() {
                 step="0.01"
                 value={profile.gpa}
                 onChange={(e) => updateProfile('gpa', e.target.value)}
-                className="input input-small"
+                className="input"
                 placeholder="3.50"
               />
             </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>Work Authorization</label>
               <select

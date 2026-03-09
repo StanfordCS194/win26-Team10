@@ -1,17 +1,16 @@
 """
-Standardize step - uses LLM to convert PDF text to standardized JSON.
+Standardize step - uses LLM to convert PDF to standardized JSON.
 
-Supports two input sources:
-1. artifacts.text_content (from TextExtractStep, preferred)
-2. artifacts.reducto_result (from ReductoStep, fallback)
+Uses OpenRouter file input (attachment framework) to extract structured transcript JSON.
 """
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any
+from pathlib import Path
 
 import httpx
 
@@ -22,6 +21,7 @@ from api.pipeline.types import ParseArtifacts
 # fmt: off
 SYSTEM_PROMPT = """You are a transcript data extraction assistant. Your task is to extract structured data from a parsed PDF transcript and output it as JSON according to a specific schema.
 
+Do no include the last semester if it is not completed in the units attempted calculation.
 ## Output Schema
 
 You must output a JSON object with these fields:
@@ -116,29 +116,8 @@ You must output a JSON object with these fields:
 # fmt: on
 
 
-def extract_text_from_reducto(reducto_result: dict[str, Any]) -> str:
-    """
-    Extract text content from Reducto result for LLM processing.
-
-    Uses chunk-level 'content' field instead of iterating through blocks.
-    This saves tokens and improves performance since the chunk content
-    already contains all text in markdown format.
-    """
-    content_parts = []
-
-    result = reducto_result.get("result", {})
-    chunks = result.get("chunks", [])
-
-    for chunk in chunks:
-        content = chunk.get("content", "")
-        if content:
-            content_parts.append(content)
-
-    return "\n\n".join(content_parts)
-
-
 class TranscriptStandardizeStep(ParseStep):
-    """Use LLM to convert text into standardized transcript JSON."""
+    """Use LLM with file attachment to convert PDF into standardized transcript JSON."""
 
     name = "standardize"
 
@@ -153,6 +132,11 @@ class TranscriptStandardizeStep(ParseStep):
         self.api_url = "https://openrouter.ai/api/v1/chat/completions"
         self.timeout_seconds = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "180"))
         self.save_debug = os.getenv("SAVE_LLM_DEBUG", "1").lower() in {"1", "true", "yes"}
+
+    def _build_data_url(self, pdf_path: Path) -> str:
+        content = pdf_path.read_bytes()
+        encoded = base64.b64encode(content).decode("ascii")
+        return f"data:application/pdf;base64,{encoded}"
 
     def should_skip(self, artifacts: ParseArtifacts) -> bool:
         """Skip if transcript already exists in output directory."""
@@ -169,10 +153,9 @@ class TranscriptStandardizeStep(ParseStep):
 
     def run(self, artifacts: ParseArtifacts) -> ParseArtifacts:
         """
-        Convert text to standardized transcript JSON using LLM.
+        Convert PDF to standardized transcript JSON using LLM with file attachment.
 
-        Uses text_content (from TextExtractStep) if available,
-        falls back to reducto_result (from ReductoStep).
+        Expects artifacts.pdf_path to be set.
         Saves result to output_dir/transcript.json.
         """
         if artifacts.input.dry_run:
@@ -183,24 +166,9 @@ class TranscriptStandardizeStep(ParseStep):
         if not self.api_key:
             raise ValueError("OPENROUTER_API_KEY must be set")
 
-        # Get text content - prefer direct text, fall back to Reducto
-        if artifacts.text_content:
-            text_content = artifacts.text_content
-            self.logger.info("Using text_content: %d chars", len(text_content))
-        elif artifacts.reducto_result:
-            text_content = extract_text_from_reducto(artifacts.reducto_result)
-            self.logger.info("Using reducto_result: %d chars", len(text_content))
-        else:
-            raise ValueError(
-                "No text content available - run TextExtractStep or ReductoStep first"
-            )
-
-        # Build user message
-        user_content = f"""Extract structured transcript data from the following:
-
-{text_content}
-
-Output the extracted data as a JSON object following the schema exactly."""
+        pdf_path = artifacts.pdf_path
+        if not pdf_path or not pdf_path.exists():
+            raise ValueError(f"PDF not found at {pdf_path}")
 
         # Create standardize debug directory
         standardize_dir = artifacts.input.output_dir / "standardize"
@@ -211,7 +179,25 @@ Output the extracted data as a JSON object following the schema exactly."""
             "model": self.model,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "Extract structured transcript data from the attached PDF. "
+                                "Output the extracted data as a JSON object following the schema exactly."
+                            ),
+                        },
+                        {
+                            "type": "file",
+                            "file": {
+                                "filename": pdf_path.name,
+                                "file_data": self._build_data_url(pdf_path),
+                            },
+                        },
+                    ],
+                },
             ],
             "temperature": 0.1,
         }
@@ -305,5 +291,5 @@ Output the extracted data as a JSON object following the schema exactly."""
 
         self.logger.info("Transcript standardized and saved to %s", output_path)
 
-        # TODO: Add school-specific analysis here (currently defaults to Stanford in AnalyzeStep)
         return artifacts
+

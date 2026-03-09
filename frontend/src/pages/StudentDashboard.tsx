@@ -14,6 +14,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 interface StudentProfile {
   firstName: string
   lastName: string
+  degree?: string
   major: string
   graduationYear: string
   gpa: string
@@ -307,6 +308,7 @@ export default function StudentDashboard() {
   const [minPay, setMinPay] = useState('')
   const [showMatchOnly, setShowMatchOnly] = useState(false)
   const [recruiterCompanyNames, setRecruiterCompanyNames] = useState<Record<string, string>>({})
+  const [companySearchQuery, setCompanySearchQuery] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -493,6 +495,7 @@ export default function StudentDashboard() {
     setSelectedTypes([])
     setMinPay('')
     setShowMatchOnly(false)
+    setCompanySearchQuery('')
   }
 
   const toggleFilter = (value: string, selected: string[], setSelected: (v: string[]) => void) => {
@@ -512,7 +515,19 @@ export default function StudentDashboard() {
     [jobs]
   )
 
+  const filteredCompanies = useMemo(
+    () => allCompanies.filter(company =>
+      company.toLowerCase().includes(companySearchQuery.toLowerCase())
+    ),
+    [allCompanies, companySearchQuery]
+  )
+
+  const unappliedJobsCount = jobs.length - appliedJobs.size
+
   const filteredJobs = jobs.filter(job => {
+    if (appliedJobs.has(job.id)) {
+      return false
+    }
     if (
       searchQuery &&
       !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -658,7 +673,7 @@ export default function StudentDashboard() {
                   <div className="profile-details">
                     <span className="profile-detail">
                       <GraduationCap size={16} />
-                      {profile.major}
+                      {profile.degree ? `${profile.degree} in ${profile.major}` : profile.major}
                     </span>
                     {profile.graduationYear && (
                       <span className="profile-detail">
@@ -723,11 +738,6 @@ export default function StudentDashboard() {
               )}
             </button>
           </div>
-          {viewMode === 'jobs' && (
-            <span className="dashboard-subtitle student-dashboard-subtitle">
-              {filteredJobs.length} of {jobs.length} jobs
-            </span>
-          )}
         </div>
 
         {viewMode === 'jobs' && (
@@ -744,7 +754,7 @@ export default function StudentDashboard() {
                   onClick={() => setActiveTab('open')}
                 >
                   Open Positions
-                  <span className="tab-count">{jobs.length}</span>
+                  <span className="tab-count">{unappliedJobsCount}</span>
                 </button>
                 <button
                   className={`student-tab ${activeTab === 'applications' ? 'active' : ''}`}
@@ -812,18 +822,69 @@ export default function StudentDashboard() {
 
               <div className="filter-group">
                 <label>Company</label>
-                <div className="filter-tags">
-                  {allCompanies.map(company => (
-                    <button
-                      key={company}
-                      className={`filter-tag ${selectedCompanies.includes(company) ? 'selected' : ''}`}
-                      onClick={() =>
-                        toggleFilter(company, selectedCompanies, setSelectedCompanies)
-                      }
-                    >
-                      {company}
-                    </button>
-                  ))}
+                
+                {selectedCompanies.length > 0 && (
+                  <div className="filter-tags">
+                    {selectedCompanies.map(company => (
+                      <button
+                        key={company}
+                        className="filter-tag selected"
+                        onClick={() => toggleFilter(company, selectedCompanies, setSelectedCompanies)}
+                      >
+                        {company}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="company-search-container">
+                  <div className="company-search-input">
+                    <Search size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search companies..."
+                      value={companySearchQuery}
+                      onChange={e => setCompanySearchQuery(e.target.value)}
+                    />
+                    {companySearchQuery && (
+                      <button 
+                        className="clear-company-search" 
+                        onClick={() => setCompanySearchQuery('')}
+                        aria-label="Clear search"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {companySearchQuery && (
+                    <div className="company-dropdown">
+                      {filteredCompanies.length === 0 ? (
+                        <div className="company-dropdown-empty">No companies found</div>
+                      ) : (
+                        <>
+                          {filteredCompanies.slice(0, 10).map(company => (
+                            <button
+                              key={company}
+                              className={`company-dropdown-item ${selectedCompanies.includes(company) ? 'selected' : ''}`}
+                              onClick={() => {
+                                toggleFilter(company, selectedCompanies, setSelectedCompanies)
+                                setCompanySearchQuery('')
+                              }}
+                            >
+                              {selectedCompanies.includes(company) && <CheckCircle size={14} />}
+                              {company}
+                            </button>
+                          ))}
+                          {filteredCompanies.length > 10 && (
+                            <div className="company-dropdown-more">
+                              +{filteredCompanies.length - 10} more companies (keep typing to narrow)
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -41,19 +41,42 @@ export default function SignupRecruiter() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        navigate('/recruiter', { replace: true })
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('type')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        
+        if (userRow?.type === 'recruiter') {
+          navigate('/recruiter', { replace: true })
+        } else {
+          setCheckingAuth(false)
+        }
       } else {
         setCheckingAuth(false)
       }
-    })
+    }
+
+    checkSession()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        navigate('/recruiter', { replace: true })
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('type')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        
+        if (userRow?.type === 'recruiter') {
+          navigate('/recruiter', { replace: true })
+        } else {
+          setCheckingAuth(false)
+        }
       } else {
         setCheckingAuth(false)
       }
