@@ -71,7 +71,7 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
   const hoverRadius = 24
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', position: 'relative' }}>
-      <h2 style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
+      <h2 className = "info-box-title" style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
       <svg width={viewSize} height={viewHeight} viewBox={`0 0 ${viewSize} ${viewHeight}`} style={{ flexShrink: 0 }} preserveAspectRatio="xMidYMid meet">
         {gridLevels.map((level, idx) => {
           const r = (level / 10) * maxRadius
@@ -239,6 +239,7 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
     const adjustedGPA = calculateAdjustedGPA(transcript, courseDifficulty)
     const scale = transcript.institution.includes('Stanford') ? 4.3 : 4.0
     const antiSkills = student.transcript_analysis?.class_anti_skills
+    const programPerformance = student.transcript_analysis?.topic_rating?.program_performance
     const radarData = skillScores
       ? (['technical_domain_skill', 'problem_solving', 'communication', 'execution', 'collaboration'] as const)
           .filter((k) => skillScores[k] != null)
@@ -363,16 +364,26 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                     })()}
                 </div>
             </div>
-            <div className="info-box" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0 }}>
-                {radarData.length >= 3 ? (
-                    <RadarChart data={radarData} />
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#6b7280', fontSize: '0.9rem' }}>
-                        <h2>Skill Scores</h2>
-                        <p style={{ margin: 0 }}>Skill scores not yet available</p>
-                        <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>Transcript analysis may still be processing</p>
-                    </div>
-                )}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0, flex: 1 }}>
+                    {radarData.length >= 3 ? (
+                        <RadarChart data={radarData} />
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#6b7280', fontSize: '0.9rem' }}>
+                            <h2 className="info-box-title">Skill Scores</h2>
+                            <p style={{ margin: 0 }}>Skill scores not yet available</p>
+                            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.9 }}>Transcript analysis may still be processing</p>
+                        </div>
+                    )}
+                </div>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem 1.25rem 0 1.25rem', marginBottom: 0, flex: 1 }}>
+                    <h2 className="info-box-title">Transcript Analysis</h2>
+                    {programPerformance ? (
+                        <p>{programPerformance}</p>
+                    ) : (
+                        <p>Transcript analysis not yet available</p>
+                    )}
+                </div>
             </div>
             </div>
         </div>
