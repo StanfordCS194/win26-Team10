@@ -41,6 +41,7 @@ type JobStatusResponse = {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const PROFILE_DRAFT_KEY = 'studentProfileDraft'
 
 // Minimal typing for the standardized transcript (docs/TRANSCRIPT_SCHEMA.md)
 type TranscriptCourse = {
@@ -155,6 +156,24 @@ const initialProfile: StudentProfile = {
   skills: [],
 }
 
+type EditableProfileFields = Pick<
+  StudentProfile,
+  'firstName' | 'lastName' | 'school' | 'major' | 'graduationYear' | 'gpa' | 'skills' | 'workAuthorization'
+>
+
+function toEditableProfile(profile: StudentProfile): EditableProfileFields {
+  return {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    school: profile.school,
+    major: profile.major,
+    graduationYear: profile.graduationYear,
+    gpa: profile.gpa,
+    skills: profile.skills,
+    workAuthorization: profile.workAuthorization ?? '',
+  }
+}
+
 export default function StudentPage() {
   const [profile, setProfile] = useState<StudentProfile>(initialProfile)
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
@@ -188,8 +207,63 @@ export default function StudentPage() {
   const [filteredSchools, setFilteredSchools] = useState<string[]>([])
   const schoolInputRef = useRef<HTMLInputElement>(null)
   const schoolDropdownRef = useRef<HTMLDivElement>(null)
+  const hasLocalDraftRef = useRef(false)
+  const validationErrorRef = useRef<HTMLDivElement>(null)
+
+  const getFixedTopOffset = () => {
+    const candidates = document.querySelectorAll<HTMLElement>('.nav-new, header, .navbar')
+    let maxHeight = 0
+
+    candidates.forEach((el) => {
+      const style = window.getComputedStyle(el)
+      const isFixedTop = (style.position === 'fixed' || style.position === 'sticky') && el.getBoundingClientRect().top <= 2
+      if (isFixedTop && el.offsetParent !== null) {
+        maxHeight = Math.max(maxHeight, el.getBoundingClientRect().height)
+      }
+    })
+
+    return maxHeight + 12
+  }
+
+  const scrollProfileToTop = () => {
+    const topOffset = getFixedTopOffset()
+    const errorEl = validationErrorRef.current
+    const profileContainer = document.querySelector('.student-page') as HTMLElement | null
+
+    if (errorEl) {
+      const targetTop = errorEl.getBoundingClientRect().top + window.scrollY - topOffset
+      window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' })
+
+      if (profileContainer && profileContainer.scrollHeight > profileContainer.clientHeight) {
+        const containerTop = profileContainer.getBoundingClientRect().top
+        const errorTop = errorEl.getBoundingClientRect().top
+        const nextContainerTop = profileContainer.scrollTop + (errorTop - containerTop) - topOffset
+        profileContainer.scrollTo({ top: Math.max(0, nextContainerTop), behavior: 'smooth' })
+      }
+      return
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem(PROFILE_DRAFT_KEY)
+      if (savedDraft) {
+        const parsedDraft = JSON.parse(savedDraft) as Partial<EditableProfileFields>
+        hasLocalDraftRef.current = true
+        setProfile((prev) => ({
+          ...prev,
+          ...parsedDraft,
+          skills: Array.isArray(parsedDraft.skills) ? parsedDraft.skills : prev.skills,
+        }))
+        if (parsedDraft.school) {
+          setSchoolInput(parsedDraft.school)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read profile draft:', err)
+    }
     fetchProfile()
   }, [])
 
@@ -274,7 +348,7 @@ export default function StudentPage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setProfile({
+        const serverProfile: StudentProfile = {
           firstName: data.first_name ?? '',
           lastName: data.last_name ?? '',
           school: data.school ?? '',
@@ -287,6 +361,16 @@ export default function StudentPage() {
           updatedAt: data.updated_at,
           latestReprPath: data.latest_repr_path,
           resumePath: data.resume_path,
+        }
+        setProfile((prev) => {
+          if (!hasLocalDraftRef.current) {
+            return serverProfile
+          }
+          // Keep local unsaved edits after refresh while still updating server-only metadata.
+          return {
+            ...serverProfile,
+            ...toEditableProfile(prev),
+          }
         })
         if (data.latest_repr_path || data.resume_path) {
           fetchTranscriptDetail(token, Boolean(data.latest_repr_path))
@@ -369,7 +453,16 @@ export default function StudentPage() {
   }
 
   const updateProfile = <K extends keyof StudentProfile>(key: K, value: StudentProfile[K]) => {
-    setProfile({ ...profile, [key]: value })
+    setProfile((prev) => {
+      const next = { ...prev, [key]: value }
+      try {
+        localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(toEditableProfile(next)))
+        hasLocalDraftRef.current = true
+      } catch (err) {
+        console.error('Failed to save profile draft:', err)
+      }
+      return next
+    })
     setSaved(false)
   }
 
@@ -642,6 +735,7 @@ export default function StudentPage() {
 
     if (errors.length > 0) {
       setValidationErrors(errors)
+      requestAnimationFrame(scrollProfileToTop)
       return
     }
 
@@ -679,6 +773,8 @@ export default function StudentPage() {
         isComplete: updated.is_complete,
       })
       setSaved(true)
+      localStorage.removeItem(PROFILE_DRAFT_KEY)
+      hasLocalDraftRef.current = false
       localStorage.setItem('studentProfile', JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
@@ -724,7 +820,11 @@ export default function StudentPage() {
         </p>
 
         {validationErrors.length > 0 && (
-          <div className="error-box" style={{ marginBottom: 24, padding: 16, backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 8 }}>
+          <div
+            ref={validationErrorRef}
+            className="error-box"
+            style={{ marginBottom: 24, padding: 16, backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 8 }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', color: '#c53030', marginBottom: 8, fontWeight: 600 }}>
               <AlertCircle size={20} style={{ marginRight: 8 }} />
               Please fix the following errors:
@@ -771,7 +871,9 @@ export default function StudentPage() {
               type="text"
               value={schoolInput}
               onChange={(e) => {
-                setSchoolInput(e.target.value)
+                const value = e.target.value
+                setSchoolInput(value)
+                updateProfile('school', value)
                 setShowSchoolDropdown(true)
               }}
               onFocus={() => setShowSchoolDropdown(true)}

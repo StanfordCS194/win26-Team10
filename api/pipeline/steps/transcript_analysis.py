@@ -14,6 +14,8 @@ from api.pipeline.types import ParseArtifacts
 
 SYSTEM_PROMPT = """You are a transcript analysis assistant. Your task is to provide a qualitative analysis of a student's academic performance based on their standardized transcript data.
 
+Do no include the last semester if it is not completed course completition context.
+
 ## Output Schema
 
 You must output a JSON object with these fields:
