@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, FileText, X, Check, Plus, AlertCircle, Loader2 } from 'lucide-react'
-import { MAJORS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
+import { MAJORS, DEGREE_OPTIONS, GRADUATION_YEARS, ALL_SKILLS, WORK_AUTH_OPTIONS } from '../types/student'
 import { supabase } from '../lib/supabase'
 import universities from '../data/universities.json'
 
@@ -9,6 +9,7 @@ interface StudentProfile {
   firstName: string
   lastName: string
   school: string
+  degree: string
   major: string
   graduationYear: string
   gpa: string
@@ -150,6 +151,7 @@ const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
   school: '',
+  degree: '',
   major: '',
   graduationYear: '',
   gpa: '',
@@ -158,7 +160,7 @@ const initialProfile: StudentProfile = {
 
 type EditableProfileFields = Pick<
   StudentProfile,
-  'firstName' | 'lastName' | 'school' | 'major' | 'graduationYear' | 'gpa' | 'skills' | 'workAuthorization'
+  'firstName' | 'lastName' | 'school' | 'degree' | 'major' | 'graduationYear' | 'gpa' | 'skills' | 'workAuthorization'
 >
 
 function toEditableProfile(profile: StudentProfile): EditableProfileFields {
@@ -166,6 +168,7 @@ function toEditableProfile(profile: StudentProfile): EditableProfileFields {
     firstName: profile.firstName,
     lastName: profile.lastName,
     school: profile.school,
+    degree: profile.degree,
     major: profile.major,
     graduationYear: profile.graduationYear,
     gpa: profile.gpa,
@@ -352,6 +355,7 @@ export default function StudentPage() {
           firstName: data.first_name ?? '',
           lastName: data.last_name ?? '',
           school: data.school ?? '',
+          degree: data.degree ?? '',
           major: data.major ?? '',
           graduationYear: data.graduation_year ?? '',
           gpa: data.gpa ? String(data.gpa) : '',
@@ -729,6 +733,7 @@ export default function StudentPage() {
     if (!profile.lastName) errors.push('Last name is required')
     if (!profile.school) errors.push('School is required')
     if (!profile.major) errors.push('Major is required')
+    if (!profile.degree) errors.push('Degree is required')
     if (!profile.graduationYear) errors.push('Graduation year is required')
     if (!profile.gpa) errors.push('GPA is required')
     if (profile.skills.length === 0) errors.push('At least one skill is required')
@@ -755,6 +760,7 @@ export default function StudentPage() {
           first_name: profile.firstName,
           last_name: profile.lastName,
           school: profile.school,
+          degree: profile.degree,
           major: profile.major,
           graduation_year: profile.graduationYear,
           gpa: parseFloat(profile.gpa),
@@ -779,6 +785,7 @@ export default function StudentPage() {
         firstName: profile.firstName,
         lastName: profile.lastName,
         school: profile.school,
+        degree: profile.degree,
         major: profile.major,
         graduationYear: profile.graduationYear,
         gpa: profile.gpa,
@@ -929,6 +936,21 @@ export default function StudentPage() {
 
           <div className="form-row">
             <div className="form-group">
+              <label>Degree</label>
+              <select
+                value={profile.degree}
+                onChange={(e) => updateProfile('degree', e.target.value)}
+                className="select"
+              >
+                <option value="">Select degree</option>
+                {DEGREE_OPTIONS.map((degree) => (
+                  <option key={degree} value={degree}>
+                    {degree}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label>Major</label>
               <select
                 value={profile.major}
@@ -943,6 +965,9 @@ export default function StudentPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>Graduation Year</label>
               <select
@@ -958,9 +983,6 @@ export default function StudentPage() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>GPA</label>
               <input
@@ -970,10 +992,13 @@ export default function StudentPage() {
                 step="0.01"
                 value={profile.gpa}
                 onChange={(e) => updateProfile('gpa', e.target.value)}
-                className="input input-small"
+                className="input"
                 placeholder="3.50"
               />
             </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>Work Authorization</label>
               <select

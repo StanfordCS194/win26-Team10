@@ -5,6 +5,7 @@ export interface Student {
   email: string
   gpa: number
   major: string
+  degree?: string
   graduationYear: number
   skills: string[]
   transcriptUploaded: boolean
@@ -40,10 +41,41 @@ export interface Filters {
   search: string
   minGpa: number
   maxGpa: number
-  major: string
+  majors: string[]
+  degrees: string[]
   graduationYear: string
   skills: string[]
 }
+
+export const DEGREE_OPTIONS = [
+  'AA',
+  'AS',
+  'BA',
+  'BArch',
+  'BBA',
+  'BEng',
+  'BFA',
+  'BMus',
+  'BS',
+  'BSN',
+  'EdD',
+  'JD',
+  'LLM',
+  'MA',
+  'MArch',
+  'MBA',
+  'MEd',
+  'MEng',
+  'MFA',
+  'MLIS',
+  'MPA',
+  'MPH',
+  'MPP',
+  'MS',
+  'MSW',
+  'PhD',
+  'Undeclared',
+] as const
 
 export const MAJORS = [
   'Accounting',
@@ -136,7 +168,7 @@ export const MAJORS = [
   'Undeclared',
 ] as const
 
-export const GRADUATION_YEARS = ['2025', '2026', '2027', '2028'] as const
+export const GRADUATION_YEARS = Array.from({ length: 36 }, (_, i) => String(2000 + i))
 
 export const ALL_SKILLS = [
   'Python',

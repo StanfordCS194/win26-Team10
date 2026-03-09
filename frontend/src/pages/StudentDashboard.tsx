@@ -10,6 +10,7 @@ import type { Conversation, Message } from '../types/messaging'
 interface StudentProfile {
   firstName: string
   lastName: string
+  degree?: string
   major: string
   graduationYear: string
   gpa: string
@@ -458,7 +459,7 @@ export default function StudentDashboard() {
                   <div className="profile-details">
                     <span className="profile-detail">
                       <GraduationCap size={16} />
-                      {profile.major}
+                      {profile.degree ? `${profile.degree} in ${profile.major}` : profile.major}
                     </span>
                     {profile.graduationYear && (
                       <span className="profile-detail">

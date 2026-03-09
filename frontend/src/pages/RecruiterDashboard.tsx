@@ -44,6 +44,7 @@ type ApplicantRow = {
   first_name: string | null
   last_name: string | null
   email: string | null
+  degree: string | null
   major: string | null
   graduation_year: string | null
   gpa: number | null
@@ -57,7 +58,8 @@ const initialFilters: Filters = {
   search: '',
   minGpa: 0.1,
   maxGpa: 4,
-  major: '',
+  majors: [],
+  degrees: [],
   graduationYear: '',
   skills: [],
 }
@@ -77,7 +79,11 @@ function filterStudents(students: Student[], filters: Filters): Student[] {
       return false
     }
 
-    if (filters.major && student.major !== filters.major) {
+    if (filters.majors.length > 0 && !filters.majors.includes(student.major)) {
+      return false
+    }
+
+    if (filters.degrees.length > 0 && !filters.degrees.includes(student.degree || '')) {
       return false
     }
 
@@ -103,6 +109,7 @@ function mapApplicantToStudent(row: ApplicantRow): Student {
     lastName: row.last_name || 'Student',
     email: row.email || '',
     gpa: row.gpa ?? 0,
+    degree: row.degree ?? '',
     major: row.major || 'Undeclared',
     graduationYear: parseInt(row.graduation_year || '0') || 0,
     skills: row.skills || [],
@@ -257,7 +264,7 @@ export default function RecruiterDashboard() {
 
         const { data: applicants, error: applicantsError } = await supabase
           .from('applicants')
-          .select('id, first_name, last_name, email, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
+          .select('id, first_name, last_name, email, degree, major, graduation_year, gpa, skills, latest_repr_path, work_authorization, resume_path')
 
         if (applicantsError) throw applicantsError
 
