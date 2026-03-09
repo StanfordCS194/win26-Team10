@@ -329,6 +329,8 @@ export default function StudentDashboard() {
     [allCompanies, companySearchQuery]
   )
 
+  const unappliedJobsCount = jobs.length - appliedJobs.size
+
   const filteredJobs = jobs.filter(job => {
     if (
       searchQuery &&
@@ -549,7 +551,7 @@ export default function StudentDashboard() {
                   onClick={() => setActiveTab('open')}
                 >
                   Open Positions
-                  <span className="tab-count">{jobs.length}</span>
+                  <span className="tab-count">{unappliedJobsCount}</span>
                 </button>
                 <button
                   className={`student-tab ${activeTab === 'applications' ? 'active' : ''}`}
