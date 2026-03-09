@@ -248,6 +248,13 @@ body {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.thread-header-info {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .thread-back {
   display: flex;
   align-items: center;
@@ -266,6 +273,51 @@ body {
 .thread-title {
   font-weight: 600;
   color: #111827;
+}
+
+.thread-title-link {
+  font-weight: 600;
+  color: #111827;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.thread-title-link:hover {
+  text-decoration: underline;
+}
+
+.thread-profile-menu {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1),
+    0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  padding: 0.25rem 0;
+  z-index: 10;
+}
+
+.thread-profile-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.8125rem;
+  color: #111827;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.thread-profile-menu-item:hover {
+  background: #f3f4f6;
 }
 
 .thread-messages {
@@ -397,6 +449,11 @@ body {
 /* Recruiter Inbox view (same UI as student) */
 .recruiter-inbox-view {
   margin-top: 0.5rem;
+}
+
+.student-card-highlight {
+  box-shadow: 0 0 0 2px #2563eb;
+  border-radius: 0.75rem;
 }
 
 .recruiter-inbox-view .conversation-row {

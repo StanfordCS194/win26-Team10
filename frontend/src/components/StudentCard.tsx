@@ -55,7 +55,7 @@ export default function StudentCard({
     !!(isRecruiter && onOpenConversation && selectedJobTitle && applicationDetails?.message_to_recruiter?.trim())
 
   return (
-    <div className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
+    <div id={`student-${student.id}`} className={`student-card ${expanded ? 'expanded' : ''} ${hasApplied ? 'has-applied' : ''}`}>
       {hasApplied && (
         <div className="student-card-applied-badge" title="Applied to selected job">
           <CheckCircle size={20} />
