@@ -3445,6 +3445,8 @@ body {
   color: #9ca3af;
   cursor: not-allowed;
 }
+
+.recruiter-profile-photo-hint {
   margin: 0.25rem 0 0;
   font-size: 0.8125rem;
   color: #6b7280;
