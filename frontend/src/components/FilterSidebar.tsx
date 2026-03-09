@@ -42,7 +42,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
     onFiltersChange({
       search: '',
       minGpa: 0,
-      maxGpa: 4,
+      maxGpa: 5,
       majors: [],
       degrees: [],
       graduationYear: '',
@@ -53,7 +53,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
   const hasActiveFilters =
     filters.search ||
     filters.minGpa > 0 ||
-    filters.maxGpa < 4 ||
+    filters.maxGpa < 5 ||
     filters.majors.length > 0 ||
     filters.degrees.length > 0 ||
     filters.graduationYear ||
@@ -93,7 +93,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
           <input
             type="number"
             min="0"
-            max="4"
+            max="5"
             step="0.1"
             value={filters.minGpa}
             onChange={(e) => updateFilter('minGpa', parseFloat(e.target.value) || 0)}
@@ -103,7 +103,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
           <input
             type="number"
             min="0"
-            max="4"
+            max="5"
             step="0.1"
             value={filters.maxGpa}
             onChange={(e) => updateFilter('maxGpa', parseFloat(e.target.value) || 4)}
