@@ -205,6 +205,19 @@ export default function StudentDashboard() {
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
+  const unreadCount = useMemo(() => {
+    if (!studentId) return 0
+    let count = 0
+    for (const c of conversations) {
+      const latest = latestMessages[c.id]
+      if (!latest) continue
+      if (latest.sender_id === studentId) continue
+      const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
+      const latestAt = latest.created_at ? new Date(latest.created_at).getTime() : 0
+      if (latestAt > lastRead) count += 1
+    }
+    return count
+  }, [conversations, latestMessages, studentId])
 
   const handleAttachFileClick = () => {
     const input = document.createElement('input')
@@ -333,6 +346,49 @@ export default function StudentDashboard() {
     }
     loadData()
   }, [])
+
+  // Keep conversations + previews loaded so the inbox badge reflects unread state.
+  useEffect(() => {
+    if (!studentId) return
+    let cancelled = false
+    setConversationsLoading(true)
+    getMyConversations(studentId)
+      .then((list) => {
+        if (cancelled) return
+        setConversations(list)
+        return getLatestMessagePerConversation(list.map((c) => c.id))
+      })
+      .then((latest) => {
+        if (cancelled) return
+        setLatestMessages(latest ?? {})
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load conversations', err)
+      })
+      .finally(() => {
+        if (!cancelled) setConversationsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [studentId])
+
+  // Mark conversation as read when opened.
+  useEffect(() => {
+    if (!selectedConversationId || !studentId) return
+    const now = new Date().toISOString()
+    supabase
+      .from('conversations')
+      .update({ student_last_read_at: now })
+      .eq('id', selectedConversationId)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Failed to mark conversation read', error)
+          return
+        }
+        setConversations((prev) =>
+          prev.map((c) => (c.id === selectedConversationId ? { ...c, student_last_read_at: now } : c))
+        )
+      })
+  }, [selectedConversationId, studentId])
 
   const openApplyModal = (job: Job, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -591,8 +647,8 @@ export default function StudentDashboard() {
             >
               <MessageSquare size={18} />
               Inbox
-              {conversations.length > 0 && (
-                <span className="messages-badge">{conversations.length}</span>
+              {unreadCount > 0 && (
+                <span className="messages-badge">{unreadCount > 10 ? '10+' : unreadCount}</span>
               )}
             </button>
           </div>
@@ -1102,7 +1158,9 @@ export default function StudentDashboard() {
                 ) : (
                   conversations.map((c) => {
                     const latest = latestMessages[c.id]
-                    const isUnread = latest && latest.sender_id !== studentId
+                    const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
+                    const latestAt = latest?.created_at ? new Date(latest.created_at).getTime() : 0
+                    const isUnread = !!latest && latest.sender_id !== studentId && latestAt > lastRead
                     return (
                       <button
                         key={c.id}

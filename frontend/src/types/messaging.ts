@@ -4,6 +4,8 @@ export interface Conversation {
   student_id: string
   created_at: string
   updated_at: string
+  recruiter_last_read_at?: string | null
+  student_last_read_at?: string | null
 }
 
 export interface Message {
