@@ -1018,16 +1018,31 @@ body {
 
 .popup-container {
   position: fixed;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 80%;
+  top: 5%;
+  left: 5%;
+  width: 90%;
+  height: 90%;
   background-color: white;
   border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
-  padding: 1.25rem;
-  align-items: center;
-  justify-content: center;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 10001;
+}
+
+.student-transcript-card {
+  height: 100%;
+  overflow: hidden;
+}
+
+.highlights-box {
+  border-left: 4px solid #0369a1 !important;
+}
+
+.professional-experience {
+  border-left: 4px solid #3730a3 !important;
 }
 
 .transcript-status.uploaded {
@@ -1040,9 +1055,13 @@ body {
   transition: background-color 0.2s;
 }
 
-.transcript-status.uploaded:hover {
-  background-color: #f3f4f6;
-  cursor: pointer;
+.transcript-status.uploaded.non-clickable {
+  cursor: default;
+  background-color: transparent;
+}
+
+.transcript-status.uploaded.non-clickable:hover {
+  background-color: transparent;
 }
 
 /* Transcript Card */
