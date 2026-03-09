@@ -50,13 +50,16 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   if (data.length < 3) return null
-  const size = 400
-  const padding = 70
-  const cx = padding + (size - 2 * padding) / 2
-  const cy = padding + (size - 2 * padding) / 2
-  const maxRadius = (size - 2 * padding) / 2 - 12
-  const labelOffset = 26
+  
+  // Use a fixed internal coordinate system for the SVG
+  const internalSize = 500
+  const padding = 80
+  const cx = internalSize / 2
+  const cy = internalSize / 2
+  const maxRadius = (internalSize / 2) - padding
+  const labelOffset = 35
   const angleStep = (2 * Math.PI) / data.length
+  
   const axes = data.map((_, i) => {
     const a = -Math.PI / 2 + i * angleStep
     return {
@@ -67,129 +70,109 @@ function RadarChart({ data }: { data: Array<{ key: string; score: number; justif
       ty: cy + (maxRadius + labelOffset) * Math.sin(a)
     }
   })
+  
   const points = data.map((d, i) => {
     const r = (d.score / 10) * maxRadius
     const a = -Math.PI / 2 + i * angleStep
     return {
       x: cx + r * Math.cos(a),
       y: cy + r * Math.sin(a),
-      score: d.score,
-      a: a
+      score: d.score
     }
   })
+  
   const pointsString = points.map(p => `${p.x},${p.y}`).join(' ')
   const gridLevels = [2, 4, 6, 8, 10]
-  const viewSize = size + padding * 2
-  const viewHeight = 420
-  const hoverRadius = 24
+  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', position: 'relative' }}>
-      <h2 className = "info-box-title" style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
-      <svg width="100%" height={viewHeight} viewBox={`0 0 ${viewSize} ${viewHeight}`} style={{ flexShrink: 0 }} preserveAspectRatio="xMidYMid meet">
-        {gridLevels.map((level, idx) => {
-          const r = (level / 10) * maxRadius
-          const pts = data.map((_, i) => {
-            const a = -Math.PI / 2 + i * angleStep
-            return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
-          }).join(' ')
-          return (
-            <polygon
-              key={idx}
-              points={pts}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth={0.5}
-            />
-          )
-        })}
-        {axes.map((ax, i) => (
-          <line key={i} x1={cx} y1={cy} x2={ax.x} y2={ax.y} stroke="#e5e7eb" strokeWidth={0.5} />
-        ))}
-        <polygon
-          points={pointsString}
-          fill="rgba(55, 48, 163, 0.4)"
-          stroke="#3730a3"
-          strokeWidth={2}
-        />
-        {points.map((p, i) => (
-          <g key={`score-${i}`}>
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={12}
-              fill="white"
-              stroke="#3730a3"
-              strokeWidth={1}
-            />
-            <text
-              x={p.x}
-              y={p.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize={9}
-              fontWeight="bold"
-              fill="#3730a3"
-            >
-              {p.score}
-            </text>
-          </g>
-        ))}
-        {axes.map((ax, i) => (
-          <g
-            key={i}
-            style={{ cursor: data[i].justification ? 'pointer' : 'default' }}
-            onMouseEnter={(e) => {
-              if (data[i].justification) {
-                setHoveredIndex(i)
-                const svg = (e.target as SVGElement).ownerSVGElement
-                const rect = svg?.getBoundingClientRect()
-                if (rect && svg) {
-                  const scaleX = rect.width / viewSize
-                  const scaleY = rect.height / viewHeight
-                  setTooltipPos({
-                    x: rect.left + ax.tx * scaleX,
-                    y: rect.top + ax.ty * scaleY
-                  })
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', position: 'relative' }}>
+      <h2 className="info-box-title" style={{ width: '100%', textAlign: 'left', margin: 0, lineHeight: 1.2 }}>Skill Scores</h2>
+      <div style={{ width: '100%', aspectRatio: '1/1', position: 'relative' }}>
+        <svg 
+          width="100%" 
+          height="100%" 
+          viewBox={`0 0 ${internalSize} ${internalSize}`} 
+          style={{ overflow: 'visible' }}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {gridLevels.map((level, idx) => {
+            const r = (level / 10) * maxRadius
+            const pts = data.map((_, i) => {
+              const a = -Math.PI / 2 + i * angleStep
+              return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
+            }).join(' ')
+            return (
+              <polygon
+                key={idx}
+                points={pts}
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth={1}
+              />
+            )
+          })}
+          {axes.map((ax, i) => (
+            <line key={i} x1={cx} y1={cy} x2={ax.x} y2={ax.y} stroke="#e5e7eb" strokeWidth={1} />
+          ))}
+          <polygon
+            points={pointsString}
+            fill="rgba(55, 48, 163, 0.4)"
+            stroke="#3730a3"
+            strokeWidth={3}
+          />
+          {points.map((p, i) => (
+            <g key={`score-${i}`}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={15}
+                fill="white"
+                stroke="#3730a3"
+                strokeWidth={1.5}
+              />
+              <text
+                x={p.x}
+                y={p.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={12}
+                fontWeight="bold"
+                fill="#3730a3"
+              >
+                {p.score}
+              </text>
+            </g>
+          ))}
+          {axes.map((ax, i) => (
+            <g
+              key={i}
+              style={{ cursor: data[i].justification ? 'pointer' : 'default' }}
+              onMouseEnter={(e) => {
+                if (data[i].justification) {
+                  setHoveredIndex(i)
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top })
                 }
-              }
-            }}
-            onMouseLeave={() => setHoveredIndex(null)}
-            onMouseMove={(e) => {
-              if (hoveredIndex === i && data[i].justification) {
-                const svg = (e.target as SVGElement).ownerSVGElement
-                const rect = svg?.getBoundingClientRect()
-                if (rect && svg) {
-                  const scaleX = rect.width / viewSize
-                  const scaleY = rect.height / viewHeight
-                  setTooltipPos({
-                    x: rect.left + ax.tx * scaleX,
-                    y: rect.top + ax.ty * scaleY
-                  })
-                }
-              }
-            }}
-          >
-            <circle
-              cx={ax.tx}
-              cy={ax.ty}
-              r={hoverRadius}
-              fill="transparent"
-            />
-            <text
-              x={ax.tx}
-              y={ax.ty}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize={11}
-              fill={hoveredIndex === i ? '#3730a3' : '#1f2937'}
-              fontWeight={hoveredIndex === i ? 600 : 500}
-              pointerEvents="none"
+              }}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              {ax.label}
-            </text>
-          </g>
-        ))}
-      </svg>
+              <circle cx={ax.tx} cy={ax.ty} r={30} fill="transparent" />
+              <text
+                x={ax.tx}
+                y={ax.ty}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={14}
+                fill={hoveredIndex === i ? '#3730a3' : '#1f2937'}
+                fontWeight={hoveredIndex === i ? 600 : 500}
+                pointerEvents="none"
+              >
+                {ax.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
       {hoveredIndex !== null && data[hoveredIndex].justification && (
         <div
           role="tooltip"
@@ -511,7 +494,7 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                 </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', marginTop: '1rem' }}>
-                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: '0 0 440px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: '1 1 33.333%', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
                     {radarData.length >= 3 ? (
                         <RadarChart data={radarData} />
                     ) : (
@@ -522,7 +505,7 @@ export default function StudentTranscriptCard({ transcript, student, skillScores
                         </div>
                     )}
                 </div>
-                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: 1 }}>
+                <div className="info-box info-box-stats" style={{ padding: '1.25rem', marginBottom: 0, flex: '1 1 66.666%', minWidth: 0 }}>
                     <h2 className="info-box-title">Transcript Analysis</h2>
                     {programPerformance ? (
                         <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: '#374151', margin: '0.5rem 0 0 0' }}>{programPerformance}</p>
