@@ -20,6 +20,7 @@ from api.supabase import (
     get_job_status,
     get_user,
     get_all_users,
+    get_client,
     update_applicant,
     update_user_latest_repr,
     upload_bytes,
@@ -93,6 +94,10 @@ class ApplicantProfile(BaseModel):
     resume_path: Optional[str] = None
     latest_report_path: Optional[str] = None
     is_complete: Optional[bool] = None
+
+
+class RecruiterCompanyNamesRequest(BaseModel):
+    recruiter_ids: list[str]
 
 
 # =============================================================================
@@ -537,6 +542,51 @@ async def upload_resume(
     await update_applicant(user_id, {"resume_path": storage_path})
     
     return {"resume_path": storage_path, "message": "Resume uploaded successfully"}
+
+
+@app.post("/recruiters/company_names")
+async def get_recruiter_company_names(
+    payload: RecruiterCompanyNamesRequest,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Given recruiter user IDs, return a mapping to their approved company name.
+
+    This uses the service-role Supabase client so students can display
+    "Recruiter from <Company>" in the inbox UI.
+    """
+    recruiter_ids = [rid for rid in (payload.recruiter_ids or []) if isinstance(rid, str) and rid]
+    if not recruiter_ids:
+        return {}
+
+    client = get_client()
+
+    memberships = (
+        client.table("company_memberships")
+        .select("user_id, company_id, status")
+        .in_("user_id", recruiter_ids)
+        .eq("status", "approved")
+        .execute()
+    ).data or []
+
+    company_ids = list({m.get("company_id") for m in memberships if m.get("company_id")})
+    companies = {}
+    if company_ids:
+        rows = (
+            client.table("companies")
+            .select("id, name")
+            .in_("id", company_ids)
+            .execute()
+        ).data or []
+        companies = {r.get("id"): r.get("name") for r in rows if r.get("id") and r.get("name")}
+
+    out: dict[str, str] = {}
+    for m in memberships:
+        uid = m.get("user_id")
+        cid = m.get("company_id")
+        if uid and cid and cid in companies:
+            out[str(uid)] = str(companies[cid])
+    return out
 
 
 @app.post("/chat/attachments")

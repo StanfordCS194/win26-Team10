@@ -306,6 +306,7 @@ export default function StudentDashboard() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [minPay, setMinPay] = useState('')
   const [showMatchOnly, setShowMatchOnly] = useState(false)
+  const [recruiterCompanyNames, setRecruiterCompanyNames] = useState<Record<string, string>>({})
 
   useEffect(() => {
     async function loadData() {
@@ -407,6 +408,39 @@ export default function StudentDashboard() {
       })
     return () => { cancelled = true }
   }, [studentId])
+
+  // Resolve recruiter/company display names for inbox list and thread header.
+  useEffect(() => {
+    if (conversations.length === 0) {
+      setRecruiterCompanyNames({})
+      return
+    }
+    const recruiterIds = [...new Set(conversations.map((c) => c.recruiter_id).filter(Boolean))]
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) return
+        const res = await fetch(`${API_BASE}/recruiters/company_names`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ recruiter_ids: recruiterIds }),
+        })
+        if (!res.ok) throw new Error(await res.text())
+        const data = (await res.json()) as Record<string, string>
+        if (!cancelled) setRecruiterCompanyNames(data ?? {})
+      } catch (err) {
+        if (!cancelled) console.error('Failed to load recruiter company names', err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [conversations])
 
   // Mark conversation as read when opened.
   useEffect(() => {
@@ -1208,6 +1242,8 @@ export default function StudentDashboard() {
                         parsedLatest.application.student_id === studentId
                       ) &&
                       latest.sender_id !== studentId
+                    const company = recruiterCompanyNames[c.recruiter_id]
+                    const name = company ? `Recruiter from ${company}` : 'Recruiter'
                     return (
                       <button
                         key={c.id}
@@ -1218,7 +1254,7 @@ export default function StudentDashboard() {
                         {isUnread && <span className="unread-dot" aria-hidden />}
                         <span className="conversation-avatar" aria-hidden>R</span>
                         <div className="conversation-row-content">
-                          <span className="conversation-name">Recruiter</span>
+                          <span className="conversation-name">{name}</span>
                           {latest && (
                             <span className="conversation-preview">
                               {getChatPreview(latest.body).slice(0, 40)}
@@ -1253,8 +1289,16 @@ export default function StudentDashboard() {
                         <ChevronLeft size={20} />
                       </button>
                       <div className="thread-header-info">
-                        <span className="thread-title">Recruiter</span>
-                        <span className="thread-subtitle">Recruiter</span>
+                        {(() => {
+                          const convo = conversations.find((c) => c.id === selectedConversationId)
+                          const company = convo ? recruiterCompanyNames[convo.recruiter_id] : undefined
+                          const title = company ? `Recruiter from ${company}` : 'Recruiter'
+                          return (
+                            <>
+                              <span className="thread-title">{title}</span>
+                            </>
+                          )
+                        })()}
                       </div>
                     </div>
                     <div className="thread-messages">
