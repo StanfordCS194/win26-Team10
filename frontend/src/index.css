@@ -2675,7 +2675,7 @@ body {
 /* Feedback Sidebar */
 .feedback-toggle {
   position: fixed;
-  right: -35px;
+  right: -43px;
   top: 50%;
   transform: translateY(-50%) rotate(-90deg);
   background-color: #2563eb;
@@ -2694,7 +2694,7 @@ body {
 
 .feedback-toggle:hover {
   background-color: #1d4ed8;
-  right: -30px;
+  right: -38px;
 }
 
 .feedback-sidebar {

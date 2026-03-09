@@ -69,7 +69,7 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
       <div className="card-info">
         <span>
           <GraduationCap size={16} />
-          {student.major}
+          {student.degree ? `${student.degree} in ${student.major}` : student.major}
         </span>
         <span className="divider">|</span>
         {student.graduationYear !== 0 ? (

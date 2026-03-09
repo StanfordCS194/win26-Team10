@@ -22,6 +22,7 @@ from api.pipeline.types import ParseArtifacts
 # fmt: off
 SYSTEM_PROMPT = """You are a transcript data extraction assistant. Your task is to extract structured data from a parsed PDF transcript and output it as JSON according to a specific schema.
 
+Do no include the last semester if it is not completed in the units attempted calculation.
 ## Output Schema
 
 You must output a JSON object with these fields:
