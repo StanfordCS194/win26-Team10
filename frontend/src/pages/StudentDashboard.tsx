@@ -471,8 +471,9 @@ export default function StudentDashboard() {
       setMismatchConfirmJob(job)
     } else {
       openApplyModalCtx(job, studentUserId, () => {
-        setAppliedJobs(prev => new Set(prev).add(job.id))
-      })
+      setAppliedJobs(prev => new Set(prev).add(job.id))
+      setAppliedJobsList(prev => [job, ...prev])
+    })
     }
   }
 
@@ -482,6 +483,7 @@ export default function StudentDashboard() {
     setMismatchConfirmJob(null)
     openApplyModalCtx(job, studentUserId, () => {
       setAppliedJobs(prev => new Set(prev).add(job.id))
+      setAppliedJobsList(prev => [job, ...prev])
     })
   }
 
