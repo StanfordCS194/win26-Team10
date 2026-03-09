@@ -166,7 +166,7 @@ def run_reducto_step(args) -> int:
 
 
 def run_standardize_step(args) -> int:
-    """Run only the Standardize step on existing text.txt or reducto.json."""
+    """Run only the Standardize step on existing PDF."""
     if not args.job_id:
         print("Error: --job-id is required for standardize step", file=sys.stderr)
         return 1
@@ -177,27 +177,22 @@ def run_standardize_step(args) -> int:
     else:
         output_dir = default_output_dir(args.job_id)
     
-    # Look for existing text output (text.txt preferred, reducto.json fallback)
-    text_path = output_dir / "text.txt"
-    reducto_path = output_dir / "reducto.json"
+    # Look for existing PDF output
+    pdf_path = output_dir / "input.pdf"
     
-    text_content = None
-    reducto_result = None
-    
-    if text_path.exists():
-        text_content = text_path.read_text(encoding="utf-8")
-        print(f"Using text.txt ({len(text_content)} chars)")
-    elif reducto_path.exists():
-        reducto_result = json.loads(reducto_path.read_text())
-        print("Using reducto.json")
-    else:
-        print(f"Error: No text output found in {output_dir}", file=sys.stderr)
-        print("Expected text.txt or reducto.json", file=sys.stderr)
-        print("Run text_extract first: python -m api --step text_extract --pdf <file>", file=sys.stderr)
-        return 1
+    if not pdf_path.exists():
+        if args.pdf:
+            pdf_path = Path(args.pdf)
+            if not pdf_path.exists():
+                print(f"Error: PDF not found: {pdf_path}", file=sys.stderr)
+                return 1
+        else:
+            print(f"Error: No input.pdf found in {output_dir}", file=sys.stderr)
+            print("Run pipeline first or provide --pdf", file=sys.stderr)
+            return 1
     
     try:
-        # Create artifacts with existing text
+        # Create artifacts with existing PDF
         parse_input = ParseInput(
             job_id=args.job_id,
             file_id="",
@@ -206,8 +201,7 @@ def run_standardize_step(args) -> int:
         )
         artifacts = ParseArtifacts(
             input=parse_input,
-            text_content=text_content,
-            reducto_result=reducto_result,
+            pdf_path=pdf_path,
         )
         
         # Run standardize step
@@ -265,25 +259,19 @@ def main(argv: list[str] | None = None) -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run full pipeline (text_extract + standardize)
+  # Run full pipeline (standardize + statistics + analysis)
   python -m api --pdf transcripts/niall.pdf
   
-  # Run only text extraction (PyPDF2)
-  python -m api --step text_extract --pdf transcripts/niall.pdf
-  
-  # Run only standardization (requires existing text.txt or reducto.json)
+  # Run only standardization (requires existing input.pdf)
   python -m api --step standardize --job-id a9d6b99f0fa6
-  
-  # Run reducto step (API) instead of PyPDF2
-  python -m api --step reducto --pdf transcripts/niall.pdf
 """,
     )
     parser.add_argument(
         "--step",
         type=str,
-        choices=["pipeline", "text_extract", "reducto", "standardize", "analyze"],
+        choices=["pipeline", "standardize", "analyze"],
         default="pipeline",
-        help="Step to run: pipeline (default), text_extract, reducto, standardize, or analyze",
+        help="Step to run: pipeline (default), standardize, or analyze",
     )
     parser.add_argument(
         "--pdf",
@@ -311,13 +299,10 @@ Examples:
     
     args = parser.parse_args(argv)
     
-    if args.step == "text_extract":
-        return run_text_extract_step(args)
-    elif args.step == "reducto":
-        return run_reducto_step(args)
-    elif args.step == "standardize":
+    if args.step == "standardize":
         return run_standardize_step(args)
     elif args.step == "analyze":
+        import asyncio
         return asyncio.run(run_analyze_step(args))
     else:  # pipeline
         return run_full_pipeline(args)
