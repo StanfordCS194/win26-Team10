@@ -71,7 +71,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
           <input
             type="number"
             min="0"
-            max="4"
+            max="5"
             step="0.1"
             value={filters.minGpa}
             onChange={(e) => updateFilter('minGpa', parseFloat(e.target.value) || 0)}
@@ -81,10 +81,10 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
           <input
             type="number"
             min="0"
-            max="4"
+            max="5"
             step="0.1"
             value={filters.maxGpa}
-            onChange={(e) => updateFilter('maxGpa', parseFloat(e.target.value) || 4)}
+            onChange={(e) => updateFilter('maxGpa', parseFloat(e.target.value) || 5)}
             className="input input-small"
           />
         </div>
