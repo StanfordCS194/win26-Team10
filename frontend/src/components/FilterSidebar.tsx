@@ -106,7 +106,7 @@ export default function FilterSidebar({ filters, onFiltersChange }: FilterSideba
             max="5"
             step="0.1"
             value={filters.maxGpa}
-            onChange={(e) => updateFilter('maxGpa', parseFloat(e.target.value) || 4)}
+            onChange={(e) => updateFilter('maxGpa', parseFloat(e.target.value) || 5)}
             className="input input-small"
           />
         </div>
