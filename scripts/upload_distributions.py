@@ -43,8 +43,14 @@ def upload_distributions(json_path: str):
 
     # 1. Upsert school
     print(f"Upserting school: {school_name}")
+    # Force UT Austin to map to the correct canonical name if it's "UT Austin"
+    target_school_name = school_name
+    if school_name == "UT Austin":
+        target_school_name = "University of Texas at Austin"
+        print(f"Mapping 'UT Austin' to canonical name: {target_school_name}")
+
     school_result = client.table("schools").upsert(
-        {"name": school_name},
+        {"name": target_school_name},
         on_conflict="name"
     ).execute()
     
