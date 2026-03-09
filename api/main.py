@@ -24,6 +24,7 @@ from api.supabase import (
     update_user_latest_repr,
     upload_bytes,
     get_school_id_by_name,
+    get_school_by_email,
     get_applicant_detail,
     upsert_applicant_detail,
 )
@@ -424,6 +425,20 @@ async def get_profile(user: dict = Depends(get_current_user)):
     if not applicant:
         raise HTTPException(status_code=404, detail="Profile not found")
     return applicant
+
+@app.get("/get_school_from_email")
+async def get_school_from_email(user: dict = Depends(get_current_user)):
+    """Get school name based on user's email domain."""
+    email = user.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="No email found")
+    
+    school_info = await get_school_by_email(email)
+    
+    if school_info:
+        return school_info
+    
+    return {"school_name": None, "school_id": None}
 
 @app.get("/get_specific_profile/{user_id}")
 async def get_specific_profile(user_id: str):

@@ -138,6 +138,40 @@ export default function StudentPage() {
     }
   }, [profile.school])
 
+  // Autofill school based on email domain
+  useEffect(() => {
+    const autofillSchool = async () => {
+      // Only autofill if school field is empty
+      if (!profile.school) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const token = session?.access_token
+          
+          if (!token) return
+          
+          const response = await fetch(`${API_BASE}/get_school_from_email`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          
+          if (!response.ok) return
+          
+          const data = await response.json()
+          
+          if (data.school_name) {
+            setSchoolInput(data.school_name)
+            updateProfile('school', data.school_name)
+          }
+        } catch (error) {
+          console.error('Failed to autofill school:', error)
+        }
+      }
+    }
+    
+    if (profile) {
+      autofillSchool()
+    }
+  }, [profile.school])
+
   // Filter schools based on input
   useEffect(() => {
     if (schoolInput.trim()) {

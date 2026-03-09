@@ -158,6 +158,34 @@ async def get_school_id_by_name(school_name: str) -> Optional[str]:
     return None
 
 
+async def get_school_by_email(email: str) -> Optional[dict]:
+    """
+    Get school name and ID based on email domain.
+    
+    Args:
+        email: User's email address (e.g., 'student@berkeley.edu')
+    
+    Returns:
+        Dict with school name and ID, or None if not found
+    """
+    if not email or '@' not in email:
+        return None
+    
+    # Extract domain (e.g., '@berkeley.edu')
+    email_suffix = '@' + email.split('@')[1]
+    
+    client = get_client()
+    result = client.table("schools").select("name, id").eq("email_suffix", email_suffix).execute()
+    
+    if result.data and len(result.data) > 0:
+        return {
+            "school_name": result.data[0]["name"],
+            "school_id": result.data[0]["id"]
+        }
+    
+    return None
+
+
 async def get_user_type(user_id: str) -> Optional[str]:
     """
     Get a user's type (student or recruiter).
