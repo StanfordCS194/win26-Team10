@@ -2,11 +2,10 @@
 CLI entry point for running the parse pipeline locally.
 
 Usage:
-    # Run full pipeline (text_extract + standardize)
+    # Run full pipeline (standardize + statistics + analysis)
     python -m api --pdf transcripts/niall.pdf
     
     # Run individual steps
-    python -m api --step text_extract --pdf transcripts/niall.pdf
     python -m api --step standardize --job-id a9d6b99f0fa6
     
     # Options
@@ -37,8 +36,6 @@ logging.basicConfig(
 
 from api.pipeline import (
     run_pipeline,
-    ReductoStep,
-    TextExtractStep,
     TranscriptStandardizeStep,
     TranscriptStatisticsStep,
     TranscriptAnalysisStep,
@@ -98,66 +95,6 @@ async def run_analyze_step(args) -> int:
         print(f"Statistics Output: {artifacts.outputs.get('statistics_summary')}")
         print(f"Analysis Output: {artifacts.outputs.get('analysis_report')}")
 
-        return 0
-        
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-
-
-def run_text_extract_step(args) -> int:
-    """Run only the TextExtractStep (PyPDF2)."""
-    if not args.pdf:
-        print("Error: --pdf is required for text_extract step", file=sys.stderr)
-        return 1
-    
-    pdf_path = Path(args.pdf)
-    if not pdf_path.exists():
-        print(f"Error: PDF not found: {pdf_path}", file=sys.stderr)
-        return 1
-    
-    try:
-        artifacts = run_pipeline(
-            job_id=args.job_id,
-            local_pdf_path=pdf_path,
-            output_dir=args.output_dir,
-            dry_run=args.dry_run,
-            steps=[TextExtractStep()],
-        )
-        
-        print("\n=== Text Extract Step Complete ===")
-        print(f"Job ID: {artifacts.input.job_id}")
-        print(f"Output: {artifacts.outputs.get('text')}")
-        return 0
-        
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-
-
-def run_reducto_step(args) -> int:
-    """Run only the Reducto step (API call)."""
-    if not args.pdf:
-        print("Error: --pdf is required for reducto step", file=sys.stderr)
-        return 1
-    
-    pdf_path = Path(args.pdf)
-    if not pdf_path.exists():
-        print(f"Error: PDF not found: {pdf_path}", file=sys.stderr)
-        return 1
-    
-    try:
-        artifacts = run_pipeline(
-            job_id=args.job_id,
-            local_pdf_path=pdf_path,
-            output_dir=args.output_dir,
-            dry_run=args.dry_run,
-            steps=[ReductoStep()],
-        )
-        
-        print("\n=== Reducto Step Complete ===")
-        print(f"Job ID: {artifacts.input.job_id}")
-        print(f"Output: {artifacts.outputs.get('reducto')}")
         return 0
         
     except Exception as e:

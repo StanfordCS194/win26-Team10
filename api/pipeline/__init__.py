@@ -19,8 +19,6 @@ from typing import Iterable
 from api.pipeline.executor import ParseExecutor
 from api.pipeline.steps import (
     ParseStep,
-    ReductoStep,
-    TextExtractStep,
     TranscriptStandardizeStep,
     TranscriptStatisticsStep,
     TranscriptAnalysisStep,
@@ -104,8 +102,6 @@ __all__ = [
     "run_pipeline",
     "ParseExecutor",
     "ParseStep",
-    "ReductoStep",
-    "TextExtractStep",
     "TranscriptStatisticsStep",
     "TranscriptAnalysisStep",
     "ResumeParseStep",
