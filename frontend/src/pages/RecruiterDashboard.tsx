@@ -59,7 +59,7 @@ type ApplicantRow = {
 const initialFilters: Filters = {
   search: '',
   minGpa: 0.1,
-  maxGpa: 4,
+  maxGpa: 5,
   majors: [],
   degrees: [],
   graduationYear: '',
