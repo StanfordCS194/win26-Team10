@@ -56,7 +56,7 @@ export const MAJORS = [
   'Economics',
 ] as const
 
-export const GRADUATION_YEARS = ['2025', '2026', '2027', '2028'] as const
+export const GRADUATION_YEARS = ['2026', '2027', '2028', '2029'] as const
 
 export const ALL_SKILLS = [
   'Python',
