@@ -1,0 +1,1804 @@
+[
+  {
+    "title": "DevOps Engineer",
+    "company": "Netflix",
+    "location": "Los Gatos, CA",
+    "type": "Full-time",
+    "salary_display": "$160k-$220k",
+    "salary_min": 160000,
+    "description": "Build and maintain infrastructure that delivers streaming to 200M+ subscribers worldwide.",
+    "skills": [
+      "AWS",
+      "Docker",
+      "Kubernetes",
+      "Python",
+      "Terraform"
+    ],
+    "requirements": [
+      "4+ years DevOps experience",
+      "Strong scripting skills",
+      "Experience with CI/CD pipelines"
+    ],
+    "benefits": [
+      "Unlimited PTO",
+      "Stock options",
+      "Free Netflix subscription"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Information Technology"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "US Citizen or Green Card"
+  },
+  {
+    "title": "Electrical Engineering Intern",
+    "company": "Tesla",
+    "location": "Palo Alto, CA",
+    "type": "Internship",
+    "salary_display": "$8,500/mo",
+    "salary_min": 8500,
+    "description": "Design and test electrical systems for next-generation electric vehicles and energy products.",
+    "skills": [
+      "Circuit Design",
+      "MATLAB",
+      "CAD",
+      "Power Electronics"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Electrical Engineering",
+      "Strong fundamentals in circuits and systems",
+      "Lab experience preferred"
+    ],
+    "benefits": [
+      "Housing stipend",
+      "Employee vehicle discount",
+      "Mentorship program"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Data Scientist",
+    "company": "Spotify",
+    "location": "New York, NY",
+    "type": "Full-time",
+    "salary_display": "$130k-$170k",
+    "salary_min": 130000,
+    "description": "Use data to understand user behavior and drive personalization for millions of music lovers.",
+    "skills": [
+      "Python",
+      "SQL",
+      "Machine Learning",
+      "Statistics",
+      "A/B Testing"
+    ],
+    "requirements": [
+      "MS/PhD in quantitative field",
+      "3+ years experience in data science",
+      "Strong statistical modeling skills"
+    ],
+    "benefits": [
+      "Premium Spotify account",
+      "Flexible work hours",
+      "Learning budget"
+    ],
+    "preferred_majors": [
+      "Data Science",
+      "Statistics",
+      "Computer Science",
+      "Mathematics"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Frontend Engineer Intern",
+    "company": "Figma",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$9,000/mo",
+    "salary_min": 9000,
+    "description": "Build collaborative design tools used by designers and developers at the world's best companies.",
+    "skills": [
+      "React",
+      "TypeScript",
+      "WebGL",
+      "CSS"
+    ],
+    "requirements": [
+      "Pursuing degree in CS or related field",
+      "Strong JavaScript fundamentals",
+      "Portfolio of web projects"
+    ],
+    "benefits": [
+      "Housing assistance",
+      "Free lunch and dinner",
+      "Design tools access"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Human-Computer Interaction"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Hardware Engineer",
+    "company": "Apple",
+    "location": "Cupertino, CA",
+    "type": "Full-time",
+    "salary_display": "$150k-$200k",
+    "salary_min": 150000,
+    "description": "Design custom silicon and hardware for the next generation of Apple products.",
+    "skills": [
+      "VLSI Design",
+      "Verilog",
+      "Circuit Design",
+      "Signal Processing"
+    ],
+    "requirements": [
+      "BS/MS in Electrical Engineering or Computer Engineering",
+      "Experience with chip design",
+      "Strong problem-solving skills"
+    ],
+    "benefits": [
+      "Employee discounts",
+      "Comprehensive health coverage",
+      "On-site fitness"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.6,
+    "required_work_authorization": "US Citizen or Green Card"
+  },
+  {
+    "title": "Data Analyst Intern",
+    "company": "LinkedIn",
+    "location": "Sunnyvale, CA",
+    "type": "Internship",
+    "salary_display": "$7,000/mo",
+    "salary_min": 7000,
+    "description": "Analyze user engagement data and provide insights to improve the professional network experience.",
+    "skills": [
+      "SQL",
+      "Python",
+      "Tableau",
+      "Excel"
+    ],
+    "requirements": [
+      "Pursuing degree in Data Science, Statistics, or related field",
+      "Strong analytical skills",
+      "Experience with data visualization"
+    ],
+    "benefits": [
+      "LinkedIn Premium",
+      "Networking events",
+      "Mentorship"
+    ],
+    "preferred_majors": [
+      "Data Science",
+      "Statistics",
+      "Business Analytics",
+      "Economics"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Security Engineer",
+    "company": "Cloudflare",
+    "location": "Austin, TX",
+    "type": "Full-time",
+    "salary_display": "$140k-$190k",
+    "salary_min": 140000,
+    "description": "Protect the internet by building security systems that defend against DDoS attacks and vulnerabilities.",
+    "skills": [
+      "Network Security",
+      "Python",
+      "Go",
+      "Cryptography"
+    ],
+    "requirements": [
+      "3+ years in security engineering",
+      "Deep understanding of network protocols",
+      "Experience with threat modeling"
+    ],
+    "benefits": [
+      "Remote work",
+      "Generous equity",
+      "Conference budget"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Cybersecurity",
+      "Information Security"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Machine Learning Intern",
+    "company": "NVIDIA",
+    "location": "Santa Clara, CA",
+    "type": "Internship",
+    "salary_display": "$9,500/mo",
+    "salary_min": 9500,
+    "description": "Work on cutting-edge AI and deep learning projects leveraging GPU acceleration.",
+    "skills": [
+      "Python",
+      "PyTorch",
+      "CUDA",
+      "Deep Learning"
+    ],
+    "requirements": [
+      "Pursuing MS/PhD in CS or related field",
+      "Strong ML fundamentals",
+      "Experience with neural networks"
+    ],
+    "benefits": [
+      "GPU access",
+      "Research collaboration",
+      "Publication opportunities"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Electrical Engineering",
+      "Mathematics"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027",
+      "2028"
+    ],
+    "min_gpa": 3.6,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Full Stack Developer",
+    "company": "Shopify",
+    "location": "Remote",
+    "type": "Full-time",
+    "salary_display": "$120k-$160k",
+    "salary_min": 120000,
+    "description": "Build e-commerce solutions that empower millions of entrepreneurs around the world.",
+    "skills": [
+      "Ruby on Rails",
+      "React",
+      "PostgreSQL",
+      "GraphQL"
+    ],
+    "requirements": [
+      "2+ years full stack experience",
+      "Strong web fundamentals",
+      "Experience with scalable systems"
+    ],
+    "benefits": [
+      "Remote-first culture",
+      "Equipment budget",
+      "Flexible hours"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Embedded Systems Engineer",
+    "company": "SpaceX",
+    "location": "Hawthorne, CA",
+    "type": "Full-time",
+    "salary_display": "$140k-$180k",
+    "salary_min": 140000,
+    "description": "Develop embedded software for rocket avionics and spacecraft control systems.",
+    "skills": [
+      "C",
+      "C++",
+      "RTOS",
+      "Embedded Linux"
+    ],
+    "requirements": [
+      "BS in Computer Engineering or Electrical Engineering",
+      "Experience with embedded systems",
+      "Strong debugging skills"
+    ],
+    "benefits": [
+      "Mission-driven work",
+      "Competitive compensation",
+      "Launch viewing"
+    ],
+    "preferred_majors": [
+      "Computer Engineering",
+      "Electrical Engineering",
+      "Aerospace Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "US Citizen only"
+  },
+  {
+    "title": "UX Designer Intern",
+    "company": "Adobe",
+    "location": "San Jose, CA",
+    "type": "Internship",
+    "salary_display": "$6,500/mo",
+    "salary_min": 6500,
+    "description": "Design intuitive user experiences for Creative Cloud applications used by millions of creators.",
+    "skills": [
+      "Figma",
+      "Adobe XD",
+      "User Research",
+      "Prototyping"
+    ],
+    "requirements": [
+      "Pursuing degree in Design, HCI, or related field",
+      "Strong portfolio",
+      "Understanding of design systems"
+    ],
+    "benefits": [
+      "Creative Cloud subscription",
+      "Design mentorship",
+      "Portfolio building"
+    ],
+    "preferred_majors": [
+      "Human-Computer Interaction",
+      "Design",
+      "Computer Science"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Site Reliability Engineer",
+    "company": "Uber",
+    "location": "San Francisco, CA",
+    "type": "Full-time",
+    "salary_display": "$155k-$210k",
+    "salary_min": 155000,
+    "description": "Ensure reliability and performance of systems serving millions of rides and deliveries daily.",
+    "skills": [
+      "Go",
+      "Kubernetes",
+      "Monitoring",
+      "Linux",
+      "Distributed Systems"
+    ],
+    "requirements": [
+      "5+ years in SRE or infrastructure",
+      "Experience with incident response",
+      "Strong automation skills"
+    ],
+    "benefits": [
+      "Ride credits",
+      "Stock options",
+      "On-call compensation"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Robotics Software Engineer",
+    "company": "Boston Dynamics",
+    "location": "Waltham, MA",
+    "type": "Full-time",
+    "salary_display": "$130k-$170k",
+    "salary_min": 130000,
+    "description": "Develop control algorithms and perception systems for advanced mobile robots.",
+    "skills": [
+      "C++",
+      "ROS",
+      "Computer Vision",
+      "Control Systems",
+      "Python"
+    ],
+    "requirements": [
+      "MS in Robotics, CS, or related field",
+      "Experience with robot control",
+      "Strong math background"
+    ],
+    "benefits": [
+      "Cutting-edge research",
+      "Publication opportunities",
+      "Relocation assistance"
+    ],
+    "preferred_majors": [
+      "Robotics",
+      "Computer Science",
+      "Mechanical Engineering",
+      "Electrical Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Data Engineering Intern",
+    "company": "Snowflake",
+    "location": "San Mateo, CA",
+    "type": "Internship",
+    "salary_display": "$8,500/mo",
+    "salary_min": 8500,
+    "description": "Build data pipelines and infrastructure for cloud-based data warehousing at scale.",
+    "skills": [
+      "SQL",
+      "Python",
+      "Apache Spark",
+      "ETL"
+    ],
+    "requirements": [
+      "Pursuing degree in CS, Data Science, or related field",
+      "Experience with databases",
+      "Strong programming skills"
+    ],
+    "benefits": [
+      "Housing stipend",
+      "Free meals",
+      "Full-time conversion"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Data Science",
+      "Information Systems"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "iOS Developer",
+    "company": "Snap Inc.",
+    "location": "Los Angeles, CA",
+    "type": "Full-time",
+    "salary_display": "$140k-$180k",
+    "salary_min": 140000,
+    "description": "Build features for Snapchat's iOS app used by hundreds of millions of users daily.",
+    "skills": [
+      "Swift",
+      "iOS SDK",
+      "UIKit",
+      "SwiftUI"
+    ],
+    "requirements": [
+      "3+ years iOS development",
+      "Published apps in App Store",
+      "Strong understanding of iOS design patterns"
+    ],
+    "benefits": [
+      "Snap stock",
+      "Free lunches",
+      "Creative environment"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.1,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Quantum Computing Researcher",
+    "company": "IBM",
+    "location": "Yorktown Heights, NY",
+    "type": "Full-time",
+    "salary_display": "$150k-$200k",
+    "salary_min": 150000,
+    "description": "Research and develop quantum algorithms and applications for IBM Quantum systems.",
+    "skills": [
+      "Qiskit",
+      "Python",
+      "Quantum Mechanics",
+      "Linear Algebra"
+    ],
+    "requirements": [
+      "PhD in Physics, CS, or related field",
+      "Deep understanding of quantum computing",
+      "Research publications"
+    ],
+    "benefits": [
+      "Research freedom",
+      "Publication support",
+      "Collaborative environment"
+    ],
+    "preferred_majors": [
+      "Physics",
+      "Computer Science",
+      "Mathematics"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.7,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Backend Engineer Intern",
+    "company": "Discord",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$8,000/mo",
+    "salary_min": 8000,
+    "description": "Build scalable backend services for real-time communication serving millions of communities.",
+    "skills": [
+      "Python",
+      "Rust",
+      "PostgreSQL",
+      "Redis"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Computer Science",
+      "Strong coding fundamentals",
+      "Interest in distributed systems"
+    ],
+    "benefits": [
+      "Gaming setup",
+      "Nitro subscription",
+      "Team events"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Computer Vision Engineer",
+    "company": "Waymo",
+    "location": "Mountain View, CA",
+    "type": "Full-time",
+    "salary_display": "$170k-$230k",
+    "salary_min": 170000,
+    "description": "Develop perception systems for autonomous vehicles using state-of-the-art computer vision.",
+    "skills": [
+      "Python",
+      "C++",
+      "Computer Vision",
+      "Deep Learning",
+      "OpenCV"
+    ],
+    "requirements": [
+      "MS/PhD in CS or related field",
+      "Experience with vision systems",
+      "Strong ML background"
+    ],
+    "benefits": [
+      "Autonomous vehicle rides",
+      "Top-tier compensation",
+      "Research opportunities"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Electrical Engineering",
+      "Robotics"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.6,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Product Designer",
+    "company": "Notion",
+    "location": "Remote",
+    "type": "Full-time",
+    "salary_display": "$120k-$160k",
+    "salary_min": 120000,
+    "description": "Design beautiful, functional interfaces for the all-in-one workspace tool.",
+    "skills": [
+      "Figma",
+      "User Research",
+      "Prototyping",
+      "Design Systems"
+    ],
+    "requirements": [
+      "3+ years product design experience",
+      "Strong portfolio",
+      "Experience with SaaS products"
+    ],
+    "benefits": [
+      "Remote work",
+      "Flexible hours",
+      "Generous equity"
+    ],
+    "preferred_majors": [
+      "Design",
+      "Human-Computer Interaction",
+      "Computer Science"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Chip Design Engineer",
+    "company": "AMD",
+    "location": "Austin, TX",
+    "type": "Full-time",
+    "salary_display": "$135k-$175k",
+    "salary_min": 135000,
+    "description": "Design and verify high-performance processors and GPUs for computing and gaming.",
+    "skills": [
+      "Verilog",
+      "SystemVerilog",
+      "VLSI",
+      "Digital Design"
+    ],
+    "requirements": [
+      "BS/MS in Electrical Engineering",
+      "Experience with RTL design",
+      "Knowledge of computer architecture"
+    ],
+    "benefits": [
+      "Relocation assistance",
+      "Stock options",
+      "Employee discounts"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Data Science Intern",
+    "company": "Airbnb",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$8,500/mo",
+    "salary_min": 8500,
+    "description": "Use data to improve host and guest experiences on the global travel marketplace.",
+    "skills": [
+      "Python",
+      "R",
+      "SQL",
+      "Machine Learning",
+      "Statistics"
+    ],
+    "requirements": [
+      "Pursuing MS in Data Science, Statistics, or related field",
+      "Strong statistical knowledge",
+      "Experience with experimentation"
+    ],
+    "benefits": [
+      "Travel credits",
+      "Housing stipend",
+      "Team offsites"
+    ],
+    "preferred_majors": [
+      "Data Science",
+      "Statistics",
+      "Computer Science",
+      "Economics"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Cloud Solutions Architect",
+    "company": "Amazon Web Services",
+    "location": "Seattle, WA",
+    "type": "Full-time",
+    "salary_display": "$145k-$195k",
+    "salary_min": 145000,
+    "description": "Help enterprise customers design and implement cloud architectures on AWS.",
+    "skills": [
+      "AWS",
+      "Cloud Architecture",
+      "Python",
+      "Terraform",
+      "Networking"
+    ],
+    "requirements": [
+      "5+ years cloud experience",
+      "AWS certifications preferred",
+      "Strong customer-facing skills"
+    ],
+    "benefits": [
+      "AWS credits",
+      "Certification support",
+      "Stock grants"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Information Technology"
+    ],
+    "preferred_grad_years": [
+      "2022",
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.1,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Mobile Engineer Intern",
+    "company": "TikTok",
+    "location": "San Jose, CA",
+    "type": "Internship",
+    "salary_display": "$9,000/mo",
+    "salary_min": 9000,
+    "description": "Build features for one of the world's fastest-growing social media platforms.",
+    "skills": [
+      "React Native",
+      "iOS",
+      "Android",
+      "JavaScript"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Computer Science",
+      "Mobile development experience",
+      "Strong coding skills"
+    ],
+    "benefits": [
+      "Housing assistance",
+      "Free meals",
+      "Global team exposure"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Firmware Engineer",
+    "company": "Rivian",
+    "location": "Irvine, CA",
+    "type": "Full-time",
+    "salary_display": "$130k-$170k",
+    "salary_min": 130000,
+    "description": "Develop firmware for electric vehicle control systems and battery management.",
+    "skills": [
+      "C",
+      "Embedded Systems",
+      "CAN Bus",
+      "Automotive Standards"
+    ],
+    "requirements": [
+      "BS/MS in Computer Engineering or Electrical Engineering",
+      "Embedded software experience",
+      "Automotive experience preferred"
+    ],
+    "benefits": [
+      "Vehicle discount",
+      "Equity",
+      "Outdoor activities"
+    ],
+    "preferred_majors": [
+      "Computer Engineering",
+      "Electrical Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Research Scientist Intern",
+    "company": "DeepMind",
+    "location": "London, UK",
+    "type": "Internship",
+    "salary_display": "\u00a36,000/mo",
+    "salary_min": 6000,
+    "description": "Conduct cutting-edge AI research in reinforcement learning, neuroscience, or related areas.",
+    "skills": [
+      "Python",
+      "TensorFlow",
+      "PyTorch",
+      "Research Methodology"
+    ],
+    "requirements": [
+      "Pursuing PhD in CS, ML, or related field",
+      "Strong publication record",
+      "Deep ML knowledge"
+    ],
+    "benefits": [
+      "Research mentorship",
+      "Publication support",
+      "Relocation assistance"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Mathematics",
+      "Physics",
+      "Neuroscience"
+    ],
+    "preferred_grad_years": [
+      "2027",
+      "2028"
+    ],
+    "min_gpa": 3.8,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "QA Engineer",
+    "company": "Atlassian",
+    "location": "Sydney, Australia",
+    "type": "Full-time",
+    "salary_display": "AU$100k-$130k",
+    "salary_min": 100000,
+    "description": "Ensure quality of Jira, Confluence, and other collaboration tools through comprehensive testing.",
+    "skills": [
+      "Test Automation",
+      "Selenium",
+      "Java",
+      "CI/CD"
+    ],
+    "requirements": [
+      "3+ years QA experience",
+      "Experience with automation frameworks",
+      "Strong attention to detail"
+    ],
+    "benefits": [
+      "Remote flexibility",
+      "Professional development",
+      "Team retreats"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "Australian Work Rights"
+  },
+  {
+    "title": "Signal Processing Engineer",
+    "company": "Qualcomm",
+    "location": "San Diego, CA",
+    "type": "Full-time",
+    "salary_display": "$125k-$165k",
+    "salary_min": 125000,
+    "description": "Develop DSP algorithms for wireless communication and mobile chipsets.",
+    "skills": [
+      "MATLAB",
+      "C",
+      "DSP",
+      "Wireless Communications"
+    ],
+    "requirements": [
+      "MS in Electrical Engineering",
+      "Strong signal processing background",
+      "Experience with wireless standards"
+    ],
+    "benefits": [
+      "Patent bonuses",
+      "Comprehensive benefits",
+      "Tuition reimbursement"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Backend Developer Intern",
+    "company": "Stripe",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$9,500/mo",
+    "salary_min": 9500,
+    "description": "Build APIs and services that process billions of dollars in online payments.",
+    "skills": [
+      "Ruby",
+      "Java",
+      "PostgreSQL",
+      "API Design"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Computer Science",
+      "Strong backend fundamentals",
+      "Experience with databases"
+    ],
+    "benefits": [
+      "Housing stipend",
+      "Free meals",
+      "Mentorship"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Game Developer",
+    "company": "Epic Games",
+    "location": "Cary, NC",
+    "type": "Full-time",
+    "salary_display": "$110k-$150k",
+    "salary_min": 110000,
+    "description": "Develop gameplay systems and tools for Fortnite and Unreal Engine.",
+    "skills": [
+      "C++",
+      "Unreal Engine",
+      "Game Design",
+      "3D Math"
+    ],
+    "requirements": [
+      "2+ years game development experience",
+      "Strong C++ skills",
+      "Shipped game titles preferred"
+    ],
+    "benefits": [
+      "Game credits",
+      "Flexible hours",
+      "Creative culture"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Game Development",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Network Engineer",
+    "company": "Cisco",
+    "location": "San Jose, CA",
+    "type": "Full-time",
+    "salary_display": "$115k-$155k",
+    "salary_min": 115000,
+    "description": "Design and implement networking solutions for enterprise and service provider customers.",
+    "skills": [
+      "Networking",
+      "BGP",
+      "OSPF",
+      "Python",
+      "Network Security"
+    ],
+    "requirements": [
+      "BS in Computer Engineering or related field",
+      "CCNA/CCNP certification",
+      "3+ years networking experience"
+    ],
+    "benefits": [
+      "Certification training",
+      "Stock purchase plan",
+      "Comprehensive insurance"
+    ],
+    "preferred_majors": [
+      "Computer Engineering",
+      "Electrical Engineering",
+      "Computer Science"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "AI Research Intern",
+    "company": "Anthropic",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$10,000/mo",
+    "salary_min": 10000,
+    "description": "Contribute to AI safety research and help build helpful, harmless, and honest AI systems.",
+    "skills": [
+      "Python",
+      "PyTorch",
+      "Transformers",
+      "Research"
+    ],
+    "requirements": [
+      "Pursuing PhD in CS or related field",
+      "Strong ML fundamentals",
+      "Research experience"
+    ],
+    "benefits": [
+      "Research mentorship",
+      "Publication opportunities",
+      "Cutting-edge work"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Mathematics",
+      "Physics"
+    ],
+    "preferred_grad_years": [
+      "2027",
+      "2028"
+    ],
+    "min_gpa": 3.8,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Database Administrator",
+    "company": "Oracle",
+    "location": "Redwood City, CA",
+    "type": "Full-time",
+    "salary_display": "$110k-$145k",
+    "salary_min": 110000,
+    "description": "Manage and optimize database systems for enterprise customers worldwide.",
+    "skills": [
+      "Oracle DB",
+      "SQL",
+      "Performance Tuning",
+      "Backup & Recovery"
+    ],
+    "requirements": [
+      "BS in Computer Science or related field",
+      "3+ years DBA experience",
+      "Oracle certification preferred"
+    ],
+    "benefits": [
+      "Certification programs",
+      "Stock options",
+      "Career development"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Information Systems"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Cybersecurity Analyst Intern",
+    "company": "Palo Alto Networks",
+    "location": "Santa Clara, CA",
+    "type": "Internship",
+    "salary_display": "$7,500/mo",
+    "salary_min": 7500,
+    "description": "Analyze security threats and help protect enterprise networks from cyber attacks.",
+    "skills": [
+      "Network Security",
+      "Python",
+      "Threat Analysis",
+      "SIEM"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Cybersecurity or CS",
+      "Understanding of security principles",
+      "Security certifications a plus"
+    ],
+    "benefits": [
+      "Security training",
+      "Certification support",
+      "Mentorship"
+    ],
+    "preferred_majors": [
+      "Cybersecurity",
+      "Computer Science",
+      "Information Security"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Systems Software Engineer",
+    "company": "Red Hat",
+    "location": "Raleigh, NC",
+    "type": "Full-time",
+    "salary_display": "$120k-$160k",
+    "salary_min": 120000,
+    "description": "Contribute to Linux kernel and open-source systems software used by enterprises globally.",
+    "skills": [
+      "C",
+      "Linux Kernel",
+      "Systems Programming",
+      "Git"
+    ],
+    "requirements": [
+      "BS/MS in Computer Science",
+      "Strong systems programming skills",
+      "Open source contributions preferred"
+    ],
+    "benefits": [
+      "Open source culture",
+      "Remote work",
+      "Conference attendance"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Data Analyst",
+    "company": "Salesforce",
+    "location": "San Francisco, CA",
+    "type": "Full-time",
+    "salary_display": "$95k-$125k",
+    "salary_min": 95000,
+    "description": "Analyze customer data to drive insights and improve CRM platform features.",
+    "skills": [
+      "SQL",
+      "Tableau",
+      "Python",
+      "Excel"
+    ],
+    "requirements": [
+      "BS in Data Science, Business Analytics, or related field",
+      "2+ years analysis experience",
+      "Strong communication skills"
+    ],
+    "benefits": [
+      "Volunteer time off",
+      "Wellness reimbursement",
+      "Stock options"
+    ],
+    "preferred_majors": [
+      "Data Science",
+      "Business Analytics",
+      "Statistics",
+      "Economics"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.1,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Software Engineer Intern",
+    "company": "Dropbox",
+    "location": "Remote",
+    "type": "Internship",
+    "salary_display": "$8,000/mo",
+    "salary_min": 8000,
+    "description": "Build features for cloud storage and collaboration tools used by millions worldwide.",
+    "skills": [
+      "Python",
+      "Go",
+      "React",
+      "Distributed Systems"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Computer Science",
+      "Strong programming fundamentals",
+      "Passion for building products"
+    ],
+    "benefits": [
+      "Remote internship",
+      "Equipment provided",
+      "Full-time conversion"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "RF Engineer",
+    "company": "Verizon",
+    "location": "Basking Ridge, NJ",
+    "type": "Full-time",
+    "salary_display": "$105k-$140k",
+    "salary_min": 105000,
+    "description": "Design and optimize wireless networks for 5G deployment across the nation.",
+    "skills": [
+      "RF Engineering",
+      "5G",
+      "Network Planning",
+      "MATLAB"
+    ],
+    "requirements": [
+      "BS/MS in Electrical Engineering",
+      "RF design experience",
+      "Knowledge of wireless standards"
+    ],
+    "benefits": [
+      "Phone plan discount",
+      "Tuition assistance",
+      "Retirement matching"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Telecommunications"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Machine Learning Engineer",
+    "company": "Scale AI",
+    "location": "San Francisco, CA",
+    "type": "Full-time",
+    "salary_display": "$160k-$220k",
+    "salary_min": 160000,
+    "description": "Build ML infrastructure and tools for data labeling and model training at scale.",
+    "skills": [
+      "Python",
+      "TensorFlow",
+      "PyTorch",
+      "MLOps",
+      "Kubernetes"
+    ],
+    "requirements": [
+      "BS/MS in CS or related field",
+      "3+ years ML engineering",
+      "Experience with ML infrastructure"
+    ],
+    "benefits": [
+      "Equity",
+      "Learning budget",
+      "Flexible PTO"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Data Science",
+      "Mathematics"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Power Systems Engineer",
+    "company": "General Electric",
+    "location": "Schenectady, NY",
+    "type": "Full-time",
+    "salary_display": "$95k-$125k",
+    "salary_min": 95000,
+    "description": "Design electrical power systems and grid infrastructure for renewable energy projects.",
+    "skills": [
+      "Power Systems",
+      "MATLAB",
+      "PSCAD",
+      "Renewable Energy"
+    ],
+    "requirements": [
+      "BS/MS in Electrical Engineering",
+      "Power systems coursework",
+      "PE license preferred"
+    ],
+    "benefits": [
+      "Pension plan",
+      "Tuition reimbursement",
+      "Relocation assistance"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Power Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Software Development Engineer",
+    "company": "Amazon",
+    "location": "Seattle, WA",
+    "type": "Full-time",
+    "salary_display": "$130k-$170k",
+    "salary_min": 130000,
+    "description": "Build scalable services for Amazon's e-commerce platform and AWS infrastructure.",
+    "skills": [
+      "Java",
+      "Python",
+      "AWS",
+      "Distributed Systems"
+    ],
+    "requirements": [
+      "BS/MS in Computer Science",
+      "Strong coding skills",
+      "Experience with large-scale systems"
+    ],
+    "benefits": [
+      "Stock grants",
+      "Relocation package",
+      "Career growth"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Data Engineer",
+    "company": "Databricks",
+    "location": "San Francisco, CA",
+    "type": "Full-time",
+    "salary_display": "$145k-$190k",
+    "salary_min": 145000,
+    "description": "Build data infrastructure and pipelines for unified analytics platform.",
+    "skills": [
+      "Spark",
+      "Scala",
+      "Python",
+      "SQL",
+      "Distributed Systems"
+    ],
+    "requirements": [
+      "BS/MS in CS or related field",
+      "3+ years data engineering",
+      "Experience with big data technologies"
+    ],
+    "benefits": [
+      "Equity",
+      "Learning stipend",
+      "Flexible work"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Data Science",
+      "Information Systems"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "ASIC Design Engineer",
+    "company": "Intel",
+    "location": "Hillsboro, OR",
+    "type": "Full-time",
+    "salary_display": "$130k-$170k",
+    "salary_min": 130000,
+    "description": "Design and verify custom integrated circuits for next-generation processors.",
+    "skills": [
+      "Verilog",
+      "ASIC Design",
+      "Timing Analysis",
+      "Synthesis"
+    ],
+    "requirements": [
+      "MS in Electrical Engineering",
+      "ASIC design experience",
+      "Knowledge of design tools"
+    ],
+    "benefits": [
+      "Employee stock purchase",
+      "Relocation",
+      "On-site amenities"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering",
+      "Computer Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Product Manager Intern",
+    "company": "Slack",
+    "location": "San Francisco, CA",
+    "type": "Internship",
+    "salary_display": "$7,500/mo",
+    "salary_min": 7500,
+    "description": "Drive product strategy for workplace collaboration features used by Fortune 500 companies.",
+    "skills": [
+      "Product Management",
+      "Data Analysis",
+      "SQL",
+      "User Research"
+    ],
+    "requirements": [
+      "Pursuing MBA or technical degree",
+      "Strong analytical skills",
+      "Technical background helpful"
+    ],
+    "benefits": [
+      "Housing assistance",
+      "Networking",
+      "PM mentorship"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Business Administration",
+      "Economics"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.3,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Computer Graphics Engineer",
+    "company": "Pixar",
+    "location": "Emeryville, CA",
+    "type": "Full-time",
+    "salary_display": "$125k-$165k",
+    "salary_min": 125000,
+    "description": "Develop rendering software and tools for creating animated feature films.",
+    "skills": [
+      "C++",
+      "Computer Graphics",
+      "OpenGL",
+      "Linear Algebra"
+    ],
+    "requirements": [
+      "MS in CS with graphics focus",
+      "Strong math background",
+      "Experience with rendering"
+    ],
+    "benefits": [
+      "Creative environment",
+      "Film screenings",
+      "On-site amenities"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Computer Graphics",
+      "Mathematics"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.5,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Bioinformatics Engineer",
+    "company": "Illumina",
+    "location": "San Diego, CA",
+    "type": "Full-time",
+    "salary_display": "$110k-$145k",
+    "salary_min": 110000,
+    "description": "Develop computational tools for genomic sequencing and analysis.",
+    "skills": [
+      "Python",
+      "R",
+      "Bioinformatics",
+      "Statistics",
+      "Genomics"
+    ],
+    "requirements": [
+      "MS/PhD in Bioinformatics, CS, or related field",
+      "Experience with genomic data",
+      "Strong programming skills"
+    ],
+    "benefits": [
+      "Research collaboration",
+      "Publication support",
+      "Health benefits"
+    ],
+    "preferred_majors": [
+      "Bioinformatics",
+      "Computer Science",
+      "Biology",
+      "Computational Biology"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Platform Engineer",
+    "company": "Twilio",
+    "location": "Remote",
+    "type": "Full-time",
+    "salary_display": "$135k-$175k",
+    "salary_min": 135000,
+    "description": "Build developer tools and APIs for cloud communications platform.",
+    "skills": [
+      "Go",
+      "Kubernetes",
+      "AWS",
+      "API Design"
+    ],
+    "requirements": [
+      "3+ years platform engineering",
+      "Experience with cloud infrastructure",
+      "Strong API design skills"
+    ],
+    "benefits": [
+      "Remote-first",
+      "Equity",
+      "Home office budget"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024"
+    ],
+    "min_gpa": 3.1,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Analog IC Design Engineer",
+    "company": "Texas Instruments",
+    "location": "Dallas, TX",
+    "type": "Full-time",
+    "salary_display": "$115k-$150k",
+    "salary_min": 115000,
+    "description": "Design analog and mixed-signal integrated circuits for industrial and automotive applications.",
+    "skills": [
+      "Analog Design",
+      "Cadence",
+      "Circuit Analysis",
+      "Layout"
+    ],
+    "requirements": [
+      "MS in Electrical Engineering",
+      "Analog IC design experience",
+      "Strong circuit fundamentals"
+    ],
+    "benefits": [
+      "Relocation assistance",
+      "Patent bonuses",
+      "Comprehensive benefits"
+    ],
+    "preferred_majors": [
+      "Electrical Engineering"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.4,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Software Engineer Intern",
+    "company": "Roblox",
+    "location": "San Mateo, CA",
+    "type": "Internship",
+    "salary_display": "$8,500/mo",
+    "salary_min": 8500,
+    "description": "Build platform features for the metaverse where millions create and play together.",
+    "skills": [
+      "C++",
+      "Lua",
+      "Game Development",
+      "Distributed Systems"
+    ],
+    "requirements": [
+      "Pursuing BS/MS in Computer Science",
+      "Strong C++ skills",
+      "Passion for gaming"
+    ],
+    "benefits": [
+      "Robux credits",
+      "Gaming setup",
+      "Team events"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Software Engineering",
+      "Game Development"
+    ],
+    "preferred_grad_years": [
+      "2026",
+      "2027"
+    ],
+    "min_gpa": 3.2,
+    "required_work_authorization": "Any"
+  },
+  {
+    "title": "Applied Scientist",
+    "company": "Microsoft Research",
+    "location": "Redmond, WA",
+    "type": "Full-time",
+    "salary_display": "$155k-$205k",
+    "salary_min": 155000,
+    "description": "Conduct research in AI, ML, and computer science with real-world impact.",
+    "skills": [
+      "Python",
+      "Machine Learning",
+      "Research",
+      "Statistics"
+    ],
+    "requirements": [
+      "PhD in CS or related field",
+      "Strong publication record",
+      "Research experience"
+    ],
+    "benefits": [
+      "Research freedom",
+      "Publication support",
+      "Collaborative environment"
+    ],
+    "preferred_majors": [
+      "Computer Science",
+      "Mathematics",
+      "Statistics"
+    ],
+    "preferred_grad_years": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.7,
+    "required_work_authorization": "US Work Authorization Required"
+  },
+  {
+    "title": "Business Intelligence Analyst",
+    "company": "Walmart",
+    "location": "Bentonville, AR",
+    "type": "Full-time",
+    "salary_display": "$85k-$110k",
+    "salary_min": 85000,
+    "description": "Analyze retail data to optimize supply chain, pricing, and inventory management.",
+    "skills": [
+      "SQL",
+      "Tableau",
+      "Power BI",
+      "Python"
+    ],
+    "requirements": [
+      "BS in Business Analytics, Data Science, or related field",
+      "2+ years BI experience",
+      "Retail experience a plus"
+    ],
+    "benefits": [
+      "Employee discount",
+      "401k matching",
+      "Relocation assistance"
+    ],
+    "preferred_majors": [
+      "Business Analytics",
+      "Data Science",
+      "Information Systems",
+      "Economics"
+    ],
+    "preferred_grad_years": [
+      "2024",
+      "2025"
+    ],
+    "min_gpa": 3.0,
+    "required_work_authorization": "US Work Authorization Required"
+  }
+]
