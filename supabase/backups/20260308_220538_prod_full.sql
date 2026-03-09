@@ -13,13 +13,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 
-CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA "extensions";
-
-
-
-
-
-
 COMMENT ON SCHEMA "public" IS 'standard public schema';
 
 
@@ -67,21 +60,12 @@ declare
 begin
     select * into v_job
     from public.parse_jobs
-    where (
-        status = 'queued'
-        or (
-            status = 'running'
-            and locked_at is not null
-            and locked_at < now() - make_interval(secs => p_lock_seconds)
-        )
-    )
-    and (
+    where status = 'queued'
+      and (
         locked_at is null
         or locked_at < now() - make_interval(secs => p_lock_seconds)
-    )
-    order by
-        case when status = 'running' then 0 else 1 end,
-        created_at asc
+      )
+    order by created_at asc
     limit 1
     for update skip locked;
 
@@ -372,18 +356,6 @@ CREATE TABLE IF NOT EXISTS "public"."company_memberships" (
 ALTER TABLE "public"."company_memberships" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."conversations" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "recruiter_id" "uuid" NOT NULL,
-    "student_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."conversations" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."feedback" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid",
@@ -455,18 +427,6 @@ CREATE TABLE IF NOT EXISTS "public"."jobs" (
 ALTER TABLE "public"."jobs" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."messages" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "conversation_id" "uuid" NOT NULL,
-    "sender_id" "uuid" NOT NULL,
-    "body" "text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."messages" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."parse_jobs" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -480,8 +440,6 @@ CREATE TABLE IF NOT EXISTS "public"."parse_jobs" (
     "locked_at" timestamp with time zone,
     "locked_by" "text",
     "storage_path" "text",
-    "job_type" "text" DEFAULT 'transcript'::"text" NOT NULL,
-    CONSTRAINT "parse_jobs_job_type_check" CHECK (("job_type" = ANY (ARRAY['transcript'::"text", 'resume'::"text"]))),
     CONSTRAINT "parse_jobs_status_check" CHECK (("status" = ANY (ARRAY['queued'::"text", 'running'::"text", 'succeeded'::"text", 'failed'::"text"])))
 );
 
@@ -558,16 +516,6 @@ ALTER TABLE ONLY "public"."company_memberships"
 
 
 
-ALTER TABLE ONLY "public"."conversations"
-    ADD CONSTRAINT "conversations_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."conversations"
-    ADD CONSTRAINT "conversations_recruiter_id_student_id_key" UNIQUE ("recruiter_id", "student_id");
-
-
-
 ALTER TABLE ONLY "public"."feedback"
     ADD CONSTRAINT "feedback_pkey" PRIMARY KEY ("id");
 
@@ -595,11 +543,6 @@ ALTER TABLE ONLY "public"."job_applications"
 
 ALTER TABLE ONLY "public"."jobs"
     ADD CONSTRAINT "jobs_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."messages"
-    ADD CONSTRAINT "messages_pkey" PRIMARY KEY ("id");
 
 
 
@@ -648,14 +591,6 @@ CREATE INDEX "company_memberships_user_status_idx" ON "public"."company_membersh
 
 
 
-CREATE INDEX "conversations_recruiter_id_idx" ON "public"."conversations" USING "btree" ("recruiter_id");
-
-
-
-CREATE INDEX "conversations_student_id_idx" ON "public"."conversations" USING "btree" ("student_id");
-
-
-
 CREATE INDEX "idx_applicants_school_id" ON "public"."applicants" USING "btree" ("school_id");
 
 
@@ -692,14 +627,6 @@ CREATE INDEX "jobs_type_idx" ON "public"."jobs" USING "btree" ("type");
 
 
 
-CREATE INDEX "messages_conversation_id_idx" ON "public"."messages" USING "btree" ("conversation_id");
-
-
-
-CREATE INDEX "messages_created_at_idx" ON "public"."messages" USING "btree" ("created_at");
-
-
-
 CREATE INDEX "parse_jobs_status_created_at_idx" ON "public"."parse_jobs" USING "btree" ("status", "created_at");
 
 
@@ -721,10 +648,6 @@ CREATE OR REPLACE TRIGGER "companies_updated_at" BEFORE UPDATE ON "public"."comp
 
 
 CREATE OR REPLACE TRIGGER "company_memberships_updated_at" BEFORE UPDATE ON "public"."company_memberships" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at"();
-
-
-
-CREATE OR REPLACE TRIGGER "conversations_updated_at" BEFORE UPDATE ON "public"."conversations" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at"();
 
 
 
@@ -777,16 +700,6 @@ ALTER TABLE ONLY "public"."company_memberships"
 
 
 
-ALTER TABLE ONLY "public"."conversations"
-    ADD CONSTRAINT "conversations_recruiter_id_fkey" FOREIGN KEY ("recruiter_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."conversations"
-    ADD CONSTRAINT "conversations_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."feedback"
     ADD CONSTRAINT "feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
 
@@ -814,16 +727,6 @@ ALTER TABLE ONLY "public"."jobs"
 
 ALTER TABLE ONLY "public"."jobs"
     ADD CONSTRAINT "jobs_recruiter_id_fkey" FOREIGN KEY ("recruiter_id") REFERENCES "public"."users"("id") ON DELETE SET NULL;
-
-
-
-ALTER TABLE ONLY "public"."messages"
-    ADD CONSTRAINT "messages_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."messages"
-    ADD CONSTRAINT "messages_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -862,30 +765,6 @@ CREATE POLICY "Authenticated users can read jobs" ON "public"."jobs" FOR SELECT 
 
 
 CREATE POLICY "Grade distributions are viewable by service role only" ON "public"."grade_distributions" FOR SELECT TO "service_role" USING (true);
-
-
-
-CREATE POLICY "Participants can read conversation" ON "public"."conversations" FOR SELECT USING ((("auth"."uid"() IS NOT NULL) AND (("auth"."uid"() = "recruiter_id") OR ("auth"."uid"() = "student_id"))));
-
-
-
-CREATE POLICY "Participants can read messages" ON "public"."messages" FOR SELECT USING ((("auth"."uid"() IS NOT NULL) AND (EXISTS ( SELECT 1
-   FROM "public"."conversations" "c"
-  WHERE (("c"."id" = "messages"."conversation_id") AND (("c"."recruiter_id" = "auth"."uid"()) OR ("c"."student_id" = "auth"."uid"())))))));
-
-
-
-CREATE POLICY "Participants can send message" ON "public"."messages" FOR INSERT WITH CHECK ((("auth"."uid"() = "sender_id") AND (EXISTS ( SELECT 1
-   FROM "public"."conversations" "c"
-  WHERE (("c"."id" = "messages"."conversation_id") AND (("c"."recruiter_id" = "auth"."uid"()) OR ("c"."student_id" = "auth"."uid"())))))));
-
-
-
-CREATE POLICY "Participants can update conversation" ON "public"."conversations" FOR UPDATE USING ((("auth"."uid"() = "recruiter_id") OR ("auth"."uid"() = "student_id")));
-
-
-
-CREATE POLICY "Recruiters can create conversation" ON "public"."conversations" FOR INSERT WITH CHECK (("auth"."uid"() = "recruiter_id"));
 
 
 
@@ -1002,9 +881,6 @@ ALTER TABLE "public"."companies" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."company_memberships" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."conversations" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."feedback" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1015,9 +891,6 @@ ALTER TABLE "public"."job_applications" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."jobs" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."messages" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."parse_jobs" ENABLE ROW LEVEL SECURITY;
@@ -1037,19 +910,10 @@ ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
-
-
-
 GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
-
-
-
-
 
 
 
@@ -1302,12 +1166,6 @@ GRANT ALL ON TABLE "public"."company_memberships" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."conversations" TO "anon";
-GRANT ALL ON TABLE "public"."conversations" TO "authenticated";
-GRANT ALL ON TABLE "public"."conversations" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."feedback" TO "anon";
 GRANT ALL ON TABLE "public"."feedback" TO "authenticated";
 GRANT ALL ON TABLE "public"."feedback" TO "service_role";
@@ -1329,12 +1187,6 @@ GRANT ALL ON TABLE "public"."job_applications" TO "service_role";
 GRANT ALL ON TABLE "public"."jobs" TO "anon";
 GRANT ALL ON TABLE "public"."jobs" TO "authenticated";
 GRANT ALL ON TABLE "public"."jobs" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."messages" TO "anon";
-GRANT ALL ON TABLE "public"."messages" TO "authenticated";
-GRANT ALL ON TABLE "public"."messages" TO "service_role";
 
 
 
@@ -1420,27 +1272,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
-
-
-
-
---
--- Dumped schema changes for auth and storage
---
-
-CREATE OR REPLACE TRIGGER "on_auth_user_created" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION "public"."handle_new_user"();
-
-
-
-CREATE POLICY "Service role has full storage access" ON "storage"."objects" TO "service_role" USING (("bucket_id" = 'parse-files'::"text")) WITH CHECK (("bucket_id" = 'parse-files'::"text"));
-
-
-
-CREATE POLICY "Users can read own files" ON "storage"."objects" FOR SELECT TO "authenticated" USING ((("bucket_id" = 'parse-files'::"text") AND (("storage"."foldername"("name"))[1] = ("auth"."uid"())::"text")));
-
-
-
-CREATE POLICY "Users can upload to own folder" ON "storage"."objects" FOR INSERT TO "authenticated" WITH CHECK ((("bucket_id" = 'parse-files'::"text") AND (("storage"."foldername"("name"))[1] = ("auth"."uid"())::"text")));
 
 
 

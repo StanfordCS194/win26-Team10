@@ -11,6 +11,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'React', 'Machine Learning', 'TensorFlow'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06123456',
       fullName: 'Chen, Alice',
@@ -32,6 +33,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['C++', 'Python', 'Docker', 'AWS'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06234567',
       fullName: 'Williams, Robert',
@@ -53,6 +55,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'SQL', 'Machine Learning', 'Data Analysis'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -65,6 +68,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2028,
     skills: ['JavaScript', 'TypeScript', 'React', 'Node.js'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06345678',
       fullName: 'Kim, David',
@@ -86,6 +90,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2029,
     skills: ['Python', 'Data Analysis', 'SQL', 'Machine Learning'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06456789',
       fullName: 'Johnson, Rachel Emma',
@@ -107,6 +112,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['C++', 'Python', 'Docker'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -119,6 +125,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'Java', 'AWS', 'Kubernetes', 'Docker'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06567890',
       fullName: 'Lee, Grace',
@@ -140,6 +147,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++', 'Data Analysis'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06678901',
       fullName: 'Brown, Henry Jonathan',
@@ -161,6 +169,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['SQL', 'Data Analysis', 'Python'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -173,6 +182,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2028,
     skills: ['Python', 'SQL', 'Data Analysis'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06789012',
       fullName: 'Anderson, James',
@@ -194,6 +204,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['TypeScript', 'React', 'Node.js', 'AWS'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06890123',
       fullName: 'Thomas, Katherine',
@@ -215,6 +226,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++', 'Machine Learning', 'PyTorch'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06901234',
       fullName: 'Jackson, Liam',
@@ -236,6 +248,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2029,
     skills: ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning', 'SQL'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -248,6 +261,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2028,
     skills: ['JavaScript', 'React', 'Node.js'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -260,6 +274,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'Data Analysis', 'Machine Learning'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06012345',
       fullName: 'Martin, Olivia',
@@ -281,6 +296,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2027,
     skills: ['Python', 'C++'],
     transcriptUploaded: false,
+    resumeUploaded: false,
     transcript: null,
   },
   {
@@ -293,6 +309,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2029,
     skills: ['Java', 'Python', 'AWS', 'Docker', 'Kubernetes'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06000000',
       fullName: 'Clark, Quinn',
@@ -314,6 +331,7 @@ export const mockStudents: Student[] = [
     graduationYear: 2026,
     skills: ['Python', 'SQL', 'TensorFlow', 'Data Analysis'],
     transcriptUploaded: true,
+    resumeUploaded: false,
     transcript: {
       id: '06111111',
       fullName: 'Lewis, Rachel',

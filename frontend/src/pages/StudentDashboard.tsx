@@ -378,7 +378,7 @@ export default function StudentDashboard() {
       })
       .then((latest) => {
         if (cancelled) return
-        setLatestMessages(latest)
+        setLatestMessages(latest || {})
       })
       .catch((err) => {
         if (!cancelled) console.error('Failed to load conversations', err)

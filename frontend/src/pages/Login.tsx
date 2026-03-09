@@ -61,6 +61,21 @@ export default function Login() {
     return () => subscription.unsubscribe()
   }, [navigate])
 
+  async function getStudentLandingPath(userId: string): Promise<'/student/profile' | '/student/dashboard'> {
+    const { data, error } = await supabase
+      .from('applicants')
+      .select('is_complete')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error fetching student profile completion:', error)
+      return '/student/profile'
+    }
+
+    return data?.is_complete ? '/student/dashboard' : '/student/profile'
+  }
+
   async function redirectByType(userId: string) {
     const { data } = await supabase
       .from('users')
@@ -72,7 +87,8 @@ export default function Login() {
     if (userType === 'recruiter') {
       navigate('/recruiter', { replace: true })
     } else if (userType === 'student') {
-      navigate('/student', { replace: true })
+      const studentLandingPath = await getStudentLandingPath(userId)
+      navigate(studentLandingPath, { replace: true })
     } else {
       setCheckingAuth(false)
     }
@@ -146,7 +162,8 @@ export default function Login() {
       if (userType === 'recruiter') {
         navigate('/recruiter')
       } else if (userType === 'student') {
-        navigate('/student')
+        const studentLandingPath = await getStudentLandingPath(authData.user.id)
+        navigate(studentLandingPath)
       } else {
         navigate('/')
       }

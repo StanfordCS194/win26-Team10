@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Briefcase, Building2, ChevronDown, DollarSign, MapPin } from 'lucide-react'
+import { Briefcase, Building2, ChevronDown, DollarSign, MapPin } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
 

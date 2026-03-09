@@ -1,8 +1,3 @@
-interface ResumeViewerProps {
-  url: string
-  onClose: () => void
-}
-
 export function createResumeViewer(url: string, onClose: () => void): HTMLDivElement {
   // Create popup
   const popup = document.createElement('div')
