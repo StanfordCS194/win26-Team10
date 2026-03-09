@@ -81,26 +81,3 @@ export SSL_CERT_FILE="$(python -c 'import certifi; print(certifi.where())')"
 ```bash
 python -m api --pdf transcripts/niall.pdf --job-id test-niall-$(date +%s)
 ```
-
-## Supabase: recruiter profile photos bucket
-
-If you get **"bucket not found"** when uploading a recruiter profile photo, create the bucket and policies:
-
-**Option A – Supabase Dashboard**  
-1. Open your project → **SQL Editor**.  
-2. Run the contents of `supabase/migrations/20260309000002_add_recruiter_photos_bucket.sql` (creates the `recruiter-photos` bucket and RLS policies).
-
-**Option B – Supabase CLI**  
-From the repo root, with the project linked:
-
-```bash
-npx supabase db push
-```
-
-Or run only the new migration if your DB is already up to date:
-
-```bash
-npx supabase migration up
-```
-
-After the migration is applied, try uploading a photo again.

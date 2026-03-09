@@ -3,8 +3,6 @@ import { Suspense } from 'react'
 import { ApplyModalProvider } from './contexts/ApplyModalContext'
 import RecruiterDashboard from './pages/RecruiterDashboard'
 import RecruiterJobsPage from './pages/RecruiterJobsPage'
-import RecruiterProfilePage from './pages/RecruiterProfilePage'
-import RecruiterLayout from './layouts/RecruiterLayout'
 import StudentPage from './pages/StudentPage'
 import StudentDashboard from './pages/StudentDashboard'
 import LandingPage from './pages/LandingPage'
@@ -59,15 +57,20 @@ function App() {
               path="/recruiter"
               element={
                 <ProtectedRoute allowType="recruiter">
-                  <RecruiterLayout />
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <RecruiterDashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
-            >
-              <Route index element={<Suspense fallback={<div>Loading...</div>}><RecruiterDashboard /></Suspense>} />
-              <Route path="inbox" element={<Suspense fallback={<div>Loading...</div>}><RecruiterDashboard /></Suspense>} />
-              <Route path="jobs" element={<RecruiterJobsPage />} />
-              <Route path="profile" element={<RecruiterProfilePage />} />
-            </Route>
+            />
+            <Route
+              path="/recruiter/jobs"
+              element={
+                <ProtectedRoute allowType="recruiter">
+                  <RecruiterJobsPage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </div>
