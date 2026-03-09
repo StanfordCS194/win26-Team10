@@ -188,6 +188,7 @@ async def create_job(
     user_id: str,
     storage_path: str,
     parsed_file_id: Optional[str] = None,
+    job_type: str = "transcript",
 ) -> dict:
     """
     Create a new parse job in the queue.
@@ -201,11 +202,14 @@ async def create_job(
         The created job record
     """
     client = get_client()
+    if job_type not in {"transcript", "resume"}:
+        raise ValueError(f"Unsupported job_type: {job_type}")
 
     job_data = {
         "user_id": user_id,
         "parsed_file_id": parsed_file_id or str(uuid.uuid4()),
         "storage_path": storage_path,
+        "job_type": job_type,
         "status": "queued",
     }
 

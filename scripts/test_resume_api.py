@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""
+Test the resume Parse API endpoints.
+
+Usage:
+    # First create a test user and get a token
+    python scripts/create_test_user.py
+
+    # Then run the resume API tests
+    python scripts/test_resume_api.py
+
+    # Or specify a custom PDF
+    python scripts/test_resume_api.py --pdf transcripts/NIALL_KEHOE.pdf
+
+    # Or specify a custom API URL
+    python scripts/test_resume_api.py --api-url http://localhost:8000
+"""
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+from typing import Optional
+
+import httpx
+
+DEFAULT_API_URL = "http://localhost:8000"
+DEFAULT_PDF = Path(__file__).parent.parent / "transcripts" / "jack.pdf"
+TOKEN_FILE = Path(__file__).parent / "test_token.txt"
+
+
+def load_token() -> str:
+    """Load the test token from file."""
+    if not TOKEN_FILE.exists():
+        print(f"Error: Token file not found: {TOKEN_FILE}")
+        print("Run 'python scripts/create_test_user.py' first")
+        sys.exit(1)
+    return TOKEN_FILE.read_text().strip()
+
+
+def test_health(client: httpx.Client, api_url: str) -> bool:
+    print("\n[1/4] Testing health check...")
+    response = client.get(f"{api_url}/")
+    if response.status_code == 200:
+        print(f"  ✓ Health check passed: {response.json()}")
+        return True
+    print(f"  ✗ Health check failed: {response.status_code}")
+    return False
+
+
+def test_upload(client: httpx.Client, api_url: str, pdf_path: Path, token: str) -> Optional[str]:
+    print(f"\n[2/4] Testing resume PDF upload: {pdf_path}")
+    if not pdf_path.exists():
+        print(f"  ✗ PDF file not found: {pdf_path}")
+        return None
+
+    with open(pdf_path, "rb") as f:
+        files = {"file": (pdf_path.name, f, "application/pdf")}
+        response = client.post(
+            f"{api_url}/resume/parse",
+            files=files,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    if response.status_code == 202:
+        data = response.json()
+        print("  ✓ Upload accepted:")
+        print(f"    Job ID: {data['job_id']}")
+        print(f"    Status: {data['status']}")
+        print(f"    Storage: {data['storage_path']}")
+        return data["job_id"]
+
+    print(f"  ✗ Upload failed: {response.status_code}")
+    print(f"    Response: {response.text}")
+    return None
+
+
+def test_job_status(client: httpx.Client, api_url: str, job_id: str, token: str) -> bool:
+    print(f"\n[3/4] Testing resume job status: {job_id}")
+
+    max_attempts = 100
+    attempt = 0
+    while attempt < max_attempts:
+        response = client.get(
+            f"{api_url}/resume/parse/{job_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        if response.status_code != 200:
+            print(f"  ✗ Status check failed: {response.status_code}")
+            print(f"    Response: {response.text}")
+            return False
+
+        data = response.json()
+        status = data["status"]
+        if status == "succeeded":
+            print("  ✓ Job completed successfully!")
+            print(f"    Created:  {data.get('created_at')}")
+            print(f"    Started:  {data.get('started_at')}")
+            print(f"    Finished: {data.get('finished_at')}")
+            return True
+        if status == "failed":
+            print(f"  ✗ Job failed: {data.get('error')}")
+            return False
+
+        attempt += 1
+        print(f"    Status: {status} (attempt {attempt}/{max_attempts})")
+        time.sleep(2)
+
+    print(f"  ✗ Job did not complete within {max_attempts * 2} seconds")
+    return False
+
+
+def test_resume_detail(client: httpx.Client, api_url: str, token: str) -> bool:
+    print("\n[4/4] Testing /transcript/detail for resume fields...")
+    response = client.get(
+        f"{api_url}/transcript/detail",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    if response.status_code == 404:
+        print("  ! No applicants_detail row found yet")
+        print(f"    Response: {response.text}")
+        return True
+    if response.status_code != 200:
+        print(f"  ✗ Detail request failed: {response.status_code}")
+        print(f"    Response: {response.text}")
+        return False
+
+    try:
+        data = json.loads(response.text)
+    except json.JSONDecodeError:
+        print("  ✗ Detail response is not valid JSON")
+        print(f"    Response: {response.text[:200]}...")
+        return False
+
+    resume_raw = data.get("resume_raw")
+    resume_analysis = data.get("resume_analysis")
+
+    if not resume_raw:
+        print("  ✗ resume_raw is missing")
+        return False
+    if not isinstance(resume_raw.get("jobs", []), list):
+        print("  ✗ resume_raw.jobs is missing or not a list")
+        return False
+    if not resume_analysis:
+        print("  ✗ resume_analysis is missing")
+        return False
+    if not isinstance(resume_analysis.get("jobs", []), list):
+        print("  ✗ resume_analysis.jobs is missing or not a list")
+        return False
+
+    print("  ✓ Found resume fields in applicants_detail:")
+    print(f"    resume_raw.jobs: {len(resume_raw.get('jobs', []))}")
+    print(f"    resume_analysis.jobs: {len(resume_analysis.get('jobs', []))}")
+    return True
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Test the resume Parse API")
+    parser.add_argument(
+        "--api-url",
+        default=DEFAULT_API_URL,
+        help=f"API URL (default: {DEFAULT_API_URL})",
+    )
+    parser.add_argument(
+        "--pdf",
+        type=Path,
+        default=DEFAULT_PDF,
+        help=f"PDF file to upload (default: {DEFAULT_PDF})",
+    )
+    parser.add_argument(
+        "--token",
+        help="JWT token (default: read from scripts/test_token.txt)",
+    )
+    parser.add_argument(
+        "--skip-upload",
+        action="store_true",
+        help="Skip upload test, only test other endpoints",
+    )
+    args = parser.parse_args()
+
+    token = args.token or load_token()
+
+    print("=" * 60)
+    print("RESUME PARSE API TEST")
+    print("=" * 60)
+    print(f"API URL: {args.api_url}")
+    print(f"PDF:     {args.pdf}")
+    print(f"Token:   {token[:20]}...{token[-10:]}")
+
+    client = httpx.Client(timeout=60.0)
+    results = []
+
+    results.append(("Health Check", test_health(client, args.api_url)))
+
+    job_id = None
+    if not args.skip_upload:
+        job_id = test_upload(client, args.api_url, args.pdf, token)
+        results.append(("Upload", job_id is not None))
+
+    if job_id:
+        results.append(("Job Status", test_job_status(client, args.api_url, job_id, token)))
+
+    results.append(("Resume Detail", test_resume_detail(client, args.api_url, token)))
+
+    print("\n" + "=" * 60)
+    print("RESULTS")
+    print("=" * 60)
+
+    all_passed = True
+    for name, passed in results:
+        status = "✓ PASS" if passed else "✗ FAIL"
+        print(f"  {status}: {name}")
+        if not passed:
+            all_passed = False
+
+    print("=" * 60)
+    sys.exit(0 if all_passed else 1)
+
+
+if __name__ == "__main__":
+    main()
