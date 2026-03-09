@@ -7,6 +7,7 @@ export default function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
   const [signedIn, setSignedIn] = useState(false)
+  const [userType, setUserType] = useState<'student' | 'recruiter' | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -16,13 +17,38 @@ export default function Navigation() {
     }
     window.addEventListener('scroll', handleScroll)
 
+    async function loadUserType(userId: string) {
+      const { data } = await supabase
+        .from('users')
+        .select('type')
+        .eq('id', userId)
+        .maybeSingle()
+      
+      const type = data?.type
+      if (type === 'student' || type === 'recruiter') {
+        setUserType(type)
+      } else {
+        setUserType(null)
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSignedIn(!!session?.user)
+      if (session?.user?.id) {
+        loadUserType(session.user.id)
+      } else {
+        setUserType(null)
+      }
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSignedIn(!!session?.user)
+      if (session?.user?.id) {
+        loadUserType(session.user.id)
+      } else {
+        setUserType(null)
+      }
     })
 
     return () => {
@@ -38,10 +64,14 @@ export default function Navigation() {
 
   const isAuthPage = ['/login', '/signup-student', '/signup-recruiter'].includes(location.pathname)
 
+  const logoLink = signedIn && userType
+    ? userType === 'student' ? '/student' : '/recruiter'
+    : '/'
+
   return (
     <nav className={`nav-new ${scrolled ? 'scrolled' : ''} ${isAuthPage ? 'auth-nav' : ''}`}>
       <div className="nav-container-new">
-        <Link to="/" className="nav-logo-new">
+        <Link to={logoLink} className="nav-logo-new">
           <div className="logo-icon">
             <Sparkles size={24} />
           </div>
