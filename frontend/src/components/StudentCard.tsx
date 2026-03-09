@@ -134,24 +134,22 @@ export default function StudentCard({ student, isRecruiter, onOpenConversation, 
 
       {/* Transcript & Resume Status + View Profile */}
       <div className="card-footer">
-        <div className="card-footer-docs">
-          {student.transcriptUploaded && (
-            <div className="transcript-status uploaded non-clickable">
-              <FileCheck size={16} />
-              Transcript
-            </div>
-          )}
-          {student.resumeUploaded && (
-            <div className="transcript-status uploaded non-clickable">
-              <FileText size={16} />
-              Resume
-            </div>
-          )}
-        </div>
+        {student.transcriptUploaded && (
+          <div className="transcript-status uploaded non-clickable">
+            <FileCheck size={16} />
+            Transcript
+          </div>
+        )}
+        {student.resumeUploaded && (
+          <div className="transcript-status uploaded non-clickable">
+            <FileText size={16} />
+            Resume
+          </div>
+        )}
         
         <button
           type="button"
-          className="student-card-message-btn"
+          className="student-card-view-profile-btn"
           onClick={async () => {
             const popup = document.createElement('div')
             popup.className = 'popup'
