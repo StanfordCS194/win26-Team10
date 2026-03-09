@@ -41,16 +41,22 @@ export default function ProtectedRoute({ children, allowType }: ProtectedRoutePr
 
       if (error) {
         console.error('Failed to load user type:', error)
-        setUserType(null)
-        userTypeRef.current = null
+        if (!cancelled) {
+          setUserType(null)
+          userTypeRef.current = null
+        }
       } else {
         const t = data?.type
         const resolvedType = t === 'student' || t === 'recruiter' ? t : null
-        setUserType(resolvedType)
-        userTypeRef.current = resolvedType
+        if (resolvedType) {
+          setUserType(resolvedType)
+          userTypeRef.current = resolvedType
+        } else {
+          setUserType(null)
+          userTypeRef.current = null
+        }
       }
-
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
