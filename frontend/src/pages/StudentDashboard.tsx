@@ -207,6 +207,7 @@ export default function StudentDashboard() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [minPay, setMinPay] = useState('')
   const [showMatchOnly, setShowMatchOnly] = useState(false)
+  const [companySearchQuery, setCompanySearchQuery] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -301,6 +302,7 @@ export default function StudentDashboard() {
     setSelectedTypes([])
     setMinPay('')
     setShowMatchOnly(false)
+    setCompanySearchQuery('')
   }
 
   const toggleFilter = (value: string, selected: string[], setSelected: (v: string[]) => void) => {
@@ -318,6 +320,13 @@ export default function StudentDashboard() {
   const allJobTypes = useMemo(
     () => [...new Set(jobs.map(j => j.type))].sort((a, b) => a.localeCompare(b)),
     [jobs]
+  )
+
+  const filteredCompanies = useMemo(
+    () => allCompanies.filter(company =>
+      company.toLowerCase().includes(companySearchQuery.toLowerCase())
+    ),
+    [allCompanies, companySearchQuery]
   )
 
   const filteredJobs = jobs.filter(job => {
@@ -613,18 +622,69 @@ export default function StudentDashboard() {
 
               <div className="filter-group">
                 <label>Company</label>
-                <div className="filter-tags">
-                  {allCompanies.map(company => (
-                    <button
-                      key={company}
-                      className={`filter-tag ${selectedCompanies.includes(company) ? 'selected' : ''}`}
-                      onClick={() =>
-                        toggleFilter(company, selectedCompanies, setSelectedCompanies)
-                      }
-                    >
-                      {company}
-                    </button>
-                  ))}
+                
+                {selectedCompanies.length > 0 && (
+                  <div className="filter-tags">
+                    {selectedCompanies.map(company => (
+                      <button
+                        key={company}
+                        className="filter-tag selected"
+                        onClick={() => toggleFilter(company, selectedCompanies, setSelectedCompanies)}
+                      >
+                        {company}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="company-search-container">
+                  <div className="company-search-input">
+                    <Search size={16} />
+                    <input
+                      type="text"
+                      placeholder="Search companies..."
+                      value={companySearchQuery}
+                      onChange={e => setCompanySearchQuery(e.target.value)}
+                    />
+                    {companySearchQuery && (
+                      <button 
+                        className="clear-company-search" 
+                        onClick={() => setCompanySearchQuery('')}
+                        aria-label="Clear search"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {companySearchQuery && (
+                    <div className="company-dropdown">
+                      {filteredCompanies.length === 0 ? (
+                        <div className="company-dropdown-empty">No companies found</div>
+                      ) : (
+                        <>
+                          {filteredCompanies.slice(0, 10).map(company => (
+                            <button
+                              key={company}
+                              className={`company-dropdown-item ${selectedCompanies.includes(company) ? 'selected' : ''}`}
+                              onClick={() => {
+                                toggleFilter(company, selectedCompanies, setSelectedCompanies)
+                                setCompanySearchQuery('')
+                              }}
+                            >
+                              {selectedCompanies.includes(company) && <CheckCircle size={14} />}
+                              {company}
+                            </button>
+                          ))}
+                          {filteredCompanies.length > 10 && (
+                            <div className="company-dropdown-more">
+                              +{filteredCompanies.length - 10} more companies (keep typing to narrow)
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
