@@ -332,6 +332,9 @@ export default function StudentDashboard() {
   const unappliedJobsCount = jobs.length - appliedJobs.size
 
   const filteredJobs = jobs.filter(job => {
+    if (appliedJobs.has(job.id)) {
+      return false
+    }
     if (
       searchQuery &&
       !job.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
