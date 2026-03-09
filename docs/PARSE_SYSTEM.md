@@ -14,7 +14,7 @@ flowchart TB
     
     subgraph pipeline [Parse Pipeline]
         Step1[TextExtractStep]
-        Step2[StandardizeStep]
+        Step2[TranscriptStandardizeStep]
     end
     
     subgraph output [Output]
@@ -48,7 +48,7 @@ Calls the Reducto API for more advanced PDF parsing with layout/table support.
 
 **Implementation:** `api/pipeline/steps/reducto.py`
 
-### Step 2: StandardizeStep
+### Step 2: TranscriptStandardizeStep
 
 Uses an LLM via OpenRouter to convert the extracted text into structured transcript data.
 
@@ -59,7 +59,7 @@ Uses an LLM via OpenRouter to convert the extracted text into structured transcr
 
 ```mermaid
 flowchart LR
-    subgraph standardize [StandardizeStep]
+    subgraph standardize [TranscriptStandardizeStep]
         A[Read Text Content] --> B[Build Prompt]
         B --> C[Call OpenRouter API]
         C --> D[Parse JSON Response]
@@ -135,18 +135,18 @@ Set in `api/.env`:
 Override default steps when calling `run_pipeline()`:
 
 ```python
-from api.pipeline import run_pipeline, ReductoStep, TextExtractStep, StandardizeStep
+from api.pipeline import run_pipeline, ReductoStep, TextExtractStep, TranscriptStandardizeStep
 
 # Use Reducto instead of PyPDF2
 custom_steps = [
     ReductoStep(),
-    StandardizeStep(),
+    TranscriptStandardizeStep(),
 ]
 
 # Or use a different LLM model
 custom_steps = [
     TextExtractStep(),
-    StandardizeStep(model="anthropic/claude-3-haiku"),
+    TranscriptStandardizeStep(model="anthropic/claude-3-haiku"),
 ]
 
 artifacts = run_pipeline(
@@ -202,7 +202,7 @@ api/
 │       ├── base.py          # Abstract ParseStep
 │       ├── text_extract.py  # TextExtractStep (default)
 │       ├── reducto.py       # ReductoStep (alternative)
-│       └── standardize.py   # StandardizeStep
+│       └── standardize.py   # TranscriptStandardizeStep
 ```
 
 ## Adding New Steps

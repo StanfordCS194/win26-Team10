@@ -16,7 +16,7 @@ python -m api --pdf transcripts/niall.pdf
 
 The default pipeline:
 1. **TextExtractStep** - Extract raw text from PDF using PyPDF2
-2. **StandardizeStep** - Use LLM to convert text to structured transcript JSON
+2. **TranscriptStandardizeStep** - Use LLM to convert text to structured transcript JSON
 
 ## Commands
 

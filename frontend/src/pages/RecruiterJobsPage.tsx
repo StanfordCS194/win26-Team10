@@ -185,19 +185,13 @@ export default function RecruiterJobsPage() {
       <div className="student-dashboard-container">
         <div className="jobs-section">
           <div className="jobs-header">
-            <div>
+            <div className="jobs-header-top">
               <h2 className="jobs-title">
                 <Briefcase size={24} />
                 My Company Live Jobs
               </h2>
-              <p className="jobs-count" style={{ marginTop: '0.25rem' }}>
-                {companyName ?? 'No company linked'}
-              </p>
             </div>
-            <Link to="/recruiter" className="edit-profile-btn" style={{ textDecoration: 'none' }}>
-              <ArrowLeft size={16} />
-              Back to Recruiter
-            </Link>
+            <p className="jobs-count">{companyName ?? 'No company linked'}</p>
           </div>
 
           {loading ? (

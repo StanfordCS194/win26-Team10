@@ -85,6 +85,66 @@ type StandardizedTranscript = {
   notes?: string[] | null
 }
 
+type ResumeCandidate = {
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  location?: string | null
+}
+
+type ResumeJob = {
+  company?: string | null
+  role?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  is_current?: boolean | null
+  location?: string | null
+  employment_type?: string | null
+  details?: string[] | null
+  skills_used?: string[] | null
+}
+
+type ResumeEducation = {
+  institution?: string | null
+  degree?: string | null
+  field_of_study?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  is_current?: boolean | null
+  gpa?: string | null
+  details?: string[] | null
+}
+
+type ResumeProject = {
+  name?: string | null
+  role?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  is_current?: boolean | null
+  description?: string[] | null
+  technologies?: string[] | null
+  url?: string | null
+}
+
+type ResumeCertification = {
+  name?: string | null
+  issuer?: string | null
+  issue_date?: string | null
+  expiry_date?: string | null
+  credential_id?: string | null
+  credential_url?: string | null
+}
+
+type ParsedResume = {
+  candidate?: ResumeCandidate | null
+  jobs?: ResumeJob[] | null
+  education?: ResumeEducation[] | null
+  projects?: ResumeProject[] | null
+  certifications?: ResumeCertification[] | null
+  skills?: string[] | null
+  parsed_at?: string | null
+}
+
 const initialProfile: StudentProfile = {
   firstName: '',
   lastName: '',
@@ -108,17 +168,19 @@ export default function StudentPage() {
   const setJobId = useState<string | null>(null)[1]
   const [parseStatus, setParseStatus] = useState<string | null>(null)
   const [transcriptJson, setTranscriptJson] = useState<any>(null)
-  const [transcriptStats, setTranscriptStats] = useState<any>(null)
-  const [transcriptAnalysis, setTranscriptAnalysis] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
 
   // Resume state
   const [uploadedResume, setUploadedResume] = useState<UploadedFile | null>(null)
   const [resumeUploading, setResumeUploading] = useState(false)
   const [resumeError, setResumeError] = useState<string | null>(null)
+  const [isResumeDragging, setIsResumeDragging] = useState(false)
+  const [resumeRaw, setResumeRaw] = useState<ParsedResume | null>(null)
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false)
 
   // School autocomplete state
   const [schoolInput, setSchoolInput] = useState('')
@@ -226,8 +288,8 @@ export default function StudentPage() {
           latestReprPath: data.latest_repr_path,
           resumePath: data.resume_path,
         })
-        if (data.latest_repr_path) {
-          fetchTranscriptDetail(token)
+        if (data.latest_repr_path || data.resume_path) {
+          fetchTranscriptDetail(token, Boolean(data.latest_repr_path))
         }
         if (data.resume_path) {
           setUploadedResume({
@@ -243,7 +305,20 @@ export default function StudentPage() {
     }
   }
 
-  const fetchTranscriptDetail = async (token: string) => {
+  const fetchResumeDetail = async (token: string) => {
+    const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!detailRes.ok) return false
+    const detail = await detailRes.json()
+    if (detail.resume_raw) {
+      setResumeRaw(detail.resume_raw)
+      return true
+    }
+    return false
+  }
+
+  const fetchTranscriptDetail = async (token: string, shouldFetchTranscriptFallback = true) => {
     try {
       const detailRes = await fetch(`${API_BASE}/transcript/detail`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -254,24 +329,27 @@ export default function StudentPage() {
         if (detail.transcript_raw) {
           setTranscriptJson(detail.transcript_raw)
         }
-        if (detail.transcript_stats) {
-          setTranscriptStats(detail.transcript_stats)
-        }
-        if (detail.transcript_analysis) {
-          setTranscriptAnalysis(detail.transcript_analysis)
+        if (detail.resume_raw) {
+          setResumeRaw(detail.resume_raw)
         }
         
         if (!detail.transcript_raw) {
           // Fallback to old method if detail table not yet fully populated
-          fetchTranscript(token)
+          if (shouldFetchTranscriptFallback) {
+            fetchTranscript(token)
+          }
         }
       } else {
         // Fallback to old method
-        fetchTranscript(token)
+        if (shouldFetchTranscriptFallback) {
+          fetchTranscript(token)
+        }
       }
     } catch (err) {
       console.error('Failed to fetch transcript detail:', err)
-      fetchTranscript(token)
+      if (shouldFetchTranscriptFallback) {
+        fetchTranscript(token)
+      }
     }
   }
 
@@ -365,8 +443,7 @@ export default function StudentPage() {
     if (detailRes.ok) {
       const detail = await detailRes.json()
       if (detail.transcript_raw) setTranscriptJson(detail.transcript_raw)
-      if (detail.transcript_stats) setTranscriptStats(detail.transcript_stats)
-      if (detail.transcript_analysis) setTranscriptAnalysis(detail.transcript_analysis)
+      if (detail.resume_raw) setResumeRaw(detail.resume_raw)
       setParseStatus('done')
     } else {
       // Fallback
@@ -449,10 +526,7 @@ export default function StudentPage() {
     setParseError(null)
   }
 
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const uploadResumeFile = async (file: File) => {
     const fileName = file.name.toLowerCase()
     if (!fileName.endsWith('.pdf')) {
       setResumeError('Only PDF files are supported')
@@ -509,6 +583,12 @@ export default function StudentPage() {
           break
         }
       }
+
+      for (let i = 0; i < 4; i += 1) {
+        const found = await fetchResumeDetail(token)
+        if (found) break
+        await new Promise((r) => setTimeout(r, 1000))
+      }
     } catch (err) {
       setResumeError(err instanceof Error ? err.message : 'Failed to upload resume')
       setUploadedResume(null)
@@ -517,9 +597,35 @@ export default function StudentPage() {
     }
   }
 
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await uploadResumeFile(file)
+  }
+
+  const handleResumeDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsResumeDragging(true)
+  }
+
+  const handleResumeDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsResumeDragging(false)
+  }
+
+  const handleResumeDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsResumeDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    await uploadResumeFile(file)
+  }
+
   const removeResume = () => {
     setUploadedResume(null)
     setResumeError(null)
+    setResumeRaw(null)
+    setIsResumeModalOpen(false)
   }
 
   const handleSave = async () => {
@@ -599,6 +705,7 @@ export default function StudentPage() {
   }
 
   const transcript = transcriptJson as StandardizedTranscript | null
+  const parsedResume = resumeRaw as ParsedResume | null
 
   return (
     <div className="student-page">
@@ -929,77 +1036,11 @@ export default function StudentPage() {
             </div>
           )}
 
-          {/* Nicely formatted transcript view */}
-          {transcriptStats && (
-            <div style={{ marginTop: 24, marginBottom: 24 }}>
-              <h3 className="section-title" style={{ marginBottom: 16 }}>Academic Performance</h3>
-              <div className="form-row" style={{ gap: 16 }}>
-                <div className="form-group" style={{ flex: 1, backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, display: 'block' }}>Universal Percentile</label>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b' }}>
-                      {transcriptStats.universal_scores?.weighted_percentile ?? '—'}
-                    </span>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>%</span>
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4, marginBottom: 0 }}>Across all courses</p>
-                </div>
-                
-                <div className="form-group" style={{ flex: 1, backgroundColor: '#f0f9ff', padding: 16, borderRadius: 12, border: '1px solid #bae6fd' }}>
-                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0369a1', marginBottom: 8, display: 'block' }}>Major Percentile</label>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#0c4a6e' }}>
-                      {transcriptStats.major_scores?.weighted_percentile ?? '—'}
-                    </span>
-                    <span style={{ color: '#0369a1', fontWeight: 500 }}>%</span>
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#0369a1', marginTop: 4, marginBottom: 0 }}>
-                    {transcriptStats.major_scores?.heuristic_note?.split("'")[1] ?? 'Major'} courses
-                  </p>
-                </div>
-
-                <div className="form-group" style={{ flex: 1, backgroundColor: '#fdf2f8', padding: 16, borderRadius: 12, border: '1px solid #fbcfe8' }}>
-                  <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9d174d', marginBottom: 8, display: 'block' }}>Weighted GPA</label>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: '2rem', fontWeight: 700, color: '#831843' }}>
-                      {transcriptStats.universal_scores?.weighted_gpa?.toFixed(3) ?? '—'}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '0.8rem', color: '#9d174d', marginTop: 4, marginBottom: 0 }}>Official transcript GPA</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {transcript && (
             <div style={{ marginTop: 16 }}>
               <div className="form-section" style={{ padding: 0, border: 'none' }}>
                 <h3 className="section-title" style={{ marginBottom: 8 }}>Transcript Details</h3>
                 
-                {transcriptAnalysis && (
-                  <div style={{ marginBottom: 24, backgroundColor: '#fdfaff', padding: 20, borderRadius: 12, border: '1px solid #e9d5ff' }}>
-                    <h4 style={{ color: '#6b21a8', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Qualitative Analysis</h4>
-                    <p style={{ color: '#581c87', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
-                      {transcriptAnalysis.topic_rating?.program_performance}
-                    </p>
-                    
-                    {transcriptAnalysis.categories && (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 16 }}>
-                        {Object.entries(transcriptAnalysis.categories).map(([key, cat]: [string, any]) => (
-                          <div key={key} style={{ backgroundColor: 'white', padding: 10, borderRadius: 8, border: '1px solid #f3e8ff' }}>
-                            <div style={{ fontSize: '0.7rem', color: '#7e22ce', textTransform: 'capitalize' }}>{key.replace(/_/g, ' ')}</div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#6b21a8' }}>{cat.score}/10</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <p className="section-description" style={{ marginTop: 0 }}>
-                  Schema v{transcript.schema_version} • {transcript.extracted_at ? `Extracted ${new Date(transcript.extracted_at).toLocaleString()}` : 'Standardized Transcript'}
-                </p>
-
                 {/* Summary cards */}
                 <div className="form-row">
                   <div className="form-group" style={{ flex: 1 }}>
@@ -1070,64 +1111,129 @@ export default function StudentPage() {
                   <label>Terms & Courses</label>
                   <div className="input" style={{ padding: 12 }}>
                     {transcript.terms?.length ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {transcript.terms.map((term, termIdx) => (
-                          <div key={`${term.name}-${termIdx}`}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                              <div style={{ fontWeight: 600 }}>{term.name}</div>
-                              {term.statistics && (
-                                <div style={{ opacity: 0.85 }}>
-                                  {term.statistics.term_gpa != null && (
-                                    <span>Term GPA: {Number(term.statistics.term_gpa).toFixed(3)}</span>
-                                  )}
-                                  {term.statistics.cumulative_gpa != null && (
-                                    <span>{term.statistics.term_gpa != null ? ' • ' : ''}Cum GPA: {Number(term.statistics.cumulative_gpa).toFixed(3)}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div style={{ overflowX: 'auto', marginTop: 8 }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                  <tr style={{ textAlign: 'left', opacity: 0.9 }}>
-                                    <th style={{ padding: '6px 8px' }}>Course</th>
-                                    <th style={{ padding: '6px 8px' }}>Title</th>
-                                    <th style={{ padding: '6px 8px' }}>Units</th>
-                                    <th style={{ padding: '6px 8px' }}>Grade</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {term.courses?.length ? (
-                                    term.courses.map((c, courseIdx) => (
-                                      <tr key={`${c.department}-${c.number}-${courseIdx}`} style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-                                        <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
-                                          {c.department} {c.number}
-                                          {c.component ? ` (${c.component})` : ''}
-                                        </td>
-                                        <td style={{ padding: '6px 8px' }}>{c.title ?? '—'}</td>
-                                        <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
-                                          {c.units_earned ?? c.units_attempted ?? '—'}
-                                        </td>
-                                        <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>{c.grade ?? '—'}</td>
-                                      </tr>
-                                    ))
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={4} style={{ padding: '6px 8px', opacity: 0.8 }}>
-                                        No courses found for this term.
-                                      </td>
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <p style={{ margin: 0, color: '#475569' }}>
+                          {transcript.terms.length} term(s) found
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsTermsModalOpen(true)}
+                          className="save-btn primary"
+                          style={{ width: 'fit-content', padding: '10px 16px' }}
+                        >
+                          View all terms & courses
+                        </button>
                       </div>
                     ) : (
                       <div style={{ opacity: 0.8 }}>No terms found.</div>
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {transcript && isTermsModalOpen && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(15, 23, 42, 0.55)',
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}
+              onClick={() => setIsTermsModalOpen(false)}
+            >
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: 12,
+                  width: 'min(1100px, 100%)',
+                  maxHeight: '90vh',
+                  padding: 20,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>Terms & Courses</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsTermsModalOpen(false)}
+                    className="remove-file-btn"
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      borderRadius: 8,
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div style={{ overflowY: 'auto', paddingRight: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {transcript.terms?.map((term, termIdx) => (
+                      <div key={`${term.name}-${termIdx}`} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                          <div style={{ fontWeight: 600 }}>{term.name}</div>
+                          {term.statistics && (
+                            <div style={{ opacity: 0.85 }}>
+                              {term.statistics.term_gpa != null && (
+                                <span>Term GPA: {Number(term.statistics.term_gpa).toFixed(3)}</span>
+                              )}
+                              {term.statistics.cumulative_gpa != null && (
+                                <span>{term.statistics.term_gpa != null ? ' • ' : ''}Cum GPA: {Number(term.statistics.cumulative_gpa).toFixed(3)}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ overflowX: 'auto', marginTop: 8 }}>
+                          <table style={{ width: '100%', minWidth: 700, borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ textAlign: 'left', opacity: 0.9 }}>
+                                <th style={{ padding: '6px 8px' }}>Course</th>
+                                <th style={{ padding: '6px 8px' }}>Title</th>
+                                <th style={{ padding: '6px 8px' }}>Units</th>
+                                <th style={{ padding: '6px 8px' }}>Grade</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {term.courses?.length ? (
+                                term.courses.map((c, courseIdx) => (
+                                  <tr key={`${c.department}-${c.number}-${courseIdx}`} style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                                    <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                                      {c.department} {c.number}
+                                      {c.component ? ` (${c.component})` : ''}
+                                    </td>
+                                    <td style={{ padding: '6px 8px' }}>{c.title ?? '—'}</td>
+                                    <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                                      {c.units_earned ?? c.units_attempted ?? '—'}
+                                    </td>
+                                    <td style={{ padding: '6px 8px', whiteSpace: 'nowrap' }}>{c.grade ?? '—'}</td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={4} style={{ padding: '6px 8px', opacity: 0.8 }}>
+                                    No courses found for this term.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1165,9 +1271,14 @@ export default function StudentPage() {
 
           {!uploadedResume ? (
             <label 
-              className="upload-area"
+              className={`upload-area ${isResumeDragging ? 'dragging' : ''}`}
+              onDragOver={handleResumeDragOver}
+              onDragLeave={handleResumeDragLeave}
+              onDrop={handleResumeDrop}
               style={{
-                border: '2px dashed #ccc',
+                border: isResumeDragging ? '2px dashed #4a90e2' : '2px dashed #ccc',
+                backgroundColor: isResumeDragging ? '#f0f7ff' : 'transparent',
+                transition: 'all 0.2s ease',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1178,9 +1289,9 @@ export default function StudentPage() {
                 gap: '8px'
               }}
             >
-              <Upload size={32} color="#666" />
-              <span style={{ fontWeight: 500 }}>
-                Click to upload resume
+              <Upload size={32} color={isResumeDragging ? '#4a90e2' : '#666'} />
+              <span style={{ color: isResumeDragging ? '#4a90e2' : 'inherit', fontWeight: 500 }}>
+                {isResumeDragging ? 'Drop resume here' : 'Click or drag to upload resume'}
               </span>
               <small style={{ color: '#666' }}>PDF (max 10MB)</small>
               <input
@@ -1254,6 +1365,210 @@ export default function StudentPage() {
               <p className="section-description" style={{ margin: 0 }}>
                 Uploading resume...
               </p>
+            </div>
+          )}
+
+          {uploadedResume && !resumeUploading && (
+            <div style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                onClick={() => setIsResumeModalOpen(true)}
+                className="save-btn primary"
+                style={{ width: 'fit-content', padding: '10px 16px' }}
+                disabled={!parsedResume}
+              >
+                {parsedResume ? 'View resume details' : 'Resume details processing...'}
+              </button>
+            </div>
+          )}
+
+          {parsedResume && isResumeModalOpen && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(15, 23, 42, 0.55)',
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 16,
+              }}
+              onClick={() => setIsResumeModalOpen(false)}
+            >
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: 12,
+                  width: 'min(1100px, 100%)',
+                  maxHeight: '90vh',
+                  padding: 20,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>Resume Details</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsResumeModalOpen(false)}
+                    className="remove-file-btn"
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      borderRadius: 8,
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div style={{ overflowY: 'auto', paddingRight: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="form-row">
+                      <div className="form-group" style={{ flex: 1 }}>
+                        <label>Candidate</label>
+                        <div className="input" style={{ padding: 12 }}>
+                          <div><strong>Name:</strong> {parsedResume.candidate?.name ?? '—'}</div>
+                          <div><strong>Email:</strong> {parsedResume.candidate?.email ?? '—'}</div>
+                          <div><strong>Phone:</strong> {parsedResume.candidate?.phone ?? '—'}</div>
+                          <div><strong>Location:</strong> {parsedResume.candidate?.location ?? '—'}</div>
+                        </div>
+                      </div>
+                      <div className="form-group" style={{ flex: 1 }}>
+                        <label>Skills</label>
+                        <div className="input" style={{ padding: 12 }}>
+                          {parsedResume.skills?.length ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                              {parsedResume.skills.map((skill, idx) => (
+                                <span
+                                  key={`${skill}-${idx}`}
+                                  style={{
+                                    backgroundColor: '#eef2ff',
+                                    color: '#3730a3',
+                                    border: '1px solid #c7d2fe',
+                                    borderRadius: 9999,
+                                    padding: '4px 10px',
+                                    fontSize: '0.85rem',
+                                  }}
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ opacity: 0.8 }}>—</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Work Experience</label>
+                      <div className="input" style={{ padding: 12 }}>
+                        {parsedResume.jobs?.length ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {parsedResume.jobs.map((job, idx) => (
+                              <div key={`${job.company ?? 'job'}-${idx}`} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 10 }}>
+                                <div style={{ fontWeight: 600 }}>
+                                  {job.role ?? '—'} {job.company ? `at ${job.company}` : ''}
+                                </div>
+                                <div style={{ opacity: 0.8, marginTop: 2 }}>
+                                  {job.start_date ?? '—'} - {job.is_current ? 'Present' : (job.end_date ?? '—')}
+                                  {job.location ? ` • ${job.location}` : ''}
+                                </div>
+                                {job.details?.length ? (
+                                  <ul style={{ margin: '8px 0 0 18px' }}>
+                                    {job.details.map((item, detailIdx) => (
+                                      <li key={`${idx}-detail-${detailIdx}`}>{item}</li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ opacity: 0.8 }}>No jobs found.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Education</label>
+                      <div className="input" style={{ padding: 12 }}>
+                        {parsedResume.education?.length ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {parsedResume.education.map((edu, idx) => (
+                              <div key={`${edu.institution ?? 'edu'}-${idx}`} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 10 }}>
+                                <div style={{ fontWeight: 600 }}>{edu.institution ?? '—'}</div>
+                                <div style={{ opacity: 0.85 }}>
+                                  {[edu.degree, edu.field_of_study].filter(Boolean).join(' in ') || '—'}
+                                </div>
+                                <div style={{ opacity: 0.8, marginTop: 2 }}>
+                                  {edu.start_date ?? '—'} - {edu.is_current ? 'Present' : (edu.end_date ?? '—')}
+                                  {edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ opacity: 0.8 }}>No education records found.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Projects</label>
+                      <div className="input" style={{ padding: 12 }}>
+                        {parsedResume.projects?.length ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {parsedResume.projects.map((project, idx) => (
+                              <div key={`${project.name ?? 'project'}-${idx}`} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 10 }}>
+                                <div style={{ fontWeight: 600 }}>{project.name ?? '—'}</div>
+                                {project.role && <div style={{ opacity: 0.85 }}>{project.role}</div>}
+                                <div style={{ opacity: 0.8, marginTop: 2 }}>
+                                  {project.start_date ?? '—'} - {project.is_current ? 'Present' : (project.end_date ?? '—')}
+                                </div>
+                                {project.description?.length ? (
+                                  <ul style={{ margin: '8px 0 0 18px' }}>
+                                    {project.description.map((item, descIdx) => (
+                                      <li key={`${idx}-project-desc-${descIdx}`}>{item}</li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ opacity: 0.8 }}>No projects found.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Certifications</label>
+                      <div className="input" style={{ padding: 12 }}>
+                        {parsedResume.certifications?.length ? (
+                          <ul style={{ margin: 0, paddingLeft: 18 }}>
+                            {parsedResume.certifications.map((cert, idx) => (
+                              <li key={`${cert.name ?? 'cert'}-${idx}`}>
+                                {(cert.name ?? '—') + (cert.issuer ? ` (${cert.issuer})` : '')}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div style={{ opacity: 0.8 }}>No certifications found.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </section>

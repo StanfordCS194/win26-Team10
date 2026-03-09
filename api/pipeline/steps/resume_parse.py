@@ -18,7 +18,7 @@ from api.pipeline.types import ParseArtifacts
 # NOTE: I added current date to orientate the model with time periods
 SYSTEM_PROMPT_TEMPLATE = """You are a resume extraction assistant.
 
-Current date: {current_date}
+Current date: __CURRENT_DATE__
 
 Extract structured resume data and return ONLY valid JSON with this exact shape:
 {
@@ -245,8 +245,9 @@ class ResumeParseStep(ParseStep):
             "messages": [
                 {
                     "role": "system",
-                    "content": SYSTEM_PROMPT_TEMPLATE.format(
-                        current_date=datetime.now(timezone.utc).date().isoformat()
+                    "content": SYSTEM_PROMPT_TEMPLATE.replace(
+                        "__CURRENT_DATE__",
+                        datetime.now(timezone.utc).date().isoformat(),
                     ),
                 },
                 {

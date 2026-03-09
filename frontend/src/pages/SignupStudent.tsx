@@ -43,7 +43,7 @@ export default function SignupStudent() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        navigate('/student', { replace: true })
+        navigate('/student/profile', { replace: true })
       } else {
         setCheckingAuth(false)
       }
@@ -53,7 +53,7 @@ export default function SignupStudent() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        navigate('/student', { replace: true })
+        navigate('/student/profile', { replace: true })
       } else {
         setCheckingAuth(false)
       }
@@ -77,7 +77,7 @@ export default function SignupStudent() {
       if (!authData.user) throw new Error('Failed to create user account')
 
       // Trigger on auth.users creates users row with default type 'student'
-      navigate('/student')
+      navigate('/student/profile')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during signup')
       console.error('Signup error:', err)
@@ -238,6 +238,9 @@ export default function SignupStudent() {
             <div className="auth-form-footer">
               <p>
                 Already have an account? <Link to="/login" className="auth-link">Log in</Link>
+              </p>
+              <p>
+                Signing up as a recruiter? <Link to="/signup-recruiter" className="auth-link">Switch to recruiter sign up</Link>
               </p>
             </div>
           </div>
