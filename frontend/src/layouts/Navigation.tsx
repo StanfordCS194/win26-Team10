@@ -46,45 +46,40 @@ export default function Navigation() {
         setUserDisplayName(null)
         return
       }
-      const maxAttempts = 5
-      const delayMs = 400
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const { data } = await supabase
-          .from('users')
-          .select('type')
-          .eq('id', session.user.id)
-          .maybeSingle()
-        const t = data?.type
-        if (t === 'student' || t === 'recruiter') {
-          setUserType(t)
-          if (t === 'recruiter') {
-            const { data: profile } = await supabase
-              .from('recruiter_profiles')
-              .select('full_name')
-              .eq('user_id', session.user.id)
+      const { data } = await supabase
+        .from('users')
+        .select('type')
+        .eq('id', session.user.id)
+        .maybeSingle()
+      const t = data?.type
+      if (t === 'student' || t === 'recruiter') {
+        setUserType(t)
+        if (t === 'recruiter') {
+          const { data: profile } = await supabase
+            .from('recruiter_profiles')
+            .select('full_name')
+            .eq('user_id', session.user.id)
+            .maybeSingle()
+          setUserDisplayName(profile?.full_name ?? null)
+        } else {
+          try {
+            const { data: applicant } = await supabase
+              .from('applicants')
+              .select('first_name, last_name')
+              .eq('id', session.user.id)
               .maybeSingle()
-            setUserDisplayName(profile?.full_name ?? null)
-          } else {
-            try {
-              const { data: applicant } = await supabase
-                .from('applicants')
-                .select('first_name, last_name')
-                .eq('id', session.user.id)
-                .maybeSingle()
-              const first = (applicant as { first_name?: string } | null)?.first_name ?? ''
-              const last = (applicant as { last_name?: string } | null)?.last_name ?? ''
-              const name = [first, last].filter(Boolean).join(' ').trim() || null
-              setUserDisplayName(name)
-            } catch {
-              setUserDisplayName(null)
-            }
+            const first = (applicant as { first_name?: string } | null)?.first_name ?? ''
+            const last = (applicant as { last_name?: string } | null)?.last_name ?? ''
+            const name = [first, last].filter(Boolean).join(' ').trim() || null
+            setUserDisplayName(name)
+          } catch {
+            setUserDisplayName(null)
           }
-          return
         }
-        if (attempt < maxAttempts - 1) await new Promise((r) => setTimeout(r, delayMs))
+      } else {
+        setUserType(null)
+        setUserDisplayName(null)
       }
-      setUserType(null)
-      setUserDisplayName(null)
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
