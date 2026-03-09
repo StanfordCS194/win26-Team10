@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
-import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip } from 'lucide-react'
+import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip, Briefcase } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
@@ -16,7 +16,7 @@ import {
   subscribeToNewMessages,
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
-import type { ChatAttachment } from '../lib/chatMessage'
+import type { ChatAttachment, ChatJobShare } from '../lib/chatMessage'
 import { encodeApplicationMessage, encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
@@ -182,6 +182,7 @@ export default function RecruiterDashboard() {
   const [messageDraft, setMessageDraft] = useState('')
   const [pendingAttachment, setPendingAttachment] = useState<ChatAttachment | null>(null)
   const [attachmentUploading, setAttachmentUploading] = useState(false)
+  const [pendingSharedJobId, setPendingSharedJobId] = useState<string>('')
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
@@ -328,6 +329,18 @@ export default function RecruiterDashboard() {
       }
     }
     input.click()
+  }
+
+  const handleShareJobClick = () => {
+    if (companyJobs.length === 0) {
+      alert('No jobs to share yet. Post a job first.')
+      return
+    }
+    const defaultId =
+      selectedJobId && companyJobs.some((j) => j.id === selectedJobId)
+        ? selectedJobId
+        : companyJobs[0].id
+    setPendingSharedJobId((prev) => prev || defaultId)
   }
 
   const openAttachment = async (attachment: ChatAttachment) => {
@@ -556,16 +569,34 @@ export default function RecruiterDashboard() {
     if (!selectedConversationId || !recruiterId) return
     const text = messageDraft.trim()
     const hasAttachment = !!pendingAttachment
-    if (!text && !hasAttachment) return
+    const sharedJob = companyJobs.find((j) => j.id === pendingSharedJobId) ?? null
+    const hasSharedJob = !!sharedJob
+    if (!text && !hasAttachment && !hasSharedJob) return
     setSendError(null)
     try {
-      const body = hasAttachment
-        ? encodeChatBody({ text, attachments: pendingAttachment ? [pendingAttachment] : [] })
-        : text
+      const jobSharePayload: ChatJobShare | undefined = hasSharedJob
+        ? {
+            job_id: sharedJob!.id,
+            title: sharedJob!.title,
+            company: companyName ?? undefined,
+            location: sharedJob!.location,
+            type: sharedJob!.type,
+          }
+        : undefined
+
+      const body =
+        hasAttachment || hasSharedJob
+          ? encodeChatBody({
+              text,
+              attachments: pendingAttachment ? [pendingAttachment] : [],
+              ...(jobSharePayload ? { job_share: jobSharePayload } : {}),
+            })
+          : text
       const msg = await sendMessageApi(selectedConversationId, recruiterId, body)
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
       setPendingAttachment(null)
+      setPendingSharedJobId('')
     } catch (err) {
       setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
@@ -895,6 +926,19 @@ export default function RecruiterDashboard() {
                                     </div>
                                   </div>
                                 )}
+                                {parsed.job_share && (
+                                  <div className="thread-jobshare-card" role="group" aria-label="Shared job">
+                                    <div className="thread-jobshare-title">
+                                      <Briefcase size={16} />
+                                      {parsed.job_share.title}
+                                    </div>
+                                    <div className="thread-jobshare-meta">
+                                      {parsed.job_share.company && <span>{parsed.job_share.company}</span>}
+                                      {parsed.job_share.location && <span>{parsed.job_share.location}</span>}
+                                      {parsed.job_share.type && <span>{parsed.job_share.type}</span>}
+                                    </div>
+                                  </div>
+                                )}
                                 {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
                                 {parsed.attachments.length > 0 && (
                                   <div className="thread-attachments">
@@ -926,6 +970,34 @@ export default function RecruiterDashboard() {
                         {sendError}
                       </div>
                     )}
+                    {!!pendingSharedJobId && (
+                      <div className="thread-pending-attachment" aria-live="polite">
+                        <div className="thread-jobshare-pill">
+                          <Briefcase size={14} />
+                          <span style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Sharing</span>
+                          <select
+                            className="thread-jobshare-select"
+                            value={pendingSharedJobId}
+                            onChange={(e) => setPendingSharedJobId(e.target.value)}
+                            aria-label="Select job to share"
+                          >
+                            {companyJobs.map((j) => (
+                              <option key={j.id} value={j.id}>
+                                {j.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          className="thread-attachment-remove"
+                          onClick={() => setPendingSharedJobId('')}
+                          aria-label="Remove shared job"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
                     {(pendingAttachment || attachmentUploading) && (
                       <div className="thread-pending-attachment" aria-live="polite">
                         <div className="thread-attachment-pill">
@@ -954,6 +1026,14 @@ export default function RecruiterDashboard() {
                       }}
                     >
                       <div className="thread-compose-icons">
+                        <button
+                          type="button"
+                          className="thread-compose-icon"
+                          aria-label="Share job"
+                          onClick={handleShareJobClick}
+                        >
+                          <Briefcase size={18} />
+                        </button>
                         <button
                           type="button"
                           className="thread-compose-icon"

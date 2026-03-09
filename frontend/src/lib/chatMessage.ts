@@ -10,28 +10,40 @@ export type ChatApplicationMessage = {
   student_id: string
 }
 
+export type ChatJobShare = {
+  job_id: string
+  title: string
+  company?: string
+  location?: string
+  type?: string
+}
+
 export type ParsedChatBody = {
   text: string
   attachments: ChatAttachment[]
   application?: ChatApplicationMessage
+  job_share?: ChatJobShare
 }
 
 type WireChatBody = {
   v: 1
-  kind?: 'chat' | 'application'
+  kind?: 'chat' | 'application' | 'job_share'
   text?: string
   attachments?: ChatAttachment[]
   application?: ChatApplicationMessage
+  job_share?: ChatJobShare
 }
 
 export function encodeChatBody(input: ParsedChatBody): string {
   const text = (input.text ?? '').trim()
   const attachments = Array.isArray(input.attachments) ? input.attachments : []
   const application = input.application
+  const job_share = input.job_share
 
   const wire: WireChatBody = {
     v: 1,
     ...(application ? { kind: 'application', application } : {}),
+    ...(job_share ? { kind: 'job_share', job_share } : {}),
     ...(text ? { text } : {}),
     ...(attachments.length ? { attachments } : {}),
   }
@@ -73,7 +85,25 @@ export function parseChatBody(raw: string): ParsedChatBody {
         }
       }
 
-      return { text, attachments, ...(application ? { application } : {}) }
+      let job_share: ChatJobShare | undefined
+      if (parsed && typeof parsed.job_share === 'object' && parsed.job_share) {
+        const j = parsed.job_share as Record<string, unknown>
+        const job_id = typeof j.job_id === 'string' ? j.job_id : ''
+        const title = typeof j.title === 'string' ? j.title : ''
+        const company = typeof j.company === 'string' ? j.company : undefined
+        const location = typeof j.location === 'string' ? j.location : undefined
+        const type = typeof j.type === 'string' ? j.type : undefined
+        if (job_id && title) {
+          job_share = { job_id, title, company, location, type }
+        }
+      }
+
+      return {
+        text,
+        attachments,
+        ...(application ? { application } : {}),
+        ...(job_share ? { job_share } : {}),
+      }
     } catch {
       // Fall through to plain text.
     }
@@ -85,6 +115,7 @@ export function parseChatBody(raw: string): ParsedChatBody {
 export function getChatPreview(raw: string): string {
   const parsed = parseChatBody(raw)
   if (parsed.application) return `Message for ${parsed.application.job_title}`
+  if (parsed.job_share) return `Shared job: ${parsed.job_share.title}`
   const text = parsed.text.trim()
   if (text) return text
   if (parsed.attachments.length === 1) return `📎 ${parsed.attachments[0].filename}`
@@ -94,5 +125,9 @@ export function getChatPreview(raw: string): string {
 
 export function encodeApplicationMessage(input: ChatApplicationMessage): string {
   return encodeChatBody({ text: '', attachments: [], application: input })
+}
+
+export function encodeJobShareMessage(input: ChatJobShare, text?: string): string {
+  return encodeChatBody({ text: text ?? '', attachments: [], job_share: input })
 }
 

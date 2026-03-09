@@ -651,6 +651,57 @@ body {
   margin: 0;
 }
 
+.thread-jobshare-card {
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.thread-jobshare-card:hover {
+  background: #f9fafb;
+}
+
+.thread-jobshare-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.thread-jobshare-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.thread-jobshare-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 999px;
+  color: #111827;
+}
+
+.thread-jobshare-select {
+  border: none;
+  background: transparent;
+  color: #111827;
+  font-size: 0.8125rem;
+  max-width: 16rem;
+}
+
 .thread-compose-icons {
   display: flex;
   align-items: center;

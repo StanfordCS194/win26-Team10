@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
@@ -177,6 +177,7 @@ function mapJobRow(row: JobRow): Job {
 }
 
 export default function StudentDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [profile, setProfile] = useState<StudentProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [jobs, setJobs] = useState<Job[]>([])
@@ -284,6 +285,21 @@ export default function StudentDashboard() {
     }
   }
 
+  const openSharedJob = (jobId: string) => {
+    // Switch to Jobs view and expand this job.
+    setViewMode('jobs')
+    setActiveTab('open')
+    setExpandedJob(jobId)
+    // Update URL so refresh keeps it expanded.
+    const next = new URLSearchParams(searchParams)
+    next.set('expandJob', jobId)
+    setSearchParams(next, { replace: true })
+    setTimeout(() => {
+      const el = document.getElementById(`job-${jobId}`)
+      el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 50)
+  }
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
@@ -351,6 +367,22 @@ export default function StudentDashboard() {
     }
     loadData()
   }, [])
+
+  // If a shared job deep-link is present, expand it.
+  useEffect(() => {
+    const jobId = searchParams.get('expandJob')
+    if (!jobId) return
+    setViewMode('jobs')
+    setActiveTab('open')
+    setExpandedJob(jobId)
+    const next = new URLSearchParams(searchParams)
+    next.delete('expandJob')
+    setSearchParams(next, { replace: true })
+    setTimeout(() => {
+      const el = document.getElementById(`job-${jobId}`)
+      el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 50)
+  }, [searchParams, setSearchParams])
 
   // Keep conversations + previews loaded so the inbox badge reflects unread state.
   useEffect(() => {
@@ -801,6 +833,7 @@ export default function StudentDashboard() {
                 return (
                   <div
                     key={job.id}
+                    id={`job-${job.id}`}
                     className={`job-card-compact ${isExpanded ? 'expanded' : ''} ${hasApplied ? 'job-applied' : ''}`}
                   >
                     <div className="job-card-row" onClick={() => toggleExpanded(job.id)}>
@@ -1275,6 +1308,24 @@ export default function StudentDashboard() {
                                     </div>
                                   </div>
                                 )}
+                              {parsed.job_share && (
+                                <button
+                                  type="button"
+                                  className="thread-jobshare-card"
+                                  onClick={() => openSharedJob(parsed.job_share!.job_id)}
+                                  aria-label={`Open job ${parsed.job_share.title}`}
+                                >
+                                  <div className="thread-jobshare-title">
+                                    <Briefcase size={16} />
+                                    {parsed.job_share.title}
+                                  </div>
+                                  <div className="thread-jobshare-meta">
+                                    {parsed.job_share.company && <span>{parsed.job_share.company}</span>}
+                                    {parsed.job_share.location && <span>{parsed.job_share.location}</span>}
+                                    {parsed.job_share.type && <span>{parsed.job_share.type}</span>}
+                                  </div>
+                                </button>
+                              )}
                                 {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
                                 {parsed.attachments.length > 0 && (
                                   <div className="thread-attachments">
