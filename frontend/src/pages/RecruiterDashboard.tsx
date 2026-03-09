@@ -261,7 +261,16 @@ export default function RecruiterDashboard() {
 
         if (applicantsError) throw applicantsError
 
-        const mappedStudents = ((applicants || []) as ApplicantRow[]).map(mapApplicantToStudent)
+        const { data: studentUsers, error: studentUsersError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('type', 'student')
+
+        if (studentUsersError) throw studentUsersError
+
+        const studentUserIds = new Set((studentUsers || []).map((u: { id: string }) => u.id))
+        const filteredApplicants = ((applicants || []) as ApplicantRow[]).filter(a => studentUserIds.has(a.id))
+        const mappedStudents = filteredApplicants.map(mapApplicantToStudent)
 
         setDirectoryStudents(mergeWithMockStudents(mappedStudents))
       } catch (err: unknown) {
