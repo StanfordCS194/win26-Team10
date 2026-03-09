@@ -160,6 +160,7 @@ export default function RecruiterDashboard() {
   const [viewMode, setViewMode] = useState<'directory' | 'messages'>('directory')
   const [recruiterId, setRecruiterId] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
+  const [inboxCount, setInboxCount] = useState<number>(0)
   const [studentNames, setStudentNames] = useState<Record<string, string>>({})
   const [latestMessages, setLatestMessages] = useState<Record<string, Message>>({})
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
@@ -188,6 +189,32 @@ export default function RecruiterDashboard() {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
   const [companyJobsLoading, setCompanyJobsLoading] = useState(true)
   const [companyJobsError, setCompanyJobsError] = useState('')
+
+  // Keep inbox badge populated even before entering Messages view.
+  useEffect(() => {
+    if (!recruiterId) {
+      setInboxCount(0)
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      const { error, count } = await supabase
+        .from('conversations')
+        .select('id', { count: 'exact', head: true })
+        .or(`recruiter_id.eq.${recruiterId},student_id.eq.${recruiterId}`)
+      if (cancelled) return
+      if (error) {
+        console.error('Failed to load inbox count', error)
+        setInboxCount(0)
+        return
+      }
+      setInboxCount(count ?? 0)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [recruiterId])
+
   const handleAttachFileClick = () => {
     const input = document.createElement('input')
     input.type = 'file'
@@ -393,6 +420,7 @@ export default function RecruiterDashboard() {
       .then((list) => {
         if (cancelled) return
         setConversations(list)
+        setInboxCount(list.length)
         const ids = list.map((c) => c.id)
         return getLatestMessagePerConversation(ids)
       })
@@ -555,6 +583,11 @@ export default function RecruiterDashboard() {
             >
               <MessageSquare size={18} />
               Messages
+              {inboxCount > 0 && (
+                <span className="messages-badge">
+                  {inboxCount > 10 ? '10+' : inboxCount}
+                </span>
+              )}
             </button>
           </div>
           {viewMode === 'directory' && (
