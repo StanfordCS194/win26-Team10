@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip, AlertTriangle } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { User, GraduationCap, Briefcase, Building2, DollarSign, Clock, ChevronRight, CheckCircle, ChevronDown, MapPin, Search, X, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatSalaryForDisplay } from '../lib/salary'
 import { useApplyModal } from '../contexts/ApplyModalContext'
 import { getMyConversations, getMessages, sendMessage as sendMessageApi, getLatestMessagePerConversation, subscribeToNewMessages } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
+import type { ChatAttachment } from '../lib/chatMessage'
+import { encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 interface StudentProfile {
   firstName: string
@@ -174,6 +178,7 @@ function mapJobRow(row: JobRow): Job {
 }
 
 export default function StudentDashboard() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [profile, setProfile] = useState<StudentProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [jobs, setJobs] = useState<Job[]>([])
@@ -195,11 +200,106 @@ export default function StudentDashboard() {
   const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [threadLoading, setThreadLoading] = useState(false)
   const [messageDraft, setMessageDraft] = useState('')
+  const [pendingAttachment, setPendingAttachment] = useState<ChatAttachment | null>(null)
+  const [attachmentUploading, setAttachmentUploading] = useState(false)
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [viewMode, setViewMode] = useState<'jobs' | 'inbox'>('jobs')
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
+  const unreadCount = useMemo(() => {
+    if (!studentId) return 0
+    let count = 0
+    for (const c of conversations) {
+      const latest = latestMessages[c.id]
+      if (!latest) continue
+      const parsedLatest = parseChatBody(latest.body)
+      if (parsedLatest.application && parsedLatest.application.student_id === studentId) {
+        // Application message originally authored by this student; don't count as unread.
+        continue
+      }
+      if (latest.sender_id === studentId) continue
+      const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
+      const latestAt = latest.created_at ? new Date(latest.created_at).getTime() : 0
+      if (latestAt > lastRead) count += 1
+    }
+    return count
+  }, [conversations, latestMessages, studentId])
+
+  const handleAttachFileClick = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.doc,.docx'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) {
+          alert('You must be logged in to attach files.')
+          return
+        }
+        setAttachmentUploading(true)
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch(`${API_BASE}/chat/attachments`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || 'Failed to upload attachment')
+        }
+        const payload = await res.json() as { storage_path: string; filename: string }
+        setPendingAttachment({ filename: payload.filename, storage_path: payload.storage_path })
+      } catch (err) {
+        console.error('Failed to attach file', err)
+        alert('Failed to attach file. Please try again.')
+      } finally {
+        setAttachmentUploading(false)
+      }
+    }
+    input.click()
+  }
+
+  const openAttachment = async (attachment: ChatAttachment) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        alert('You must be logged in to open attachments.')
+        return
+      }
+      const res = await fetch(`${API_BASE}/chat/attachments/${encodeURIComponent(attachment.storage_path).replace(/%2F/g, '/')}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
+    } catch (err) {
+      console.error('Failed to open attachment', err)
+      alert('Failed to open attachment.')
+    }
+  }
+
+  const openSharedJob = (jobId: string) => {
+    // Switch to Jobs view and expand this job.
+    setViewMode('jobs')
+    setActiveTab('open')
+    setExpandedJob(jobId)
+    // Update URL so refresh keeps it expanded.
+    const next = new URLSearchParams(searchParams)
+    next.set('expandJob', jobId)
+    setSearchParams(next, { replace: true })
+    setTimeout(() => {
+      const el = document.getElementById(`job-${jobId}`)
+      el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 50)
+  }
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -207,6 +307,7 @@ export default function StudentDashboard() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [minPay, setMinPay] = useState('')
   const [showMatchOnly, setShowMatchOnly] = useState(false)
+  const [recruiterCompanyNames, setRecruiterCompanyNames] = useState<Record<string, string>>({})
   const [companySearchQuery, setCompanySearchQuery] = useState('')
 
   useEffect(() => {
@@ -269,6 +370,98 @@ export default function StudentDashboard() {
     }
     loadData()
   }, [])
+
+  // If a shared job deep-link is present, expand it.
+  useEffect(() => {
+    const jobId = searchParams.get('expandJob')
+    if (!jobId) return
+    setViewMode('jobs')
+    setActiveTab('open')
+    setExpandedJob(jobId)
+    const next = new URLSearchParams(searchParams)
+    next.delete('expandJob')
+    setSearchParams(next, { replace: true })
+    setTimeout(() => {
+      const el = document.getElementById(`job-${jobId}`)
+      el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 50)
+  }, [searchParams, setSearchParams])
+
+  // Keep conversations + previews loaded so the inbox badge reflects unread state.
+  useEffect(() => {
+    if (!studentId) return
+    let cancelled = false
+    setConversationsLoading(true)
+    getMyConversations(studentId)
+      .then((list) => {
+        if (cancelled) return
+        setConversations(list)
+        return getLatestMessagePerConversation(list.map((c) => c.id))
+      })
+      .then((latest) => {
+        if (cancelled) return
+        setLatestMessages(latest ?? {})
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load conversations', err)
+      })
+      .finally(() => {
+        if (!cancelled) setConversationsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [studentId])
+
+  // Resolve recruiter/company display names for inbox list and thread header.
+  useEffect(() => {
+    if (conversations.length === 0) {
+      setRecruiterCompanyNames({})
+      return
+    }
+    const recruiterIds = [...new Set(conversations.map((c) => c.recruiter_id).filter(Boolean))]
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) return
+        const res = await fetch(`${API_BASE}/recruiters/company_names`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ recruiter_ids: recruiterIds }),
+        })
+        if (!res.ok) throw new Error(await res.text())
+        const data = (await res.json()) as Record<string, string>
+        if (!cancelled) setRecruiterCompanyNames(data ?? {})
+      } catch (err) {
+        if (!cancelled) console.error('Failed to load recruiter company names', err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [conversations])
+
+  // Mark conversation as read when opened.
+  useEffect(() => {
+    if (!selectedConversationId || !studentId) return
+    const now = new Date().toISOString()
+    supabase
+      .from('conversations')
+      .update({ student_last_read_at: now })
+      .eq('id', selectedConversationId)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Failed to mark conversation read', error)
+          return
+        }
+        setConversations((prev) =>
+          prev.map((c) => (c.id === selectedConversationId ? { ...c, student_last_read_at: now } : c))
+        )
+      })
+  }, [selectedConversationId, studentId])
 
   const openApplyModal = (job: Job, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -441,12 +634,19 @@ export default function StudentDashboard() {
   }, [selectedConversationId])
 
   const handleSendMessage = async () => {
-    if (!selectedConversationId || !studentId || !messageDraft.trim()) return
+    if (!selectedConversationId || !studentId) return
+    const text = messageDraft.trim()
+    const hasAttachment = !!pendingAttachment
+    if (!text && !hasAttachment) return
     setSendError(null)
     try {
-      const msg = await sendMessageApi(selectedConversationId, studentId, messageDraft.trim())
+      const body = hasAttachment
+        ? encodeChatBody({ text, attachments: pendingAttachment ? [pendingAttachment] : [] })
+        : text
+      const msg = await sendMessageApi(selectedConversationId, studentId, body)
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
+      setPendingAttachment(null)
     } catch (err) {
       setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
@@ -533,8 +733,8 @@ export default function StudentDashboard() {
             >
               <MessageSquare size={18} />
               Inbox
-              {conversations.length > 0 && (
-                <span className="messages-badge">{conversations.length}</span>
+              {unreadCount > 0 && (
+                <span className="messages-badge">{unreadCount > 10 ? '10+' : unreadCount}</span>
               )}
             </button>
           </div>
@@ -728,6 +928,7 @@ export default function StudentDashboard() {
                 return (
                   <div
                     key={job.id}
+                    id={`job-${job.id}`}
                     className={`job-card-compact ${isExpanded ? 'expanded' : ''} ${hasApplied ? 'job-applied' : ''}`}
                   >
                     <div className="job-card-row" onClick={() => toggleExpanded(job.id)}>
@@ -1090,7 +1291,20 @@ export default function StudentDashboard() {
                 ) : (
                   conversations.map((c) => {
                     const latest = latestMessages[c.id]
-                    const isUnread = latest && latest.sender_id !== studentId
+                    const lastRead = c.student_last_read_at ? new Date(c.student_last_read_at).getTime() : 0
+                    const latestAt = latest?.created_at ? new Date(latest.created_at).getTime() : 0
+                    const parsedLatest = latest ? parseChatBody(latest.body) : null
+                    const isUnread =
+                      !!latest &&
+                      latestAt > lastRead &&
+                      !(
+                        parsedLatest?.application &&
+                        studentId &&
+                        parsedLatest.application.student_id === studentId
+                      ) &&
+                      latest.sender_id !== studentId
+                    const company = recruiterCompanyNames[c.recruiter_id]
+                    const name = company ? `Recruiter from ${company}` : 'Recruiter'
                     return (
                       <button
                         key={c.id}
@@ -1101,11 +1315,11 @@ export default function StudentDashboard() {
                         {isUnread && <span className="unread-dot" aria-hidden />}
                         <span className="conversation-avatar" aria-hidden>R</span>
                         <div className="conversation-row-content">
-                          <span className="conversation-name">Recruiter</span>
+                          <span className="conversation-name">{name}</span>
                           {latest && (
                             <span className="conversation-preview">
-                              {latest.body.slice(0, 40)}
-                              {latest.body.length > 40 ? '…' : ''}
+                              {getChatPreview(latest.body).slice(0, 40)}
+                              {getChatPreview(latest.body).length > 40 ? '…' : ''}
                             </span>
                           )}
                         </div>
@@ -1136,8 +1350,16 @@ export default function StudentDashboard() {
                         <ChevronLeft size={20} />
                       </button>
                       <div className="thread-header-info">
-                        <span className="thread-title">Recruiter</span>
-                        <span className="thread-subtitle">Recruiter</span>
+                        {(() => {
+                          const convo = conversations.find((c) => c.id === selectedConversationId)
+                          const company = convo ? recruiterCompanyNames[convo.recruiter_id] : undefined
+                          const title = company ? `Recruiter from ${company}` : 'Recruiter'
+                          return (
+                            <>
+                              <span className="thread-title">{title}</span>
+                            </>
+                          )
+                        })()}
                       </div>
                     </div>
                     <div className="thread-messages">
@@ -1167,23 +1389,97 @@ export default function StudentDashboard() {
                           Loading messages...
                         </div>
                       ) : (
-                        threadMessages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`thread-message ${m.sender_id === studentId ? 'sent' : 'received'}`}
-                          >
-                            <p className="thread-message-body">{m.body}</p>
-                            <span className="thread-message-time">
-                              {new Date(m.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                        ))
+                        threadMessages.map((m) => {
+                          const parsed = parseChatBody(m.body)
+                          const isApplication = !!parsed.application
+                          // Application message is authored by the student; render as sent for that student.
+                          const isSentByStudent =
+                            (isApplication && parsed.application?.student_id === studentId) ||
+                            (!isApplication && m.sender_id === studentId)
+
+                          return (
+                            <div
+                              key={m.id}
+                              className={`thread-message ${isSentByStudent ? 'sent' : 'received'}`}
+                            >
+                              <div className="thread-message-body">
+                                {parsed.application && (
+                                  <div className="thread-pinned">
+                                    <div className="thread-pinned-title">
+                                      Message for job {parsed.application.job_title}:
+                                    </div>
+                                    <div className="thread-pinned-body">
+                                      {parsed.application.message}
+                                    </div>
+                                  </div>
+                                )}
+                              {parsed.job_share && (
+                                <button
+                                  type="button"
+                                  className="thread-jobshare-card"
+                                  onClick={() => openSharedJob(parsed.job_share!.job_id)}
+                                  aria-label={`Open job ${parsed.job_share.title}`}
+                                >
+                                  <div className="thread-jobshare-title">
+                                    <Briefcase size={16} />
+                                    {parsed.job_share.title}
+                                  </div>
+                                  <div className="thread-jobshare-meta">
+                                    {parsed.job_share.company && <span>{parsed.job_share.company}</span>}
+                                    {parsed.job_share.location && <span>{parsed.job_share.location}</span>}
+                                    {parsed.job_share.type && <span>{parsed.job_share.type}</span>}
+                                  </div>
+                                </button>
+                              )}
+                                {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
+                                {parsed.attachments.length > 0 && (
+                                  <div className="thread-attachments">
+                                    {parsed.attachments.map((a) => (
+                                      <button
+                                        key={`${a.storage_path}:${a.filename}`}
+                                        type="button"
+                                        className="thread-attachment-pill"
+                                        onClick={() => openAttachment(a)}
+                                      >
+                                        <Paperclip size={14} />
+                                        <span className="thread-attachment-name">{a.filename}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="thread-message-time">
+                                {new Date(m.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          )
+                        })
                       )}
                     </div>
                     {sendError && (
                       <div className="messages-send-error" role="alert">
                         <AlertCircle size={16} />
                         {sendError}
+                      </div>
+                    )}
+                    {(pendingAttachment || attachmentUploading) && (
+                      <div className="thread-pending-attachment" aria-live="polite">
+                        <div className="thread-attachment-pill">
+                          <Paperclip size={14} />
+                          <span className="thread-attachment-name">
+                            {attachmentUploading ? 'Uploading…' : pendingAttachment?.filename}
+                          </span>
+                        </div>
+                        {!attachmentUploading && pendingAttachment && (
+                          <button
+                            type="button"
+                            className="thread-attachment-remove"
+                            onClick={() => setPendingAttachment(null)}
+                            aria-label="Remove attachment"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
                     )}
                     <form
@@ -1194,10 +1490,13 @@ export default function StudentDashboard() {
                       }}
                     >
                       <div className="thread-compose-icons">
-                        <button type="button" className="thread-compose-icon" aria-label="Format" disabled>
-                          <Type size={18} />
-                        </button>
-                        <button type="button" className="thread-compose-icon" aria-label="Attach" disabled>
+                        <button
+                          type="button"
+                          className="thread-compose-icon"
+                          aria-label="Attach file"
+                          onClick={handleAttachFileClick}
+                          disabled={attachmentUploading}
+                        >
                           <Paperclip size={18} />
                         </button>
                       </div>

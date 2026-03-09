@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
-import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip } from 'lucide-react'
+import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip, Briefcase } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
@@ -16,6 +16,8 @@ import {
   subscribeToNewMessages,
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
+import type { ChatAttachment, ChatJobShare } from '../lib/chatMessage'
+import { encodeApplicationMessage, encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 const POST_JOB_OPEN_KEY = 'postJobModalOpen'
@@ -167,15 +169,31 @@ export default function RecruiterDashboard() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [studentNames, setStudentNames] = useState<Record<string, string>>({})
   const [latestMessages, setLatestMessages] = useState<Record<string, Message>>({})
+  const unreadCount = useMemo(() => {
+    if (!recruiterId) return 0
+    let count = 0
+    for (const c of conversations) {
+      const latest = latestMessages[c.id]
+      if (!latest) continue
+      // Application messages are inserted by recruiter; they should not count as unread for recruiter anyway.
+      if (latest.sender_id === recruiterId) continue
+      const lastRead = c.recruiter_last_read_at ? new Date(c.recruiter_last_read_at).getTime() : 0
+      const latestAt = latest.created_at ? new Date(latest.created_at).getTime() : 0
+      if (latestAt > lastRead) count += 1
+    }
+    return count
+  }, [conversations, latestMessages, recruiterId])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [threadLoading, setThreadLoading] = useState(false)
   const [messageDraft, setMessageDraft] = useState('')
+  const [pendingAttachment, setPendingAttachment] = useState<ChatAttachment | null>(null)
+  const [attachmentUploading, setAttachmentUploading] = useState(false)
+  const [pendingSharedJobId, setPendingSharedJobId] = useState<string>('')
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'archived'>('all')
-
   const [showPostJob, setShowPostJob] = useState(
     () => sessionStorage.getItem(POST_JOB_OPEN_KEY) === 'true'
   )
@@ -191,6 +209,168 @@ export default function RecruiterDashboard() {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
   const [companyJobsLoading, setCompanyJobsLoading] = useState(true)
   const [companyJobsError, setCompanyJobsError] = useState('')
+
+  // Keep conversations + previews loaded so the Messages badge reflects unread state.
+  useEffect(() => {
+    if (!recruiterId) return
+    let cancelled = false
+    setConversationsLoading(true)
+    getMyConversations(recruiterId)
+      .then((list) => {
+        if (cancelled) return
+        setConversations(list)
+        return getLatestMessagePerConversation(list.map((c) => c.id))
+      })
+      .then((latest) => {
+        if (cancelled) return
+        setLatestMessages(latest ?? {})
+      })
+      .catch((err) => {
+        if (!cancelled) console.error('Failed to load conversations', err)
+      })
+      .finally(() => {
+        if (!cancelled) setConversationsLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [recruiterId])
+
+  // Mark conversation as read when opened.
+  useEffect(() => {
+    if (!selectedConversationId || !recruiterId) return
+    const now = new Date().toISOString()
+    supabase
+      .from('conversations')
+      .update({ recruiter_last_read_at: now })
+      .eq('id', selectedConversationId)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Failed to mark conversation read', error)
+          return
+        }
+        setConversations((prev) =>
+          prev.map((c) => (c.id === selectedConversationId ? { ...c, recruiter_last_read_at: now } : c))
+        )
+      })
+  }, [selectedConversationId, recruiterId])
+
+  // If the student applied to the selected job with a message, insert it into chat history once.
+  useEffect(() => {
+    if (!selectedConversationId || !recruiterId || !selectedJobId) return
+    const convo = conversations.find((c) => c.id === selectedConversationId)
+    if (!convo) return
+    const detail = applicationDetailsMap.get(convo.student_id)
+    const msg = detail?.message_to_recruiter?.trim()
+    const jobTitle = (companyJobs.find((j) => j.id === selectedJobId)?.title ?? '').trim()
+    if (!msg || !jobTitle) return
+
+    const body = encodeApplicationMessage({
+      job_id: selectedJobId,
+      job_title: jobTitle,
+      message: msg,
+      student_id: convo.student_id,
+    })
+
+    let cancelled = false
+    ;(async () => {
+      const { data: existing, error: checkErr } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('conversation_id', selectedConversationId)
+        .eq('body', body)
+        .limit(1)
+        .maybeSingle()
+
+      if (cancelled) return
+      if (checkErr) {
+        console.error('Failed to check application message', checkErr)
+        return
+      }
+      if (existing) return
+
+      try {
+        const inserted = await sendMessageApi(selectedConversationId, recruiterId, body)
+        setLatestMessages((prev) => ({ ...prev, [selectedConversationId]: inserted }))
+      } catch (err) {
+        console.error('Failed to insert application message into chat', err)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [applicationDetailsMap, companyJobs, conversations, recruiterId, selectedConversationId, selectedJobId])
+
+  const handleAttachFileClick = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.doc,.docx'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) {
+          alert('You must be logged in to attach files.')
+          return
+        }
+        setAttachmentUploading(true)
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch(`${API_BASE}/chat/attachments`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || 'Failed to upload attachment')
+        }
+        const payload = await res.json() as { storage_path: string; filename: string }
+        setPendingAttachment({ filename: payload.filename, storage_path: payload.storage_path })
+      } catch (err) {
+        console.error('Failed to attach file', err)
+        alert('Failed to attach file. Please try again.')
+      } finally {
+        setAttachmentUploading(false)
+      }
+    }
+    input.click()
+  }
+
+  const handleShareJobClick = () => {
+    if (companyJobs.length === 0) {
+      alert('No jobs to share yet. Post a job first.')
+      return
+    }
+    const defaultId =
+      selectedJobId && companyJobs.some((j) => j.id === selectedJobId)
+        ? selectedJobId
+        : companyJobs[0].id
+    setPendingSharedJobId((prev) => prev || defaultId)
+  }
+
+  const openAttachment = async (attachment: ChatAttachment) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        alert('You must be logged in to open attachments.')
+        return
+      }
+      const res = await fetch(`${API_BASE}/chat/attachments/${encodeURIComponent(attachment.storage_path).replace(/%2F/g, '/')}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
+    } catch (err) {
+      console.error('Failed to open attachment', err)
+      alert('Failed to open attachment.')
+    }
+  }
 
   // When openConversationId is set (from StudentCard or URL), switch to Messages and select it
   useEffect(() => {
@@ -325,30 +505,7 @@ export default function RecruiterDashboard() {
     loadApplicationsForSelectedJob()
   }, [selectedJobId])
 
-  // Load conversations and previews when in Messages view
-  useEffect(() => {
-    if (viewMode !== 'messages' || !recruiterId) return
-    let cancelled = false
-    setConversationsLoading(true)
-    getMyConversations(recruiterId)
-      .then((list) => {
-        if (cancelled) return
-        setConversations(list)
-        const ids = list.map((c) => c.id)
-        return getLatestMessagePerConversation(ids)
-      })
-      .then((latest) => {
-        if (cancelled) return
-        setLatestMessages(latest ?? {})
-      })
-      .catch((err) => {
-        if (!cancelled) console.error('Failed to load conversations', err)
-      })
-      .finally(() => {
-        if (!cancelled) setConversationsLoading(false)
-      })
-    return () => { cancelled = true }
-  }, [viewMode, recruiterId])
+  // Conversations and previews are loaded whenever recruiterId is known (so badge stays live).
 
   // Load student names for conversation list (recruiter sees students)
   useEffect(() => {
@@ -413,12 +570,37 @@ export default function RecruiterDashboard() {
   }, [selectedConversationId])
 
   const handleSendMessage = async () => {
-    if (!selectedConversationId || !recruiterId || !messageDraft.trim()) return
+    if (!selectedConversationId || !recruiterId) return
+    const text = messageDraft.trim()
+    const hasAttachment = !!pendingAttachment
+    const sharedJob = companyJobs.find((j) => j.id === pendingSharedJobId) ?? null
+    const hasSharedJob = !!sharedJob
+    if (!text && !hasAttachment && !hasSharedJob) return
     setSendError(null)
     try {
-      const msg = await sendMessageApi(selectedConversationId, recruiterId, messageDraft.trim())
+      const jobSharePayload: ChatJobShare | undefined = hasSharedJob
+        ? {
+            job_id: sharedJob!.id,
+            title: sharedJob!.title,
+            company: companyName ?? undefined,
+            location: sharedJob!.location,
+            type: sharedJob!.type,
+          }
+        : undefined
+
+      const body =
+        hasAttachment || hasSharedJob
+          ? encodeChatBody({
+              text,
+              attachments: pendingAttachment ? [pendingAttachment] : [],
+              ...(jobSharePayload ? { job_share: jobSharePayload } : {}),
+            })
+          : text
+      const msg = await sendMessageApi(selectedConversationId, recruiterId, body)
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
+      setPendingAttachment(null)
+      setPendingSharedJobId('')
     } catch (err) {
       setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
@@ -489,6 +671,11 @@ export default function RecruiterDashboard() {
             >
               <MessageSquare size={18} />
               Messages
+              {unreadCount > 0 && (
+                <span className="messages-badge">
+                  {unreadCount > 10 ? '10+' : unreadCount}
+                </span>
+              )}
             </button>
           </div>
           {viewMode === 'directory' && (
@@ -596,6 +783,7 @@ export default function RecruiterDashboard() {
               hasSelectedJob={hasSelectedJob}
               isRecruiter
               onOpenConversation={setOpenConversationId}
+              selectedJobTitle={selectedJob?.title ?? ''}
             />
           </>
         )}
@@ -640,13 +828,17 @@ export default function RecruiterDashboard() {
                     const name = studentNames[c.student_id] ?? 'Student'
                     const initials = name === 'Student' ? 'S' : name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
                     const latest = latestMessages[c.id]
-                    const isUnread = latest && latest.sender_id !== recruiterId
+                    const lastRead = c.recruiter_last_read_at ? new Date(c.recruiter_last_read_at).getTime() : 0
+                    const latestAt = latest?.created_at ? new Date(latest.created_at).getTime() : 0
+                    const isUnread = !!latest && latest.sender_id !== recruiterId && latestAt > lastRead
                     return (
                       <button
                         key={c.id}
                         type="button"
                         className={`conversation-row ${selectedConversationId === c.id ? 'selected' : ''} ${isUnread ? 'has-unread' : ''}`}
-                        onClick={() => setSelectedConversationId(c.id)}
+                        onClick={() => {
+                          setSelectedConversationId(c.id)
+                        }}
                       >
                         {isUnread && <span className="unread-dot" aria-hidden />}
                         <span className="conversation-avatar" aria-hidden>{initials}</span>
@@ -654,8 +846,8 @@ export default function RecruiterDashboard() {
                           <span className="conversation-name">{name}</span>
                           {latest && (
                             <span className="conversation-preview">
-                              {latest.body.slice(0, 40)}
-                              {latest.body.length > 40 ? '…' : ''}
+                              {getChatPreview(latest.body).slice(0, 40)}
+                              {getChatPreview(latest.body).length > 40 ? '…' : ''}
                             </span>
                           )}
                         </div>
@@ -717,23 +909,117 @@ export default function RecruiterDashboard() {
                           Loading messages...
                         </div>
                       ) : (
-                        threadMessages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`thread-message ${m.sender_id === recruiterId ? 'sent' : 'received'}`}
-                          >
-                            <p className="thread-message-body">{m.body}</p>
-                            <span className="thread-message-time">
-                              {new Date(m.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                        ))
+                        threadMessages.map((m) => {
+                          const parsed = parseChatBody(m.body)
+                          const isApplication = !!parsed.application
+                          // Application message is authored by the student; render as received for recruiter.
+                          const isSentByRecruiter = !isApplication && m.sender_id === recruiterId
+                          return (
+                            <div
+                              key={m.id}
+                              className={`thread-message ${isSentByRecruiter ? 'sent' : 'received'}`}
+                            >
+                              <div className="thread-message-body">
+                                {parsed.application && (
+                                  <div className="thread-pinned">
+                                    <div className="thread-pinned-title">
+                                      Message for job {parsed.application.job_title}:
+                                    </div>
+                                    <div className="thread-pinned-body">
+                                      {parsed.application.message}
+                                    </div>
+                                  </div>
+                                )}
+                                {parsed.job_share && (
+                                  <div className="thread-jobshare-card" role="group" aria-label="Shared job">
+                                    <div className="thread-jobshare-title">
+                                      <Briefcase size={16} />
+                                      {parsed.job_share.title}
+                                    </div>
+                                    <div className="thread-jobshare-meta">
+                                      {parsed.job_share.company && <span>{parsed.job_share.company}</span>}
+                                      {parsed.job_share.location && <span>{parsed.job_share.location}</span>}
+                                      {parsed.job_share.type && <span>{parsed.job_share.type}</span>}
+                                    </div>
+                                  </div>
+                                )}
+                                {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
+                                {parsed.attachments.length > 0 && (
+                                  <div className="thread-attachments">
+                                    {parsed.attachments.map((a) => (
+                                      <button
+                                        key={`${a.storage_path}:${a.filename}`}
+                                        type="button"
+                                        className="thread-attachment-pill"
+                                        onClick={() => openAttachment(a)}
+                                      >
+                                        <Paperclip size={14} />
+                                        <span className="thread-attachment-name">{a.filename}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="thread-message-time">
+                                {new Date(m.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          )
+                        })
                       )}
                     </div>
                     {sendError && (
                       <div className="messages-send-error" role="alert">
                         <AlertCircle size={16} />
                         {sendError}
+                      </div>
+                    )}
+                    {!!pendingSharedJobId && (
+                      <div className="thread-pending-attachment" aria-live="polite">
+                        <div className="thread-jobshare-pill">
+                          <Briefcase size={14} />
+                          <span style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Sharing</span>
+                          <select
+                            className="thread-jobshare-select"
+                            value={pendingSharedJobId}
+                            onChange={(e) => setPendingSharedJobId(e.target.value)}
+                            aria-label="Select job to share"
+                          >
+                            {companyJobs.map((j) => (
+                              <option key={j.id} value={j.id}>
+                                {j.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          className="thread-attachment-remove"
+                          onClick={() => setPendingSharedJobId('')}
+                          aria-label="Remove shared job"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                    {(pendingAttachment || attachmentUploading) && (
+                      <div className="thread-pending-attachment" aria-live="polite">
+                        <div className="thread-attachment-pill">
+                          <Paperclip size={14} />
+                          <span className="thread-attachment-name">
+                            {attachmentUploading ? 'Uploading…' : pendingAttachment?.filename}
+                          </span>
+                        </div>
+                        {!attachmentUploading && pendingAttachment && (
+                          <button
+                            type="button"
+                            className="thread-attachment-remove"
+                            onClick={() => setPendingAttachment(null)}
+                            aria-label="Remove attachment"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
                     )}
                     <form
@@ -744,10 +1030,21 @@ export default function RecruiterDashboard() {
                       }}
                     >
                       <div className="thread-compose-icons">
-                        <button type="button" className="thread-compose-icon" aria-label="Format" disabled>
-                          <Type size={18} />
+                        <button
+                          type="button"
+                          className="thread-compose-icon"
+                          aria-label="Share job"
+                          onClick={handleShareJobClick}
+                        >
+                          <Briefcase size={18} />
                         </button>
-                        <button type="button" className="thread-compose-icon" aria-label="Attach" disabled>
+                        <button
+                          type="button"
+                          className="thread-compose-icon"
+                          aria-label="Attach file"
+                          onClick={handleAttachFileClick}
+                          disabled={attachmentUploading}
+                        >
                           <Paperclip size={18} />
                         </button>
                       </div>

@@ -20,6 +20,7 @@ from api.supabase import (
     get_job_status,
     get_user,
     get_all_users,
+    get_client,
     update_applicant,
     update_user_latest_repr,
     upload_bytes,
@@ -94,6 +95,10 @@ class ApplicantProfile(BaseModel):
     resume_path: Optional[str] = None
     latest_report_path: Optional[str] = None
     is_complete: Optional[bool] = None
+
+
+class RecruiterCompanyNamesRequest(BaseModel):
+    recruiter_ids: list[str]
 
 
 # =============================================================================
@@ -538,3 +543,127 @@ async def upload_resume(
     await update_applicant(user_id, {"resume_path": storage_path})
     
     return {"resume_path": storage_path, "message": "Resume uploaded successfully"}
+
+
+@app.post("/recruiters/company_names")
+async def get_recruiter_company_names(
+    payload: RecruiterCompanyNamesRequest,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Given recruiter user IDs, return a mapping to their approved company name.
+
+    This uses the service-role Supabase client so students can display
+    "Recruiter from <Company>" in the inbox UI.
+    """
+    recruiter_ids = [rid for rid in (payload.recruiter_ids or []) if isinstance(rid, str) and rid]
+    if not recruiter_ids:
+        return {}
+
+    client = get_client()
+
+    memberships = (
+        client.table("company_memberships")
+        .select("user_id, company_id, status")
+        .in_("user_id", recruiter_ids)
+        .eq("status", "approved")
+        .execute()
+    ).data or []
+
+    company_ids = list({m.get("company_id") for m in memberships if m.get("company_id")})
+    companies = {}
+    if company_ids:
+        rows = (
+            client.table("companies")
+            .select("id, name")
+            .in_("id", company_ids)
+            .execute()
+        ).data or []
+        companies = {r.get("id"): r.get("name") for r in rows if r.get("id") and r.get("name")}
+
+    out: dict[str, str] = {}
+    for m in memberships:
+        uid = m.get("user_id")
+        cid = m.get("company_id")
+        if uid and cid and cid in companies:
+            out[str(uid)] = str(companies[cid])
+    return out
+
+
+@app.post("/chat/attachments")
+async def upload_chat_attachment(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """
+    Upload a generic chat attachment for the current user.
+
+    The file is stored in Supabase Storage under:
+      {user_id}/chat/{timestamp}_{original_filename}
+
+    Returns storage_path and original filename, which the frontend can
+    embed in a message as a clickable link.
+    """
+    user_id = user["id"]
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+
+    original_name = file.filename
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    ext = original_name.rsplit(".", 1)[-1].lower() if "." in original_name else "bin"
+    timestamp = int(datetime.now().timestamp())
+    safe_name = original_name.replace("/", "_")
+    storage_path = f"{user_id}/chat/{timestamp}_{safe_name}"
+
+    content_type = file.content_type or "application/octet-stream"
+
+    upload_bytes(
+        content=content,
+        dest_path=storage_path,
+        content_type=content_type,
+    )
+
+    return {"storage_path": storage_path, "filename": original_name}
+
+
+@app.get("/chat/attachments/{attachment_path:path}")
+async def get_chat_attachment(
+    attachment_path: str,
+    user: dict = Depends(get_current_user),
+):
+    """
+    Download a previously uploaded chat attachment.
+
+    Any authenticated user can access an attachment link; access control
+    is handled at the application level by only sharing links with
+    conversation participants.
+    """
+    try:
+        content = get_file_bytes(attachment_path)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Attachment not found: {e}",
+        )
+
+    ext = attachment_path.rsplit(".", 1)[-1].lower() if "." in attachment_path else ""
+    if ext == "pdf":
+        content_type = "application/pdf"
+    elif ext in ("doc", "docx"):
+        content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    else:
+        content_type = "application/octet-stream"
+
+    filename = attachment_path.split("/")[-1]
+
+    return Response(
+        content=content,
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+        },
+    )
