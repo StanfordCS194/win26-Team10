@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Link } from 'react-router-dom'
-import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Type, Paperclip } from 'lucide-react'
+import { Users, Plus, CheckCircle, MessageSquare, Send, ChevronLeft, Loader2, AlertCircle, Paperclip } from 'lucide-react'
 import { Filters, Student } from '../types/student'
 import { mockStudents } from '../data/mockStudents'
 import FilterSidebar from '../components/FilterSidebar'
@@ -16,6 +16,8 @@ import {
   subscribeToNewMessages,
 } from '../lib/messaging'
 import type { Conversation, Message } from '../types/messaging'
+import type { ChatAttachment } from '../lib/chatMessage'
+import { encodeChatBody, getChatPreview, parseChatBody } from '../lib/chatMessage'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'https://api-production-d25a.up.railway.app'
 const POST_JOB_OPEN_KEY = 'postJobModalOpen'
@@ -164,6 +166,8 @@ export default function RecruiterDashboard() {
   const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [threadLoading, setThreadLoading] = useState(false)
   const [messageDraft, setMessageDraft] = useState('')
+  const [pendingAttachment, setPendingAttachment] = useState<ChatAttachment | null>(null)
+  const [attachmentUploading, setAttachmentUploading] = useState(false)
   const [conversationsLoading, setConversationsLoading] = useState(false)
   const [threadError, setThreadError] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
@@ -184,6 +188,65 @@ export default function RecruiterDashboard() {
   const [showQualifiedOnly, setShowQualifiedOnly] = useState(false)
   const [companyJobsLoading, setCompanyJobsLoading] = useState(true)
   const [companyJobsError, setCompanyJobsError] = useState('')
+  const handleAttachFileClick = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.doc,.docx'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        if (!token) {
+          alert('You must be logged in to attach files.')
+          return
+        }
+        setAttachmentUploading(true)
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await fetch(`${API_BASE}/chat/attachments`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || 'Failed to upload attachment')
+        }
+        const payload = await res.json() as { storage_path: string; filename: string }
+        setPendingAttachment({ filename: payload.filename, storage_path: payload.storage_path })
+      } catch (err) {
+        console.error('Failed to attach file', err)
+        alert('Failed to attach file. Please try again.')
+      } finally {
+        setAttachmentUploading(false)
+      }
+    }
+    input.click()
+  }
+
+  const openAttachment = async (attachment: ChatAttachment) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        alert('You must be logged in to open attachments.')
+        return
+      }
+      const res = await fetch(`${API_BASE}/chat/attachments/${encodeURIComponent(attachment.storage_path).replace(/%2F/g, '/')}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000)
+    } catch (err) {
+      console.error('Failed to open attachment', err)
+      alert('Failed to open attachment.')
+    }
+  }
 
   // When openConversationId is set (from StudentCard or URL), switch to Messages and select it
   useEffect(() => {
@@ -409,12 +472,19 @@ export default function RecruiterDashboard() {
   }, [selectedConversationId])
 
   const handleSendMessage = async () => {
-    if (!selectedConversationId || !recruiterId || !messageDraft.trim()) return
+    if (!selectedConversationId || !recruiterId) return
+    const text = messageDraft.trim()
+    const hasAttachment = !!pendingAttachment
+    if (!text && !hasAttachment) return
     setSendError(null)
     try {
-      const msg = await sendMessageApi(selectedConversationId, recruiterId, messageDraft.trim())
+      const body = hasAttachment
+        ? encodeChatBody({ text, attachments: pendingAttachment ? [pendingAttachment] : [] })
+        : text
+      const msg = await sendMessageApi(selectedConversationId, recruiterId, body)
       setThreadMessages((prev) => [...prev, msg])
       setMessageDraft('')
+      setPendingAttachment(null)
     } catch (err) {
       setSendError(err instanceof Error ? err.message : 'Failed to send')
     }
@@ -650,8 +720,8 @@ export default function RecruiterDashboard() {
                           <span className="conversation-name">{name}</span>
                           {latest && (
                             <span className="conversation-preview">
-                              {latest.body.slice(0, 40)}
-                              {latest.body.length > 40 ? '…' : ''}
+                              {getChatPreview(latest.body).slice(0, 40)}
+                              {getChatPreview(latest.body).length > 40 ? '…' : ''}
                             </span>
                           )}
                         </div>
@@ -718,7 +788,29 @@ export default function RecruiterDashboard() {
                             key={m.id}
                             className={`thread-message ${m.sender_id === recruiterId ? 'sent' : 'received'}`}
                           >
-                            <p className="thread-message-body">{m.body}</p>
+                            {(() => {
+                              const parsed = parseChatBody(m.body)
+                              return (
+                                <div className="thread-message-body">
+                                  {parsed.text && <p className="thread-message-text">{parsed.text}</p>}
+                                  {parsed.attachments.length > 0 && (
+                                    <div className="thread-attachments">
+                                      {parsed.attachments.map((a) => (
+                                        <button
+                                          key={`${a.storage_path}:${a.filename}`}
+                                          type="button"
+                                          className="thread-attachment-pill"
+                                          onClick={() => openAttachment(a)}
+                                        >
+                                          <Paperclip size={14} />
+                                          <span className="thread-attachment-name">{a.filename}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()}
                             <span className="thread-message-time">
                               {new Date(m.created_at).toLocaleString()}
                             </span>
@@ -732,6 +824,26 @@ export default function RecruiterDashboard() {
                         {sendError}
                       </div>
                     )}
+                    {(pendingAttachment || attachmentUploading) && (
+                      <div className="thread-pending-attachment" aria-live="polite">
+                        <div className="thread-attachment-pill">
+                          <Paperclip size={14} />
+                          <span className="thread-attachment-name">
+                            {attachmentUploading ? 'Uploading…' : pendingAttachment?.filename}
+                          </span>
+                        </div>
+                        {!attachmentUploading && pendingAttachment && (
+                          <button
+                            type="button"
+                            className="thread-attachment-remove"
+                            onClick={() => setPendingAttachment(null)}
+                            aria-label="Remove attachment"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <form
                       className="thread-compose"
                       onSubmit={(e) => {
@@ -740,10 +852,13 @@ export default function RecruiterDashboard() {
                       }}
                     >
                       <div className="thread-compose-icons">
-                        <button type="button" className="thread-compose-icon" aria-label="Format" disabled>
-                          <Type size={18} />
-                        </button>
-                        <button type="button" className="thread-compose-icon" aria-label="Attach" disabled>
+                        <button
+                          type="button"
+                          className="thread-compose-icon"
+                          aria-label="Attach file"
+                          onClick={handleAttachFileClick}
+                          disabled={attachmentUploading}
+                        >
                           <Paperclip size={18} />
                         </button>
                       </div>
