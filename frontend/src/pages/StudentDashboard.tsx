@@ -533,11 +533,6 @@ export default function StudentDashboard() {
               )}
             </button>
           </div>
-          {viewMode === 'jobs' && (
-            <span className="dashboard-subtitle student-dashboard-subtitle">
-              {filteredJobs.length} of {jobs.length} jobs
-            </span>
-          )}
         </div>
 
         {viewMode === 'jobs' && (
