@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Briefcase, ArrowRight, CheckCircle, Mail, Lock, Loader2 } from 'lucide-react'
+import { Briefcase, ArrowRight, CheckCircle, Mail, Lock, Loader2, User, MapPin } from 'lucide-react'
 
 const GoogleIcon = () => (
   <svg
@@ -32,8 +32,12 @@ const GoogleIcon = () => (
 )
 
 export default function SignupRecruiter() {
+  const [step, setStep] = useState<1 | 2>(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
+  const [location, setLocation] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -49,12 +53,20 @@ export default function SignupRecruiter() {
           .select('type')
           .eq('id', session.user.id)
           .maybeSingle()
-        
+
         if (userRow?.type === 'recruiter') {
-          navigate('/recruiter', { replace: true })
-        } else {
-          setCheckingAuth(false)
+          const { data: profileRow } = await supabase
+            .from('recruiter_profiles')
+            .select('user_id')
+            .eq('user_id', session.user.id)
+            .maybeSingle()
+          if (profileRow) {
+            navigate('/recruiter', { replace: true })
+            return
+          }
+          setStep(2)
         }
+        setCheckingAuth(false)
       } else {
         setCheckingAuth(false)
       }
@@ -71,12 +83,20 @@ export default function SignupRecruiter() {
           .select('type')
           .eq('id', session.user.id)
           .maybeSingle()
-        
+
         if (userRow?.type === 'recruiter') {
-          navigate('/recruiter', { replace: true })
-        } else {
-          setCheckingAuth(false)
+          const { data: profileRow } = await supabase
+            .from('recruiter_profiles')
+            .select('user_id')
+            .eq('user_id', session.user.id)
+            .maybeSingle()
+          if (profileRow) {
+            navigate('/recruiter', { replace: true })
+            return
+          }
+          setStep(2)
         }
+        setCheckingAuth(false)
       } else {
         setCheckingAuth(false)
       }
@@ -99,7 +119,6 @@ export default function SignupRecruiter() {
       if (authError) throw authError
       if (!authData.user) throw new Error('Failed to create user account')
 
-      // Trigger creates users row with default type 'student'; set to recruiter
       const { error: updateError } = await supabase
         .from('users')
         .update({ type: 'recruiter' })
@@ -107,10 +126,57 @@ export default function SignupRecruiter() {
 
       if (updateError) throw updateError
 
-      navigate('/recruiter')
+      // If email confirmation is required, signUp may not create a session.
+      // Try to sign in so step 2 can immediately save recruiter_profiles.
+      if (!authData.session) {
+        await supabase.auth.signInWithPassword({ email, password })
+      }
+
+      setStep(2)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred during signup')
       console.error('Signup error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleProfileSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      let { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        // Attempt to sign in (common when email confirmation is disabled but session was lost)
+        await supabase.auth.signInWithPassword({ email, password })
+        ;({ data: { session } } = await supabase.auth.getSession())
+      }
+      if (!session?.user) {
+        throw new Error('Please confirm your email (if required) and log in again to finish creating your recruiter profile.')
+      }
+
+      const { error: profileError } = await supabase
+        .from('recruiter_profiles')
+        .upsert(
+          {
+            user_id: session.user.id,
+            full_name: fullName.trim() || null,
+            job_title: jobTitle.trim() || null,
+            location: location.trim() || null,
+            profile_photo_path: null,
+            specializations: [],
+          },
+          { onConflict: 'user_id' }
+        )
+
+      if (profileError) throw profileError
+
+      navigate('/recruiter')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred saving your profile')
+      console.error('Profile save error:', err)
     } finally {
       setLoading(false)
     }
@@ -158,11 +224,15 @@ export default function SignupRecruiter() {
               <Briefcase size={20} />
               <span>For Recruiters</span>
             </div>
-            <h1 className="auth-info-title">Find Your Next Top Hire</h1>
+            <h1 className="auth-info-title">
+              {step === 1 ? 'Find Your Next Top Hire' : 'Complete Your Profile'}
+            </h1>
             <p className="auth-info-text">
-              Access a curated pool of exceptional student talent ready to make an impact.
+              {step === 1
+                ? 'Access a curated pool of exceptional student talent ready to make an impact.'
+                : 'Add your details so candidates and teams can recognize you.'}
             </p>
-            
+
             <div className="auth-feature-list">
               <div className="auth-feature-item">
                 <CheckCircle size={20} className="text-success" />
@@ -183,87 +253,169 @@ export default function SignupRecruiter() {
         {/* Right Side: Form */}
         <div className="auth-form-side">
           <div className="auth-form-container">
-            <div className="auth-form-header">
-              <h2 className="auth-form-title">Recruiter Registration</h2>
-              <p className="auth-form-subtitle">Hire the best emerging talent today.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="auth-form">
-              {error && (
-                <div className="auth-error-message">
-                  {error}
+            {step === 1 ? (
+              <>
+                <div className="auth-form-header">
+                  <h2 className="auth-form-title">Recruiter Registration</h2>
+                  <p className="auth-form-subtitle">Hire the best emerging talent today.</p>
                 </div>
-              )}
 
-              <div className="form-group">
-                <label>Work Email</label>
-                <div className="input-with-icon">
-                  <Mail className="input-icon" size={18} />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input"
-                    placeholder="you@company.com"
-                    required
-                  />
+                <form onSubmit={handleSubmit} className="auth-form">
+                  {error && (
+                    <div className="auth-error-message">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Work Email</label>
+                    <div className="input-with-icon">
+                      <Mail className="input-icon" size={18} />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input"
+                        placeholder="you@company.com"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Password</label>
+                    <div className="input-with-icon">
+                      <Lock className="input-icon" size={18} />
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="input"
+                        placeholder="Min. 6 characters"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || googleLoading}
+                    className="auth-submit-btn recruiter-btn"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="animate-spin" size={18} />
+                        <span>Creating Account...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Sign Up as Recruiter</span>
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={loading || googleLoading}
+                    onClick={handleGoogleSignUp}
+                    className="auth-submit-btn google-btn"
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    {googleLoading ? (
+                      <>
+                        <Loader2 className="animate-spin" size={18} />
+                        <span>Continue with Google...</span>
+                      </>
+                    ) : (
+                      <>
+                        <GoogleIcon />
+                        <span>Sign Up with Google</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="auth-form-header">
+                  <h2 className="auth-form-title">Create your profile</h2>
+                  <p className="auth-form-subtitle">This will be saved to your recruiter profile.</p>
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label>Password</label>
-                <div className="input-with-icon">
-                  <Lock className="input-icon" size={18} />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input"
-                    placeholder="Min. 6 characters"
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
+                <form onSubmit={handleProfileSubmit} className="auth-form">
+                  {error && (
+                    <div className="auth-error-message">
+                      {error}
+                    </div>
+                  )}
 
-              <button
-                type="submit"
-                disabled={loading || googleLoading}
-                className="auth-submit-btn recruiter-btn"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    <span>Creating Account...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign Up as Recruiter</span>
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
+                  <div className="form-group">
+                    <label htmlFor="recruiter-full-name">Full name</label>
+                    <div className="input-with-icon">
+                      <User className="input-icon" size={18} />
+                      <input
+                        id="recruiter-full-name"
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="input"
+                        placeholder="Your name"
+                      />
+                    </div>
+                  </div>
 
-              <button
-                type="button"
-                disabled={loading || googleLoading}
-                onClick={handleGoogleSignUp}
-                className="auth-submit-btn google-btn"
-                style={{ marginTop: '0.75rem' }}
-              >
-                {googleLoading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    <span>Continue with Google...</span>
-                  </>
-                ) : (
-                  <>
-                    <GoogleIcon />
-                    <span>Sign Up with Google</span>
-                  </>
-                )}
-              </button>
-            </form>
+                  <div className="form-group">
+                    <label htmlFor="recruiter-job-title">Job title</label>
+                    <div className="input-with-icon">
+                      <Briefcase className="input-icon" size={18} />
+                      <input
+                        id="recruiter-job-title"
+                        type="text"
+                        value={jobTitle}
+                        onChange={(e) => setJobTitle(e.target.value)}
+                        className="input"
+                        placeholder="e.g. Technical Recruiter"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="recruiter-location">Location</label>
+                    <div className="input-with-icon">
+                      <MapPin className="input-icon" size={18} />
+                      <input
+                        id="recruiter-location"
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="input"
+                        placeholder="e.g. San Francisco, CA"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="auth-submit-btn recruiter-btn"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="animate-spin" size={18} />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Finish & go to dashboard</span>
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            )}
 
             <div className="auth-form-footer">
               <p>
